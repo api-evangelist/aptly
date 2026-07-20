@@ -1,0 +1,42 @@
+generated: '2026-07-18'
+method: searched
+source: openapi/aptly-openapi-original.yml
+docs: https://docs.getaptly.com/authentication
+notes: >-
+  Core API uses a static API key passed as the `x-token` header (or `x-token`
+  query parameter) against https://core-api.getaptly.com. Keys are created per
+  company (Board -> Card Sources -> API), work across all boards where the API is
+  enabled, and can carry an optional expiry. Two additional credentials exist:
+  DelegateToken (short-lived scoped JWT for embedded apps / on-behalf-of a user,
+  `Authorization: DelegateToken <token>`) and PartnerBearer (partner token,
+  `Authorization: Bearer <token>`). Delegate scopes are per resource family
+  (boards/inboxes/contacts/files/tasks/email/templates/routing-groups, each
+  read/write). The separate Portal API (app.getaptly.com/api/portal) uses JWT
+  contact-session auth. Errors: 401 missing/invalid/expired key, 403 API not
+  enabled for board, 404 board/card not in company.
+summary:
+  types:
+  - apiKey
+  - http
+  api_key_in:
+  - header
+schemes:
+- name: ApiKeyHeader
+  type: apiKey
+  in: header
+  parameter: x-token
+  sources:
+  - openapi/aptly-openapi-original.yml
+- name: DelegateToken
+  type: apiKey
+  in: header
+  parameter: Authorization
+  description: 'Delegate token issued by the platform. Format: `DelegateToken <token>`'
+  sources:
+  - openapi/aptly-openapi-original.yml
+- name: PartnerBearer
+  type: http
+  scheme: bearer
+  description: 'Partner token. Format: `Authorization: Bearer <token>`'
+  sources:
+  - openapi/aptly-openapi-original.yml
