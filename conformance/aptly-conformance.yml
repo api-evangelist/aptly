@@ -1,0 +1,35 @@
+generated: '2026-07-18'
+method: derived
+source: openapi/aptly-openapi-original.yml
+standards:
+  - id: rest
+    conforms: true
+    evidence: Resource-oriented HTTP+JSON API over /api/* with standard verbs and status codes.
+  - id: openapi-3.0
+    conforms: true
+    evidence: Provider publishes an OpenAPI 3.0.3 document at https://docs.getaptly.com/openapi.yaml.
+  - id: api-key-auth
+    conforms: true
+    evidence: securitySchemes ApiKeyHeader (apiKey in header x-token).
+  - id: oauth2
+    conforms: false
+    evidence: No oauth2 securityScheme; auth is static API key + delegate/partner tokens.
+  - id: oidc
+    conforms: false
+  - id: rfc9457-problem-details
+    conforms: false
+    evidence: >-
+      Error responses use application/json with a { error, message } envelope,
+      not application/problem+json.
+  - id: offset-pagination
+    conforms: true
+    evidence: List endpoints use page/limit with a total field (docs/pagination).
+  - id: idempotency-keys
+    conforms: false
+    evidence: No Idempotency-Key header/param documented.
+  - id: rfc9116-security-txt
+    conforms: false
+    evidence: No /.well-known/security.txt served (200 not returned).
+  - id: mcp
+    conforms: true
+    evidence: Official hosted MCP server at https://mcp.getaptly.com/mcp (Model Context Protocol).

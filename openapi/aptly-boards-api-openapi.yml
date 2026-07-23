@@ -1,0 +1,115 @@
+openapi: 3.0.3
+info:
+  title: Aptly App Boards API
+  version: '1.0'
+  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+
+
+    All requests require an API key passed as the `x-token` header.
+
+    API keys are scoped to your company and work across all boards.
+
+    '
+servers:
+- url: https://core-api.getaptly.com
+  description: Production
+security:
+- ApiKeyHeader: []
+tags:
+- name: Boards
+paths:
+  /api/boards:
+    get:
+      summary: List boards
+      description: 'Returns all boards in your company that have API access enabled.
+
+        Each board includes its UUID, display name, and a list of pre-built endpoint URLs
+
+        you can use to interact with cards on that board.
+
+
+        Accepts an API key (`x-token`) or a delegate token (`Authorization: DelegateToken <token>`).
+
+        '
+      operationId: listBoards
+      tags:
+      - Boards
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      responses:
+        '200':
+          description: List of API-enabled boards.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Board'
+              example:
+                data:
+                - uuid: abc-123-board
+                  name: Leases
+                  endpoints:
+                  - method: GET
+                    url: https://core-api.getaptly.com/api/board/abc-123-board
+                    description: 'List cards (query: page, pageSize, updatedAtMin, includeArchived)'
+                  - method: POST
+                    url: https://core-api.getaptly.com/api/board/abc-123-board
+                    description: Create or update a card
+        '401':
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+    Board:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: Board UUID — use this as `boardId` in board/card endpoints.
+        name:
+          type: string
+          description: Display name of the board.
+        endpoints:
+          type: array
+          description: Pre-built endpoint URLs for this board.
+          items:
+            type: object
+            properties:
+              method:
+                type: string
+                description: HTTP method.
+              url:
+                type: string
+                description: Full endpoint URL.
+              description:
+                type: string
+                description: What the endpoint does.
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-token
+    DelegateToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Delegate token issued by the platform. Format: `DelegateToken <token>`'
+    PartnerBearer:
+      type: http
+      scheme: bearer
+      description: 'Partner token. Format: `Authorization: Bearer <token>`'

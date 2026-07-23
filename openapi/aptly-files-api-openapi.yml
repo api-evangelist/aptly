@@ -1,0 +1,188 @@
+openapi: 3.0.3
+info:
+  title: Aptly App Files API
+  version: '1.0'
+  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+
+
+    All requests require an API key passed as the `x-token` header.
+
+    API keys are scoped to your company and work across all boards.
+
+    '
+servers:
+- url: https://core-api.getaptly.com
+  description: Production
+security:
+- ApiKeyHeader: []
+tags:
+- name: Files
+paths:
+  /api/files/upload-url:
+    post:
+      summary: Get a presigned URL for a direct file upload
+      description: "First step of the direct file-upload flow. Issues a presigned S3 POST\npolicy and records a pending upload.\n\n**Uploading a file takes three steps:**\n\n1. **Get a URL** — call this endpoint. It returns `{ fileId, url, fields }`.\n2. **Upload directly to S3** — send a `multipart/form-data` `POST` to\n   `url`. Include **every** key/value from `fields` as form fields first,\n   then the file itself as the last field named `file`. The upload goes\n   straight to S3; it does not pass through this API. A successful upload\n   returns HTTP `204` from S3.\n3. **Mark the upload complete** — call\n   `POST /api/files/upload-complete` with the `fileId` from step 1. This\n   records the file and returns its download URL.\n\nThe presigned policy enforces the content type and a 1 byte–50 MB size\nrange. Both `extension` and `contentType` must be on the accepted lists.\n\n`attachEntityType` is `channel`, `aptlet`, or `knowledge`, and\n`attachEntityId` is the channel id, aptlet uuid, or knowledge doc id\nrespectively. The target must exist (scoped to your company) or the\nrequest is rejected. The file is stored under that entity's folder.\n"
+      operationId: getFileUploadUrl
+      tags:
+      - Files
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              - extension
+              - size
+              - contentType
+              - attachEntityType
+              - attachEntityId
+              properties:
+                name:
+                  type: string
+                  description: Original file name.
+                  example: invoice.pdf
+                extension:
+                  type: string
+                  description: File extension (lowercase, no dot). Must be an accepted extension.
+                  example: pdf
+                size:
+                  type: integer
+                  description: File size in bytes. Must be 1–52428800 (50 MB).
+                  example: 20480
+                contentType:
+                  type: string
+                  description: MIME type. Must be an accepted content type.
+                  example: application/pdf
+                attachEntityType:
+                  type: string
+                  enum:
+                  - channel
+                  - aptlet
+                  - knowledge
+                  description: The kind of entity the file is attached to.
+                  example: channel
+                attachEntityId:
+                  type: string
+                  description: The channel id (`channel`), aptlet uuid (`aptlet`), or knowledge doc id (`knowledge`) the file belongs to. Must exist within your company.
+                  example: 7f3c2a1b9d4e5f6a7b8c9d0e
+      responses:
+        '200':
+          description: Presigned upload policy.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fileId:
+                    type: string
+                    description: ID to pass to `/api/files/upload-complete`.
+                  url:
+                    type: string
+                    description: S3 endpoint to POST the multipart form to.
+                  fields:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    description: Form fields that must be included in the multipart POST (the file part goes last).
+        '400':
+          description: Invalid or unsupported file, or missing required field.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing credential.
+        '404':
+          description: Target channel, aptlet, or knowledge doc not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/files/upload-complete:
+    post:
+      summary: Finalize a direct file upload
+      description: 'Final (third) step of the direct file-upload flow. Confirms the file
+
+        was uploaded to S3 and records it. Call this with the `fileId` from
+
+        `/api/files/upload-url` after the `multipart/form-data` POST to the
+
+        presigned `url` succeeded. Returns the file''s download URL.
+
+        '
+      operationId: completeFileUpload
+      tags:
+      - Files
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - fileId
+              properties:
+                fileId:
+                  type: string
+                  description: The `fileId` returned by `/api/files/upload-url`.
+      responses:
+        '200':
+          description: Upload finalized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fileId:
+                    type: string
+                    description: ID of the stored file.
+                  url:
+                    type: string
+                    description: Download URL for the stored file.
+        '400':
+          description: Missing fileId or the upload was already completed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing credential.
+        '404':
+          description: No pending upload found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-token
+    DelegateToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Delegate token issued by the platform. Format: `DelegateToken <token>`'
+    PartnerBearer:
+      type: http
+      scheme: bearer
+      description: 'Partner token. Format: `Authorization: Bearer <token>`'

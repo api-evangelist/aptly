@@ -1,0 +1,85 @@
+openapi: 3.0.3
+info:
+  title: Aptly App Company API
+  version: '1.0'
+  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+
+
+    All requests require an API key passed as the `x-token` header.
+
+    API keys are scoped to your company and work across all boards.
+
+    '
+servers:
+- url: https://core-api.getaptly.com
+  description: Production
+security:
+- ApiKeyHeader: []
+tags:
+- name: Company
+paths:
+  /api/company/info:
+    get:
+      summary: Get company info
+      description: Returns the name, address, contact details, and logo URL for the company associated with the API key.
+      operationId: getCompanyInfo
+      tags:
+      - Company
+      security:
+      - ApiKeyHeader: []
+      responses:
+        '200':
+          description: Company information.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    nullable: true
+                  address:
+                    type: object
+                    properties:
+                      street:
+                        type: string
+                        nullable: true
+                      city:
+                        type: string
+                        nullable: true
+                      state:
+                        type: string
+                        nullable: true
+                      zip:
+                        type: string
+                        nullable: true
+                  phone:
+                    type: string
+                    nullable: true
+                  phone2:
+                    type: string
+                    nullable: true
+                  website:
+                    type: string
+                    nullable: true
+                  logo:
+                    type: string
+                    nullable: true
+                    description: Absolute URL to the company logo thumbnail.
+        '401':
+          description: Invalid or missing API key.
+components:
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-token
+    DelegateToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Delegate token issued by the platform. Format: `DelegateToken <token>`'
+    PartnerBearer:
+      type: http
+      scheme: bearer
+      description: 'Partner token. Format: `Authorization: Bearer <token>`'

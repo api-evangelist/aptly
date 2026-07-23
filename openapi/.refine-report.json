@@ -1,0 +1,42 @@
+{
+  "provider": "aptly",
+  "sources": [
+    "aptly-app-api-openapi.yml",
+    "aptly-board-api-openapi.yml",
+    "aptly-boards-api-openapi.yml",
+    "aptly-cards-api-openapi.yml",
+    "aptly-company-api-openapi.yml",
+    "aptly-contacts-api-openapi.yml",
+    "aptly-email-api-openapi.yml",
+    "aptly-files-api-openapi.yml",
+    "aptly-inboxes-api-openapi.yml",
+    "aptly-knowledge-api-openapi.yml",
+    "aptly-routinggroups-api-openapi.yml",
+    "aptly-schema-api-openapi.yml",
+    "aptly-tasks-api-openapi.yml",
+    "aptly-templates-api-openapi.yml",
+    "aptly-users-api-openapi.yml"
+  ],
+  "outputs": [
+    "aptly-app-api-openapi.yml",
+    "aptly-board-api-openapi.yml",
+    "aptly-boards-api-openapi.yml",
+    "aptly-cards-api-openapi.yml",
+    "aptly-company-api-openapi.yml",
+    "aptly-contacts-api-openapi.yml",
+    "aptly-email-api-openapi.yml",
+    "aptly-files-api-openapi.yml",
+    "aptly-inboxes-api-openapi.yml",
+    "aptly-knowledge-api-openapi.yml",
+    "aptly-routinggroups-api-openapi.yml",
+    "aptly-schema-api-openapi.yml",
+    "aptly-tasks-api-openapi.yml",
+    "aptly-templates-api-openapi.yml",
+    "aptly-users-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [],
+  "skipped": []
+}

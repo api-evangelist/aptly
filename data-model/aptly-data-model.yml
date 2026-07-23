@@ -1,0 +1,145 @@
+generated: '2026-07-18'
+method: derived
+source: openapi/aptly-openapi-original.yml
+enriched_from: https://docs.getaptly.com/introduction
+summary: >-
+  Entity-relationship graph derived from the Aptly OpenAPI component schemas and
+  the id-reference fields used across operations. Aptly organizes property-
+  management work as Cards on Boards, scoped to a Company; Contacts, Users,
+  Tasks, Knowledge docs, Templates and Routing groups hang off the same company.
+id_fields:
+  company: companyId
+  board: boardUuid / aptletUuid
+  card: cardId / _id / aptletInstanceId
+  contact: contactId / _id
+  task: taskId
+  user: userId / assignee
+  inbox_channel: channelId
+  email_thread: streamId / discussionId
+  draft: draftUuid / uuid
+  knowledge_doc: id / parentId
+  file: fileId
+entities:
+  - name: Company
+    schema: (implicit)
+    description: Top-level account scope for API keys; owns all other objects.
+  - name: Board
+    schema: Board
+    description: Workspace (UUID-identified) tracking a workflow; typed ticket/deal/location/adsource/reviews/screening/answers.
+  - name: Card
+    schema: Card
+    description: Individual record on a board; field values keyed by field UUID.
+  - name: SchemaField
+    schema: SchemaField / BoardField
+    description: Structured column/field definition on a board (discovered via the schema endpoint).
+  - name: Contact
+    schema: Contact
+    description: Person record scoped to the company, linkable to cards via person fields.
+  - name: Comment
+    schema: Comment
+    description: Comment on a card, authored by a user.
+  - name: Task
+    schema: Task
+    description: Task for the company, optionally mirrored as a checklist entry on a card.
+  - name: KnowledgeDoc
+    schema: KnowledgeDoc
+    description: Knowledge/help document, optionally bound to a board, card, or parent doc.
+  - name: Template
+    schema: Template
+    description: Communication template for the company.
+  - name: RoutingGroup
+    schema: (implicit)
+    description: Call/message routing group (simultaneous or sequential ring).
+  - name: TabView
+    schema: TabView
+    description: Embedded page attached to a board's tab list.
+  - name: Automation
+    schema: Automation
+    description: Automation configured on a board.
+  - name: User
+    schema: (implicit)
+    description: Member of the company; can be assignee of cards/tasks and own inboxes.
+  - name: Inbox
+    schema: (implicit)
+    description: Email/phone channel (Hermes/Nylas) accessible to a user; personal or shared.
+relationships:
+  - from: Company
+    to: Board
+    type: has_many
+    via: companyId
+  - from: Company
+    to: Contact
+    type: has_many
+    via: companyId
+  - from: Company
+    to: User
+    type: has_many
+    via: companyId
+  - from: Company
+    to: Template
+    type: has_many
+    via: companyId
+  - from: Company
+    to: RoutingGroup
+    type: has_many
+    via: companyId
+  - from: Board
+    to: Card
+    type: has_many
+    via: boardUuid
+  - from: Board
+    to: SchemaField
+    type: has_many
+    via: boardUuid
+  - from: Board
+    to: Automation
+    type: has_many
+    via: boardUuid
+  - from: Board
+    to: TabView
+    type: has_many
+    via: boardUuid
+  - from: Card
+    to: Board
+    type: belongs_to
+    via: boardUuid
+  - from: Card
+    to: Comment
+    type: has_many
+    via: cardId
+  - from: Card
+    to: Task
+    type: has_many
+    via: aptletInstanceId
+  - from: Card
+    to: Contact
+    type: has_many
+    via: person-field
+  - from: Comment
+    to: User
+    type: belongs_to
+    via: userId
+  - from: Task
+    to: Card
+    type: belongs_to
+    via: aptletInstanceId
+  - from: Task
+    to: User
+    type: belongs_to
+    via: assignee
+  - from: KnowledgeDoc
+    to: Board
+    type: belongs_to
+    via: aptletUuid
+  - from: KnowledgeDoc
+    to: Card
+    type: belongs_to
+    via: aptletInstanceId
+  - from: KnowledgeDoc
+    to: KnowledgeDoc
+    type: belongs_to
+    via: parentId
+  - from: Inbox
+    to: User
+    type: belongs_to
+    via: userId

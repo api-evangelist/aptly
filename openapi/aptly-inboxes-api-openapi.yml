@@ -1,0 +1,171 @@
+openapi: 3.0.3
+info:
+  title: Aptly App Inboxes API
+  version: '1.0'
+  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+
+
+    All requests require an API key passed as the `x-token` header.
+
+    API keys are scoped to your company and work across all boards.
+
+    '
+servers:
+- url: https://core-api.getaptly.com
+  description: Production
+security:
+- ApiKeyHeader: []
+tags:
+- name: Inboxes
+paths:
+  /api/inboxes/{channelId}/drafts:
+    get:
+      summary: List unsent drafts on an inbox
+      description: 'Returns the unsent drafts on the given email inbox. The inbox is identified
+
+        by its `channelId` — the same value returned as `channelId` from
+
+        `GET /api/users/{userId}/inboxes`.
+
+
+        Each item in the response is a draft entry with the parent discussion''s
+
+        `streamId` attached. Drafts currently in the process of sending (after
+
+        `POST /api/email/send` was called and before the upstream provider accepts
+
+        the message) are excluded.
+
+
+        With API-key auth the only scope check is that the inbox belongs to your
+
+        company. With delegate-token auth (`email:*` scope) the inbox must also be
+
+        one the authenticated user can reach personally or via a team membership.
+
+        '
+      operationId: listInboxDrafts
+      tags:
+      - Inboxes
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: channelId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: External channel meta ID (`meta.id`) of the inbox.
+      responses:
+        '200':
+          description: List of unsent drafts on the inbox.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        streamId:
+                          type: string
+                          description: ID of the discussion the draft belongs to.
+                        uuid:
+                          type: string
+                          description: Draft entry UUID — pass as `uuid` to `POST /api/email/send`.
+                        channelId:
+                          type: string
+                          description: External channel meta ID this draft will be sent from.
+                        subject:
+                          type: string
+                          nullable: true
+                        content:
+                          type: string
+                          nullable: true
+                          description: HTML body of the draft (Email type).
+                        to:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              value:
+                                type: string
+                              label:
+                                type: string
+                                nullable: true
+                        cc:
+                          type: array
+                          items:
+                            type: object
+                        bcc:
+                          type: array
+                          items:
+                            type: object
+                        attachments:
+                          type: array
+                          items:
+                            type: object
+                        ownerId:
+                          type: string
+                          nullable: true
+                        sentBy:
+                          type: string
+                          nullable: true
+                        addedToOutboxAt:
+                          type: string
+                          format: date-time
+                          nullable: true
+              example:
+                data:
+                - streamId: stm_abc
+                  uuid: drf_123
+                  channelId: acc-1
+                  subject: Welcome
+                  content: <p>Hi there</p>
+                  to:
+                  - value: tenant@example.com
+                  cc: []
+                  bcc: []
+                  attachments: []
+                  ownerId: u_42
+                  sentBy: u_42
+                  addedToOutboxAt: '2026-05-25T18:14:00.000Z'
+        '401':
+          description: Invalid or missing API key, or inbox not accessible.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Inbox not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-token
+    DelegateToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Delegate token issued by the platform. Format: `DelegateToken <token>`'
+    PartnerBearer:
+      type: http
+      scheme: bearer
+      description: 'Partner token. Format: `Authorization: Bearer <token>`'

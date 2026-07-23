@@ -1,0 +1,47 @@
+generated: '2026-07-18'
+method: searched
+source: https://docs.getaptly.com/aptly-sdk-reference
+summary: >-
+  Aptly ships a client-side JavaScript SDK (the window.aptly object) for building
+  embedded apps, dashboards, and iframe plugins that render inside the Aptly UI —
+  distinct from any server-side HTTP client. It provides delegate auth, user
+  identity, scoped config variables, and UI action triggers, plus embeddable
+  external forms.
+families:
+  - name: Aptly SDK (window.aptly)
+    kind: embedded-app-sdk
+    docs: https://docs.getaptly.com/aptly-sdk-reference
+    description: >-
+      JavaScript object injected into embedded apps/dashboards. Exposes user
+      identity, delegate tokens, config-variable scoping, and dev testing URL
+      params so a custom page can read and write Aptly data directly.
+    guide: https://docs.getaptly.com/building-embedded-apps-&-dashboards
+  - name: Embed App Actions
+    kind: ui-action-bridge
+    docs: https://docs.getaptly.com/embed-actions
+    description: >-
+      Trigger Aptly UI interactions from an embedded iframe via the SDK or raw
+      postMessage. Nine granted-per-embed actions.
+    methods:
+      - aptly.openCardPane
+      - aptly.openCardView
+      - aptly.startDialer
+      - aptly.openEmailComposer
+      - aptly.createEvent
+      - aptly.createCard
+      - aptly.createTask
+      - aptly.createContact
+      - aptly.navigateToContact
+      - aptly.action
+    capability_probe: aptly.actions
+  - name: Tab Views
+    kind: embedded-page
+    description: >-
+      Embed an external URL as a board tab via POST /api/board/{boardId}/configuration/tabViews.
+    source_operation: openapi/aptly-openapi-original.yml#postTabView
+  - name: Embeddable Forms
+    kind: hosted-form
+    docs: https://docs.getaptly.com/portal/api-forms
+    description: >-
+      Embeddable external forms with location search for third-party websites
+      (get form definition, search locations, submit a completed form).

@@ -1,0 +1,240 @@
+openapi: 3.0.3
+info:
+  title: Aptly App Knowledge API
+  version: '1.0'
+  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+
+
+    All requests require an API key passed as the `x-token` header.
+
+    API keys are scoped to your company and work across all boards.
+
+    '
+servers:
+- url: https://core-api.getaptly.com
+  description: Production
+security:
+- ApiKeyHeader: []
+tags:
+- name: Knowledge
+paths:
+  /api/knowledge/create:
+    post:
+      summary: Create a knowledge document
+      description: 'Creates a new knowledge document scoped to your company. Optionally associates the
+
+        document with a board (`aptletUuid`), a card (`aptletInstanceId`), or a parent
+
+        document (`parentId`).
+
+
+        HTML content is accepted and stored internally as a structured document format.
+
+        '
+      operationId: createKnowledgeDoc
+      tags:
+      - Knowledge
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              properties:
+                name:
+                  type: string
+                  description: Document title.
+                html:
+                  type: string
+                  description: Initial HTML content for the document body.
+                aptletUuid:
+                  type: string
+                  description: UUID of the board to associate this document with.
+                aptletInstanceId:
+                  type: string
+                  description: Card ID to link this document to. Creates a reference on the card.
+                parentId:
+                  type: string
+                  description: ID of a parent knowledge document (for nested pages).
+                accessType:
+                  type: string
+                  enum:
+                  - public
+                  - private
+                  description: Access level. Defaults to `public`.
+            example:
+              name: Lease Addendum Policy
+              html: <p>This policy applies to all lease agreements...</p>
+              accessType: private
+      responses:
+        '201':
+          description: Document created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                    description: ID of the created document.
+                  name:
+                    type: string
+        '401':
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Card or parent document not found (when `aptletInstanceId` or `parentId` provided).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/knowledge/{id}:
+    get:
+      summary: Get a knowledge document
+      description: Returns a knowledge document's content rendered as HTML.
+      operationId: getKnowledgeDoc
+      tags:
+      - Knowledge
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The knowledge document ID.
+      responses:
+        '200':
+          description: Knowledge document content.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KnowledgeDoc'
+              example:
+                _id: kdoc_abc123
+                name: Lease Addendum Policy
+                html: <p>This policy applies to all lease agreements...</p>
+        '401':
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Document not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update a knowledge document
+      description: 'Updates a knowledge document''s content and/or metadata. Only fields provided in the
+
+        request body are updated — omitted fields are left unchanged.
+
+        '
+      operationId: updateKnowledgeDoc
+      tags:
+      - Knowledge
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The knowledge document ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: New document title.
+                html:
+                  type: string
+                  description: Replacement HTML content for the document body.
+                accessType:
+                  type: string
+                  enum:
+                  - public
+                  - private
+                  description: New access level.
+            example:
+              name: Updated Lease Addendum Policy
+              html: <p>Revised policy effective March 2026...</p>
+      responses:
+        '200':
+          description: Document updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+        '401':
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Document not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    KnowledgeDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Document ID.
+        name:
+          type: string
+          description: Document title.
+        html:
+          type: string
+          description: Document body rendered as HTML.
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-token
+    DelegateToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Delegate token issued by the platform. Format: `DelegateToken <token>`'
+    PartnerBearer:
+      type: http
+      scheme: bearer
+      description: 'Partner token. Format: `Authorization: Bearer <token>`'

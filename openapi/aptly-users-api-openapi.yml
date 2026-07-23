@@ -1,0 +1,190 @@
+openapi: 3.0.3
+info:
+  title: Aptly App Users API
+  version: '1.0'
+  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+
+
+    All requests require an API key passed as the `x-token` header.
+
+    API keys are scoped to your company and work across all boards.
+
+    '
+servers:
+- url: https://core-api.getaptly.com
+  description: Production
+security:
+- ApiKeyHeader: []
+tags:
+- name: Users
+paths:
+  /api/users:
+    get:
+      summary: List users
+      description: 'Returns all non-archived users for the API key''s company.
+
+        '
+      operationId: listUsers
+      tags:
+      - Users
+      security:
+      - ApiKeyHeader: []
+      responses:
+        '200':
+          description: List of users.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          description: User ID.
+                        name:
+                          type: string
+                          description: Full name (firstname + lastname).
+                        role:
+                          type: string
+                          nullable: true
+                          description: Role name, or null if the role has been deleted.
+              example:
+                data:
+                - _id: abc123
+                  name: Alice Smith
+                  role: Admin
+                - _id: def456
+                  name: Bob Jones
+                  role: Staff
+        '401':
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/users/{userId}/inboxes:
+    get:
+      summary: List a user's email inboxes
+      description: 'Returns the email inboxes (Hermes/Nylas channels) accessible to the given user
+
+        within your company. Includes personal inboxes (where the user is a direct member)
+
+        and shared inboxes the user can access via team membership.
+
+
+        Each inbox is tagged `kind: "personal"` (`isShared` is false and the user is in the
+
+        channel''s `userIds`) or `kind: "shared"` (channel marked `isShared`, or accessible
+
+        only through a team membership).
+
+
+        The user must belong to the company associated with your API key. Returns `401` if
+
+        the user does not belong to your company.
+
+        '
+      operationId: listUserInboxes
+      tags:
+      - Users
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The user's ID.
+      responses:
+        '200':
+          description: List of inboxes accessible to the user.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          description: Channel document ID.
+                        channelId:
+                          type: string
+                          nullable: true
+                          description: External channel meta ID (`meta.id`).
+                        type:
+                          type: string
+                          description: 'Channel transport type: `Hermes` or `Nylas`.'
+                        provider:
+                          type: string
+                          nullable: true
+                          description: Upstream provider, e.g. `google`, `office365`.
+                        email:
+                          type: string
+                          nullable: true
+                          description: Email address of the inbox.
+                        name:
+                          type: string
+                          nullable: true
+                          description: Display name of the inbox.
+                        kind:
+                          type: string
+                          enum:
+                          - personal
+                          - shared
+                          description: Whether the user has personal or shared access.
+              example:
+                data:
+                - _id: ch_abc
+                  channelId: acc-1
+                  type: Hermes
+                  provider: google
+                  email: alice@example.com
+                  name: Alice's Inbox
+                  kind: personal
+                - _id: ch_def
+                  channelId: acc-2
+                  type: Hermes
+                  provider: google
+                  email: leasing@example.com
+                  name: Leasing Team
+                  kind: shared
+        '401':
+          description: Invalid or missing API key, or user does not belong to your company.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-token
+    DelegateToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Delegate token issued by the platform. Format: `DelegateToken <token>`'
+    PartnerBearer:
+      type: http
+      scheme: bearer
+      description: 'Partner token. Format: `Authorization: Bearer <token>`'

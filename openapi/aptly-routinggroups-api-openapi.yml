@@ -1,0 +1,270 @@
+openapi: 3.0.3
+info:
+  title: Aptly App RoutingGroups API
+  version: '1.0'
+  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+
+
+    All requests require an API key passed as the `x-token` header.
+
+    API keys are scoped to your company and work across all boards.
+
+    '
+servers:
+- url: https://core-api.getaptly.com
+  description: Production
+security:
+- ApiKeyHeader: []
+tags:
+- name: RoutingGroups
+paths:
+  /api/routing-groups:
+    get:
+      summary: List routing groups
+      description: Returns all active routing groups for the authenticated company.
+      operationId: listRoutingGroups
+      tags:
+      - RoutingGroups
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      responses:
+        '200':
+          description: Array of routing groups.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    name:
+                      type: string
+                    type:
+                      type: string
+                      enum:
+                      - simultaneous
+                      - sequential
+                    destination:
+                      type: object
+                    ringDurationSeconds:
+                      type: number
+                    callerExperience:
+                      type: object
+                    maxWaitSeconds:
+                      type: number
+                    overflow:
+                      type: object
+                    archived:
+                      type: boolean
+        '401':
+          description: Invalid or missing credential.
+  /api/routing-groups/create:
+    post:
+      summary: Create a routing group
+      description: Creates a new routing group for the authenticated company. Returns the new group's ID.
+      operationId: createRoutingGroup
+      tags:
+      - RoutingGroups
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              - type
+              properties:
+                name:
+                  type: string
+                  description: Display name for the routing group.
+                type:
+                  type: string
+                  enum:
+                  - simultaneous
+                  - sequential
+                  description: Ring mode. `simultaneous` rings all members at once; `sequential` tries each in order.
+                destination:
+                  type: object
+                  description: Ring target configuration. Supports `ringType` of `user`, `phone`, `browser`, `agent`, or `multi`.
+                ringDurationSeconds:
+                  type: number
+                  description: How long (in seconds) to ring each target before moving on. Defaults to 20.
+                callerExperience:
+                  type: object
+                  description: Caller-side experience config. Set `mode` to `ring` (default) or `hold-music`.
+                maxWaitSeconds:
+                  type: number
+                  description: Maximum time (in seconds) a caller will wait before overflow handling triggers.
+                overflow:
+                  type: object
+                  description: Overflow/voicemail config. Supports `greetingText` and `voicemailNotification` (array of emails).
+            example:
+              name: Support Queue
+              type: simultaneous
+              destination:
+                ringType: multi
+                ringToList: []
+              ringDurationSeconds: 20
+              callerExperience:
+                mode: ring
+      responses:
+        '200':
+          description: Routing group created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                    description: ID of the created routing group.
+        '400':
+          description: Missing or invalid field (`name` required; `type` must be simultaneous or sequential).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing credential.
+  /api/routing-groups/{id}:
+    put:
+      summary: Update a routing group
+      description: 'Updates an existing routing group. All fields are optional — only provided fields are changed.
+
+        Pass `null` for a field to clear it.
+
+        '
+      operationId: updateRoutingGroup
+      tags:
+      - RoutingGroups
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The routing group ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                type:
+                  type: string
+                  enum:
+                  - simultaneous
+                  - sequential
+                destination:
+                  type: object
+                  description: Ring target configuration.
+                ringDurationSeconds:
+                  type: number
+                callerExperience:
+                  type: object
+                maxWaitSeconds:
+                  type: number
+                overflow:
+                  type: object
+            example:
+              name: Support Queue
+              ringDurationSeconds: 30
+              overflow:
+                greetingText: Please leave a message.
+                voicemailNotification:
+                - support@example.com
+      responses:
+        '200':
+          description: Routing group updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+        '400':
+          description: Invalid field value (e.g. unrecognized `type`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing credential.
+        '404':
+          description: Routing group not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/routing-groups/{id}/archive:
+    post:
+      summary: Archive a routing group
+      description: Soft-deletes a routing group. Archived groups are excluded from list results and cannot be updated.
+      operationId: archiveRoutingGroup
+      tags:
+      - RoutingGroups
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The routing group ID.
+      responses:
+        '200':
+          description: Routing group archived.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+        '401':
+          description: Invalid or missing credential.
+        '404':
+          description: Routing group not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-token
+    DelegateToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Delegate token issued by the platform. Format: `DelegateToken <token>`'
+    PartnerBearer:
+      type: http
+      scheme: bearer
+      description: 'Partner token. Format: `Authorization: Bearer <token>`'

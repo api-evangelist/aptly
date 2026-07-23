@@ -1,0 +1,300 @@
+openapi: 3.0.3
+info:
+  title: Aptly App Email API
+  version: '1.0'
+  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+
+
+    All requests require an API key passed as the `x-token` header.
+
+    API keys are scoped to your company and work across all boards.
+
+    '
+servers:
+- url: https://core-api.getaptly.com
+  description: Production
+security:
+- ApiKeyHeader: []
+tags:
+- name: Email
+paths:
+  /api/email/create-draft:
+    post:
+      summary: Create an email draft
+      description: "Creates a new outbound email discussion (stream) with a single draft entry, scoped to\nyour company. Returns the `streamId` and `draftUuid` needed to send via\n`POST /api/email/send`.\n\nRecipient fields (`to`, `cc`, `bcc`) accept an array of `{ value, label? }` objects\nwhere `value` is the email address.\n\n### Adding attachments\n\nAttachments must be uploaded to storage **before** you reference them here — you\ncannot post file bytes to this endpoint. Upload each file with the three-step direct\nupload flow, then attach it:\n\n1. **Get an upload URL** — `POST /api/files/upload-url` with `attachEntityType: \"channel\"`,\n   `attachEntityId` set to the same `channelId` you're emailing from, and the file's\n   `name`, `extension`, `size`, and `contentType`. It returns `{ fileId, url, fields }`.\n2. **Upload to S3** — send a `multipart/form-data` `POST` to `url`, appending every\n   entry from `fields` first and the file bytes last as a `file` field. S3 returns `204`.\n3. **Mark complete** — `POST /api/files/upload-complete` with the `fileId` from step 1.\n\nThen, on this request:\n- **Regular attachment** — add the `fileId`(s) to `attachmentIds`.\n- **Inline image** — embed an `<img>` in the HTML `body` whose `src` is the file's\n  download URL (`.../cdn/storage/AptlyFiles/<fileId>/original/...`, returned by step 3).\n  It is auto-detected and registered; do **not** also list it in `attachmentIds`.\n\nRepeat steps 1–3 per file. Each `fileId` must reference a finished upload or the\nrequest is rejected.\n"
+      operationId: createEmailDraft
+      tags:
+      - Email
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - userId
+              - channelId
+              properties:
+                userId:
+                  type: string
+                  description: User to record as the draft creator/sender.
+                channelId:
+                  type: string
+                  description: '`channel.meta.id` of the outbound email channel.'
+                discussionId:
+                  type: string
+                  description: 'When set, append the draft as a reply to this existing thread (stream
+
+                    ID) instead of starting a new discussion. The thread must belong to the
+
+                    same company and channel. The thread''s subject is kept and the draft is
+
+                    threaded onto the thread''s last message.
+
+                    '
+                to:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/EmailRecipient'
+                cc:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/EmailRecipient'
+                bcc:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/EmailRecipient'
+                subject:
+                  type: string
+                body:
+                  type: string
+                  description: 'Email body (plain text or HTML). To embed an uploaded image inline, add
+
+                    an `<img>` whose `src` is the file''s download URL from
+
+                    `POST /api/files/upload-complete`
+
+                    (`.../cdn/storage/AptlyFiles/<fileId>/original/...`). Inline images are
+
+                    auto-detected, tagged with `data-inline-image-id`, and registered on the
+
+                    draft — do not also list them in `attachmentIds`.
+
+                    '
+                attachmentIds:
+                  type: array
+                  items:
+                    type: string
+                  description: 'File ids to include as regular attachments. Upload each file first
+
+                    (`POST /api/files/upload-url` with attachEntityType `channel` and the same
+
+                    channelId → upload to S3 → `POST /api/files/upload-complete`), then pass the
+
+                    resulting `fileId`s here. Each must reference a finished upload.
+
+                    '
+                aptletInstanceId:
+                  type: string
+                  description: 'Card to link the outbound to. When set, sending the draft logs the
+
+                    email as an activity on the card and tags the discussion with it.
+
+                    '
+            example:
+              userId: user_abc
+              channelId: channel_abc
+              to:
+              - value: tenant@example.com
+                label: Jane Tenant
+              subject: Your lease renewal
+              body: Please review the attached renewal terms.
+              aptletInstanceId: card_abc
+      responses:
+        '200':
+          description: Draft stream created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  streamId:
+                    type: string
+                    description: Discussion/stream ID to pass to `POST /api/email/send`.
+                  draftUuid:
+                    type: string
+                    description: Draft UUID to pass to `POST /api/email/send`.
+        '401':
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/email/send:
+    post:
+      summary: Send an email
+      description: "Sends an outbound email scoped to your company. Two usage patterns:\n\n**From an existing draft** — provide `discussionId` and `uuid` returned by\n`POST /api/email/create-draft`. The draft's stored recipients, subject, and body are\nused.\n\n**On-the-fly** — omit `uuid` and provide `userId`, `channelId`, recipients, subject,\nand body. A draft is created automatically before sending. Supplying `discussionId`\n(without `uuid`) sends the message as a reply into that existing thread — the\nthread's subject is kept; omitting both `discussionId` and `uuid` starts a new thread.\n\n### Adding attachments\n\nAttachments apply to the **on-the-fly** pattern (for an existing draft, attach files\nwhen you call `POST /api/email/create-draft`). Upload each file with the three-step\ndirect upload flow first — you cannot post file bytes to this endpoint:\n\n1. **Get an upload URL** — `POST /api/files/upload-url` with `attachEntityType: \"channel\"`,\n   `attachEntityId` set to the same `channelId` you're sending from, and the file's\n   `name`, `extension`, `size`, and `contentType`. Returns `{ fileId, url, fields }`.\n2. **Upload to S3** — `multipart/form-data` `POST` to `url`, all `fields` first then the\n   file bytes last as a `file` field. S3 returns `204`.\n3. **Mark complete** — `POST /api/files/upload-complete` with the `fileId`.\n\nThen, on this request:\n- **Regular attachment** — add the `fileId`(s) to `attachmentIds`.\n- **Inline image** — embed an `<img>` in the HTML `body` whose `src` is the file's\n  download URL (`.../cdn/storage/AptlyFiles/<fileId>/original/...`). Auto-detected and\n  registered; do **not** also list it in `attachmentIds`.\n\nEach `fileId` must reference a finished upload.\n"
+      operationId: sendEmail
+      tags:
+      - Email
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                discussionId:
+                  type: string
+                  description: 'Stream ID from `POST /api/email/create-draft` (required if `uuid` is set).
+
+                    When supplied without `uuid`, the on-the-fly draft is appended as a reply
+
+                    into this existing thread (same company + channel) instead of starting a
+
+                    new discussion; the thread''s subject is kept.
+
+                    '
+                uuid:
+                  type: string
+                  description: Draft UUID from `POST /api/email/create-draft`. Required if `discussionId` is set.
+                failOnCreateNewThread:
+                  type: boolean
+                  default: true
+                  description: 'If `true` (default), the send fails when the email would create a new
+
+                    discussion thread rather than reply to an existing one.
+
+                    '
+                userId:
+                  type: string
+                  description: Required when sending on-the-fly (no `discussionId`/`uuid`).
+                channelId:
+                  type: string
+                  description: Required when sending on-the-fly.
+                to:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/EmailRecipient'
+                cc:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/EmailRecipient'
+                bcc:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/EmailRecipient'
+                subject:
+                  type: string
+                body:
+                  type: string
+                  description: 'Email body (plain text or HTML). To embed an uploaded image inline, add
+
+                    an `<img>` whose `src` is the file''s download URL from
+
+                    `POST /api/files/upload-complete`
+
+                    (`.../cdn/storage/AptlyFiles/<fileId>/original/...`). Inline images are
+
+                    auto-detected, tagged with `data-inline-image-id`, and registered on the
+
+                    draft — do not also list them in `attachmentIds`. Applies when the draft
+
+                    is created on-the-fly (no `discussionId`/`uuid`).
+
+                    '
+                attachmentIds:
+                  type: array
+                  items:
+                    type: string
+                  description: 'File ids to include as regular attachments (applies when the draft is
+
+                    created on-the-fly). Upload each file first (`POST /api/files/upload-url`
+
+                    with attachEntityType `channel` and the same channelId → upload to S3 →
+
+                    `POST /api/files/upload-complete`), then pass the resulting `fileId`s here.
+
+                    Each must reference a finished upload.
+
+                    '
+                aptletInstanceId:
+                  type: string
+                  description: 'Card to link the outbound to. Logs the email as an activity on the
+
+                    card and tags the discussion. Works whether the draft was pre-created
+
+                    or is created on-the-fly.
+
+                    '
+            examples:
+              from_draft:
+                summary: Send from an existing draft
+                value:
+                  discussionId: stream_abc
+                  uuid: draft_xyz
+              on_the_fly:
+                summary: On-the-fly send
+                value:
+                  userId: user_abc
+                  channelId: channel_abc
+                  to:
+                  - value: tenant@example.com
+                  subject: Your lease renewal
+                  body: Please review the attached renewal terms.
+                  aptletInstanceId: card_abc
+      responses:
+        '200':
+          description: Email sent successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+    EmailRecipient:
+      type: object
+      required:
+      - value
+      properties:
+        value:
+          type: string
+          description: Email address.
+        label:
+          type: string
+          description: Optional display name for the recipient.
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-token
+    DelegateToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Delegate token issued by the platform. Format: `DelegateToken <token>`'
+    PartnerBearer:
+      type: http
+      scheme: bearer
+      description: 'Partner token. Format: `Authorization: Bearer <token>`'

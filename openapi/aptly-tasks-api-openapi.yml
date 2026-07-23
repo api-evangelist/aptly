@@ -1,0 +1,473 @@
+openapi: 3.0.3
+info:
+  title: Aptly App Tasks API
+  version: '1.0'
+  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+
+
+    All requests require an API key passed as the `x-token` header.
+
+    API keys are scoped to your company and work across all boards.
+
+    '
+servers:
+- url: https://core-api.getaptly.com
+  description: Production
+security:
+- ApiKeyHeader: []
+tags:
+- name: Tasks
+paths:
+  /api/tasks/search:
+    post:
+      summary: Search tasks
+      description: 'Query tasks for the authenticated company. All body fields are optional filters.
+
+        Date-range filters (`dueAt`, `checkedAt`, `updatedAt`) take an object of
+
+        `{ startDate, endDate }` — either bound may be supplied independently. Set
+
+        `useCount: true` to return `{ count }` instead of `{ tasks }`.
+
+        '
+      operationId: searchTasks
+      tags:
+      - Tasks
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Restrict to tasks assigned to these user ids.
+                isChecked:
+                  type: boolean
+                  description: Filter by completion state.
+                isPinned:
+                  type: boolean
+                archived:
+                  type: boolean
+                  default: false
+                taskPriority:
+                  type: string
+                  description: One of asap|high|medium|low.
+                streamId:
+                  type: string
+                channelId:
+                  type: string
+                aptletUuid:
+                  type: string
+                  description: Board UUID.
+                aptletInstanceId:
+                  type: string
+                leaderboard:
+                  type: boolean
+                onlyAssigned:
+                  type: boolean
+                unAssigned:
+                  type: boolean
+                useCount:
+                  type: boolean
+                  description: Return a count instead of the task list.
+                limit:
+                  type: integer
+                  default: 1000
+                dueAt:
+                  $ref: '#/components/schemas/TaskDateRange'
+                checkedAt:
+                  $ref: '#/components/schemas/TaskDateRange'
+                updatedAt:
+                  $ref: '#/components/schemas/TaskDateRange'
+            example:
+              isChecked: false
+              archived: false
+              taskPriority: high
+              dueAt:
+                startDate: '2026-06-01T00:00:00.000Z'
+                endDate: '2026-06-30T00:00:00.000Z'
+              limit: 100
+      responses:
+        '200':
+          description: Matching tasks (or a count).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                  count:
+                    type: integer
+                    description: Present instead of `tasks` when `useCount` is true.
+        '400':
+          description: Invalid filter value.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing credential.
+  /api/tasks:
+    post:
+      summary: Create a task
+      description: 'Creates a task. When `aptletInstanceId` is set, the task is also mirrored as a
+
+        checklist entry on that card.
+
+
+        The task is attributed to an acting user who must belong to the company. With a
+
+        delegate token the user is taken from the token. With an API key (no associated
+
+        user), supply `userId` in the body — it must belong to the company or the
+
+        request is rejected.
+
+        '
+      operationId: createTask
+      tags:
+      - Tasks
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - title
+              - assigneeId
+              - dueAt
+              - type
+              properties:
+                userId:
+                  type: string
+                  description: 'Acting user the task is attributed to (createdBy/updatedBy).
+
+                    Required with API-key auth (must belong to the company); ignored
+
+                    with a delegate token, which supplies the user itself.
+
+                    '
+                title:
+                  type: string
+                assigneeId:
+                  type: string
+                  description: User id the task is assigned to.
+                dueAt:
+                  type: string
+                  format: date-time
+                type:
+                  type: string
+                  description: Follow-up type — one of email|comment|sms|voice|card|note|task|logActivity.
+                note:
+                  type: string
+                  description: Task description.
+                status:
+                  type: string
+                  description: One of backlog|notStarted|inProgress|onHold|completed.
+                priority:
+                  type: string
+                  description: One of asap|high|medium|low.
+                logType:
+                  type: string
+                  description: Required when type is "logActivity".
+                aptletInstanceId:
+                  type: string
+                  description: Card id — when set the task is mirrored onto the card checklist.
+                aptletUuid:
+                  type: string
+                channelId:
+                  type: string
+                streamId:
+                  type: string
+                fieldId:
+                  type: string
+                  description: Checklist array field on the card (defaults to "checklist").
+                attachmentIds:
+                  type: array
+                  items:
+                    type: string
+                references:
+                  type: array
+                  items:
+                    type: object
+            example:
+              title: Call the tenant
+              assigneeId: usr_123
+              dueAt: '2026-06-10T00:00:00.000Z'
+              type: task
+              priority: high
+              status: notStarted
+      responses:
+        '200':
+          description: Task created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  taskId:
+                    type: string
+        '400':
+          description: Missing or invalid field.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing credential.
+  /api/tasks/{taskId}:
+    get:
+      summary: Get a task by ID
+      description: 'Fetches a single task with related card/board context and resolved attachment
+
+        metadata. When `includeMetadata=true`, also returns display labels
+
+        (`priorityLabel`, `statusLabel`) and the resolved `assignee`.
+
+        '
+      operationId: getTask
+      tags:
+      - Tasks
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: taskId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: includeMetadata
+        in: query
+        required: false
+        schema:
+          type: boolean
+        description: Include display labels and the resolved assignee.
+      responses:
+        '200':
+          description: The task.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          description: Invalid or missing credential.
+        '404':
+          description: Task not found.
+    put:
+      summary: Update a task
+      description: 'Updates a task and keeps its card-checklist mirror entry in sync.
+
+
+        The update is attributed to a user who must belong to the company. With a
+
+        delegate token the user is taken from the token. With an API key (no
+
+        associated user), supply `userId` in the body — it must belong to the
+
+        company or the request is rejected.
+
+        '
+      operationId: updateTask
+      tags:
+      - Tasks
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: taskId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  description: 'Acting user the update is attributed to. Required with API-key
+
+                    auth (must belong to the company); ignored with a delegate
+
+                    token, which supplies the user itself.
+
+                    '
+                title:
+                  type: string
+                description:
+                  type: string
+                checked:
+                  type: boolean
+                dueAt:
+                  type: string
+                  format: date-time
+                status:
+                  type: string
+                  description: One of backlog|notStarted|inProgress|onHold|completed.
+                priority:
+                  type: string
+                  description: One of asap|high|medium|low.
+                assigneeId:
+                  type: string
+                archived:
+                  type: boolean
+                archivedAt:
+                  type: string
+                  format: date-time
+                startedAt:
+                  type: string
+                  format: date-time
+                checkedAt:
+                  type: string
+                  format: date-time
+                pinned:
+                  type: boolean
+                rank:
+                  type: number
+                attachmentIds:
+                  type: array
+                  items:
+                    type: string
+                outcomeType:
+                  type: string
+                aptletInstanceId:
+                  type: string
+                fieldId:
+                  type: string
+            example:
+              title: Renamed task
+              checked: true
+              status: completed
+              priority: high
+      responses:
+        '200':
+          description: Task updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+        '400':
+          description: Missing or invalid field.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing credential.
+        '404':
+          description: Task not found.
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+    TaskDateRange:
+      type: object
+      description: Date-range filter. Either bound may be supplied independently — `startDate` maps to `$gte`, `endDate` to `$lte`.
+      properties:
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+    Task:
+      type: object
+      properties:
+        _id:
+          type: string
+        companyId:
+          type: string
+        title:
+          type: string
+        mergedTitle:
+          type: string
+          description: Title with `{{ }}` merge tags resolved against the task's representative contact, the company, and the acting user.
+        description:
+          type: string
+        mergedDescription:
+          type: string
+          description: Description with `{{ }}` merge tags resolved (HTML output).
+        userId:
+          type: string
+          description: Assigned user id.
+        checked:
+          type: boolean
+        archived:
+          type: boolean
+        status:
+          type: string
+        priority:
+          type: string
+        dueAt:
+          type: string
+          format: date-time
+        aptletInstanceId:
+          type: string
+        aptletUuid:
+          type: string
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+              name:
+                type: string
+              type:
+                type: string
+        priorityLabel:
+          type: string
+          description: Present only when includeMetadata=true.
+        statusLabel:
+          type: string
+          description: Present only when includeMetadata=true.
+        assignee:
+          type: object
+          description: Present only when includeMetadata=true.
+          properties:
+            _id:
+              type: string
+            fullName:
+              type: string
+      additionalProperties: true
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-token
+    DelegateToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Delegate token issued by the platform. Format: `DelegateToken <token>`'
+    PartnerBearer:
+      type: http
+      scheme: bearer
+      description: 'Partner token. Format: `Authorization: Bearer <token>`'

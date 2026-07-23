@@ -1,0 +1,36 @@
+generated: '2026-07-18'
+method: searched
+source: https://docs.getaptly.com/changelog
+versioning:
+  scheme: none-documented
+  current: '1.0'
+  path_style: '/api/*'
+  notes: >-
+    No version prefix in the request path. The API is evolved additively; the
+    dated changelog is the source of truth. Path renames ship as legacy aliases
+    that remain active rather than as breaking removals.
+deprecation:
+  policy_url: null
+  sunset_header: false
+  approach: >-
+    Backwards-compatible legacy aliasing. When a path is renamed the original is
+    kept live and marked as a deprecated alias in the docs (e.g. the tabView
+    path). No RFC 8594 Sunset/Deprecation headers are documented and no dated
+    removal policy is published.
+  deprecated_operations:
+    - operation: openapi/aptly-openapi-original.yml#postTabViewLegacy
+      note: >-
+        Deprecated alias for POST /api/board/{boardId}/configuration/tabViews.
+        Use the /configuration/tabViews path for new integrations.
+sla:
+  url: null
+  uptime_target: null
+status_page:
+  url: null
+  note: >-
+    status.getaptly.com resolves but returns a 301 self-redirect (no served
+    status page as of 2026-07-18); not wired as a StatusPage pointer.
+changelog: https://docs.getaptly.com/changelog
+cross_ref:
+  changelog: changelog/aptly-changelog.yml
+  conventions: conventions/aptly-conventions.yml

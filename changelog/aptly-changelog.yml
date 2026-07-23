@@ -1,0 +1,64 @@
+generated: '2026-07-18'
+method: searched
+source: https://docs.getaptly.com/changelog
+scheme: dated
+current_version: '1.0'
+entries:
+  - date: '2026-07-09'
+    type: enhancement
+    breaking: false
+    highlights:
+      - 'POST /api/email/create-draft and POST /api/email/send accept an optional discussionId to reply into an existing thread instead of starting a new one.'
+  - date: '2026-06-26'
+    type: addition
+    breaking: false
+    highlights:
+      - 'New endpoint POST /api/files/upload-url — request a presigned upload (fileId + url + form fields), 1 byte-50 MB, attached to a channel/aptlet/knowledge doc.'
+      - 'New endpoint POST /api/files/upload-complete — finalize a direct upload and return the download url.'
+      - 'Email create-draft/send accept attachmentIds and auto-detect inline images embedded in the HTML body.'
+  - date: '2026-06-15'
+    type: addition
+    breaking: false
+    highlights:
+      - 'New routing-groups surface: GET /api/routing-groups, POST /api/routing-groups/create, PUT /api/routing-groups/{id}, POST /api/routing-groups/{id}/archive.'
+  - date: '2026-06-09'
+    type: addition
+    breaking: false
+    highlights:
+      - 'New tasks surface: POST /api/tasks/search, POST /api/tasks, GET /api/tasks/{taskId}, PUT /api/tasks/{taskId}. All accept an API key or a delegate token with tasks:* scope.'
+  - date: '2026-06-03'
+    type: addition
+    breaking: false
+    highlights:
+      - 'Embedded iframe apps can trigger Aptly UI interactions via postMessage / the Aptly SDK — nine actions (open card, start dialer, compose email, create event/card/task/contact, navigate to contact).'
+      - 'New SDK methods (aptly.openCardPane, aptly.startDialer, aptly.createCard, …) and aptly.actions capability array.'
+      - 'Email create-draft/send accept an optional aptletInstanceId to link the outbound to a card.'
+  - date: '2026-05-26'
+    type: addition
+    breaking: false
+    highlights:
+      - 'New GET /api/app/me returns identity for the credential (delegate = user, API key = company, partner = permissions).'
+      - 'New board configuration surface GET /api/board/{boardId}/configuration (+ automations/options/fields/workflows/groups/shares/theme/filters).'
+      - 'New GET /api/templates and GET /api/templates/{id} for communication templates.'
+      - 'POST /api/board/{boardId}/tabView also available at /configuration/tabViews (original kept as a legacy alias).'
+  - date: '2026-05-25'
+    type: addition
+    breaking: false
+    highlights:
+      - 'New GET /api/inboxes/{channelId}/drafts — list unsent drafts on an email inbox.'
+  - date: '2026-05-21'
+    type: addition
+    breaking: false
+    highlights:
+      - 'New email surface: POST /api/email/create-draft, POST /api/email/send, GET /api/users/{userId}/inboxes.'
+      - 'Delegate tokens gained an email:* scope.'
+  - date: '2026-05-04'
+    type: fix
+    breaking: false
+    highlights:
+      - 'Card objects in board responses now consistently include both _id and cardId.'
+  - date: '2026-04-24'
+    type: addition
+    breaking: false
+    highlights:
+      - 'Delegate Token authentication: new POST /api/app/verify to verify a short-lived delegate token and retrieve user identity without an API key.'

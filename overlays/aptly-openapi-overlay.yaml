@@ -1,0 +1,34 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for Aptly API
+  version: 1.0.0
+extends: openapi/aptly-openapi-original.yml
+actions:
+  - target: $.info
+    update:
+      x-apievangelist-enriched: '2026-07-18'
+      x-apievangelist-provider: aptly
+      x-apievangelist-mcp-server: https://mcp.getaptly.com/mcp
+      x-apievangelist-artifacts:
+        authentication: authentication/aptly-authentication.yml
+        conventions: conventions/aptly-conventions.yml
+        errors: errors/aptly-problem-types.yml
+        lifecycle: lifecycle/aptly-lifecycle.yml
+        changelog: changelog/aptly-changelog.yml
+        data_model: data-model/aptly-data-model.yml
+        mcp: mcp/aptly-mcp.yml
+        agentic_access: agentic-access/aptly-agentic-access.yml
+  - target: $.info
+    update:
+      x-apievangelist-rate-limit:
+        per_minute: 120
+        burst_per_second: 20
+        throttled_status: 429
+        docs: https://docs.getaptly.com/rate-limits
+  - target: $.info
+    update:
+      x-apievangelist-pagination:
+        style: offset
+        params: [page, limit]
+        response_field: total
+        docs: https://docs.getaptly.com/pagination

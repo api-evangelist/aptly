@@ -1,0 +1,147 @@
+generated: '2026-07-18'
+method: searched
+status: published
+source: https://docs.getaptly.com/mcp-server
+server:
+  name: aptly
+  transport: http
+  url: https://mcp.getaptly.com/mcp
+  description: >-
+    Official hosted Aptly MCP server — the recommended way to connect LLMs and
+    AI agents to Aptly boards, cards, contacts, inboxes, calendars, files and
+    knowledge documents. The /mcp endpoint requires authentication (returns 401
+    unauthenticated); connect via the Aptly connect page which grants the
+    per-scope permissions listed on each tool. Tool set auto-generated from
+    Aptly's src/mcp/**/*.tools.ts.
+scopes:
+  - boards:read
+  - boards:write
+  - inboxes:read
+  - inboxes:write
+  - contacts:read
+tools:
+  # board
+  - name: search-boards-by-name
+    description: Search for boards by name, optionally filtered by type.
+    scopes: [boards:read]
+    source_operation: openapi/aptly-openapi-original.yml#listBoards
+  - name: add-tab-view-to-board
+    description: Create a page and attach it as a tab view to a board.
+    scopes: [boards:write]
+    source_operation: openapi/aptly-openapi-original.yml#postTabView
+  - name: create-card
+    description: Create a new card on a board.
+    scopes: [boards:write]
+    source_operation: openapi/aptly-openapi-original.yml#createCard
+  - name: update-card-field
+    description: Update a single field on a card by field display name.
+    scopes: [boards:write]
+    source_operation: openapi/aptly-openapi-original.yml#createCard
+  - name: create-card-comment
+    description: Create a comment on a card.
+    scopes: [boards:write]
+    source_operation: openapi/aptly-openapi-original.yml#postComment
+  - name: search-cards
+    description: Search for cards by query, optionally filtered by board UUID.
+    scopes: [boards:read]
+    source_operation: openapi/aptly-openapi-original.yml#listCards
+  - name: get-card-tasks
+    description: Get tasks for a card.
+    scopes: [boards:read]
+    source_operation: openapi/aptly-openapi-original.yml#searchTasks
+  - name: create-card-task
+    description: Create a task attached to a card.
+    scopes: [boards:write]
+    source_operation: openapi/aptly-openapi-original.yml#createTask
+  - name: assign-user-to-card-task
+    description: Assign a user to a card task.
+    scopes: [boards:write]
+    source_operation: openapi/aptly-openapi-original.yml#updateTask
+  # calendar
+  - name: get-user-calendars
+    description: Get a user's calendars.
+    scopes: [inboxes:read]
+  - name: get-user-calendars-with-events
+    description: Get a user's calendars with events, with filtering.
+    scopes: [inboxes:read]
+  - name: create-calendar-event
+    description: Create a calendar event.
+    scopes: [inboxes:write]
+  # files
+  - name: create-file-upload-url
+    description: Create a presigned S3 upload URL for attaching a file to an entity.
+    scopes: []
+    source_operation: openapi/aptly-openapi-original.yml#getFileUploadUrl
+  - name: complete-file-upload
+    description: Finalize a direct file upload after bytes are posted to storage.
+    scopes: []
+    source_operation: openapi/aptly-openapi-original.yml#completeFileUpload
+  # inbox
+  - name: get-user-email-inboxes
+    description: Get the email inboxes the authenticated user selected on the connect page.
+    scopes: [inboxes:read]
+    source_operation: openapi/aptly-openapi-original.yml#listUserInboxes
+  - name: get-user-phone-inboxes
+    description: Get the user's phone (SMS/voice) inboxes.
+    scopes: [inboxes:read]
+  - name: get-inbox-history
+    description: Get message history for an inbox.
+    scopes: [inboxes:read]
+  - name: search-emails
+    description: Search emails across From/To, subject, body, and attachment content.
+    scopes: [inboxes:read]
+  - name: send-email
+    description: Send a new email message from one of the user's inboxes.
+    scopes: [inboxes:write]
+    source_operation: openapi/aptly-openapi-original.yml#sendEmail
+  - name: create-email-draft
+    description: Create a draft email in one of the user's inboxes.
+    scopes: [inboxes:write]
+    source_operation: openapi/aptly-openapi-original.yml#createEmailDraft
+  - name: send-sms
+    description: Send an SMS from one of the user's phone inboxes.
+    scopes: [inboxes:write]
+  - name: archive-email
+    description: Archive an email thread.
+    scopes: [inboxes:write]
+  - name: reopen-email
+    description: Reopen an archived email thread.
+    scopes: [inboxes:write]
+  - name: archive-phone-message
+    description: Archive a phone/SMS thread.
+    scopes: [inboxes:write]
+  - name: reopen-phone-message
+    description: Reopen an archived phone/SMS thread.
+    scopes: [inboxes:write]
+  - name: search-phone-messages
+    description: Search phone/SMS messages.
+    scopes: [inboxes:read]
+  - name: get-topics
+    description: Get conversation topics.
+    scopes: [inboxes:read]
+  # knowledge
+  - name: retrieve-knowledge-documents
+    description: Retrieve knowledge base documents.
+    scopes: []
+    source_operation: openapi/aptly-openapi-original.yml#getKnowledgeDoc
+  - name: create-knowledge-document
+    description: Create a knowledge document.
+    scopes: []
+    source_operation: openapi/aptly-openapi-original.yml#createKnowledgeDoc
+  - name: update-knowledge-document
+    description: Update a knowledge document.
+    scopes: []
+    source_operation: openapi/aptly-openapi-original.yml#updateKnowledgeDoc
+  # person
+  - name: search-persons
+    description: Search persons by name, email, phone or address, and/or person type.
+    scopes: [contacts:read]
+    source_operation: openapi/aptly-openapi-original.yml#listContacts
+  - name: get-person-types
+    description: Get all person types (contact categories) for the company.
+    scopes: [contacts:read]
+  # user
+  - name: get-company-users
+    description: Get all users in the authenticated user's company.
+    scopes: [contacts:read]
+    source_operation: openapi/aptly-openapi-original.yml#listUsers

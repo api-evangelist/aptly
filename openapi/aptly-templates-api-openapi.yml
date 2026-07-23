@@ -1,0 +1,172 @@
+openapi: 3.0.3
+info:
+  title: Aptly App Templates API
+  version: '1.0'
+  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+
+
+    All requests require an API key passed as the `x-token` header.
+
+    API keys are scoped to your company and work across all boards.
+
+    '
+servers:
+- url: https://core-api.getaptly.com
+  description: Production
+security:
+- ApiKeyHeader: []
+tags:
+- name: Templates
+paths:
+  /api/templates:
+    get:
+      summary: List templates
+      description: 'Returns communication templates for the company. All filter parameters are optional.
+
+
+        Accepts an API key (`x-token`), delegate token (`Authorization: DelegateToken <token>`),
+
+        or partner token (`Authorization: Bearer <token>` with `templates` permission).
+
+        When using a partner token, pass `companyId` as a query parameter.
+
+        '
+      operationId: listTemplates
+      tags:
+      - Templates
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: companyId
+        in: query
+        schema:
+          type: string
+        description: Company ID. Required when using a partner token; resolved automatically for API key and delegate token auth.
+      - name: templateType
+        in: query
+        schema:
+          type: string
+          enum:
+          - sms
+          - email
+          - form
+          - eSignature
+          - pdf
+          - blockDocument
+        description: Filter by template type.
+      - name: aptletUuid
+        in: query
+        schema:
+          type: string
+        description: Filter by associated board UUID.
+      - name: archived
+        in: query
+        schema:
+          type: boolean
+        description: Filter by archived status.
+      responses:
+        '200':
+          description: Array of templates.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Template'
+        '400':
+          description: Missing companyId.
+        '401':
+          description: Invalid or missing credential.
+  /api/templates/{id}:
+    get:
+      summary: Get a template
+      description: Returns a single template by its ID. The template must belong to the authenticated company.
+      operationId: getTemplate
+      tags:
+      - Templates
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Template ID.
+      - name: companyId
+        in: query
+        schema:
+          type: string
+        description: Required for partner token auth.
+      responses:
+        '200':
+          description: Template record.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Template'
+        '401':
+          description: Invalid or missing credential.
+        '404':
+          description: Template not found.
+components:
+  schemas:
+    Template:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Template ID.
+        companyId:
+          type: string
+          description: Company the template belongs to.
+        name:
+          type: string
+          description: Template display name.
+        templateType:
+          type: string
+          enum:
+          - sms
+          - email
+          - form
+          - eSignature
+          - pdf
+          - blockDocument
+          description: Template category.
+        archived:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+          description: User ID of the creator, or `"api"` if created via the API.
+        updatedAt:
+          type: string
+          format: date-time
+      additionalProperties:
+        description: Additional properties depend on the templateType (e.g. `subject`, `content` for email templates).
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-token
+    DelegateToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Delegate token issued by the platform. Format: `DelegateToken <token>`'
+    PartnerBearer:
+      type: http
+      scheme: bearer
+      description: 'Partner token. Format: `Authorization: Bearer <token>`'

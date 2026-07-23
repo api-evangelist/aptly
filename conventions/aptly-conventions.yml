@@ -1,0 +1,87 @@
+generated: '2026-07-18'
+method: searched
+source: https://docs.getaptly.com
+summary: >-
+  Cross-cutting request/response semantics for the Aptly Core API — a static
+  API-key REST API scoped per company, with offset pagination, documented rate
+  limits, and a simple JSON error envelope. No idempotency-key contract is
+  published.
+authentication:
+  style: api-key
+  header: x-token
+  query_param_alt: x-token
+  base_url: https://core-api.getaptly.com
+  alternate_credentials:
+    - name: DelegateToken
+      header: Authorization
+      format: 'DelegateToken <token>'
+      note: Short-lived JWT issued by POST /api/platform/user-token for embedded apps / on-behalf-of a user; carries per-resource scopes (boards, inboxes, contacts, files, tasks, email, templates, routing-groups) each read/write.
+    - name: PartnerBearer
+      header: Authorization
+      format: 'Bearer <token>'
+      note: Partner token carrying a permission list (board-admin, templates, inboxes, internal-admin).
+  scope_model: >-
+    Delegate tokens are scoped per resource family (e.g. boards:read, boards:write,
+    inboxes:read, inboxes:write, contacts:read, files:*, tasks:*, email:*). Static
+    API keys are full-access, company-scoped, and enabled per board.
+  docs: https://docs.getaptly.com/authentication
+pagination:
+  style: offset
+  request_params:
+    page: 'Zero-indexed page number (default 0); increment by 1.'
+    limit: 'Records per page (default 50; maximum 100).'
+  response_fields:
+    total: Complete record count.
+  last_page_rule: '(page + 1) * limit >= total'
+  notes: >-
+    Page numbers are not stable cursors — boundaries shift as records are added
+    or removed between requests. Fetch page 0, read total, then compute
+    ceil(total / limit) pages.
+  docs: https://docs.getaptly.com/pagination
+idempotency:
+  supported: false
+  notes: >-
+    No Idempotency-Key header or param is documented. Several write endpoints are
+    upsert-shaped (POST /api/contacts create-or-update, create/update card by
+    field UUID), which makes retries of those specific writes naturally
+    convergent, but there is no general idempotency contract.
+rate_limiting:
+  limit_per_minute: 120
+  burst_per_second: 20
+  scope: per API key
+  retry_signal: Retry-After header (seconds)
+  throttled_status: 429
+  throttled_body: '{ "reason": "Rate limit exceeded. Try again shortly." }'
+  mcp_note: >-
+    Individual MCP tools additionally carry a per-tool throttle weight
+    (1 for reads, 3-5 for writes).
+  docs: https://docs.getaptly.com/rate-limits
+error_envelope:
+  format: json
+  shape: '{ "error": string, "message": string }'
+  auth_status_codes:
+    '401': API key missing, invalid, or expired.
+    '403': API access is not enabled for this board.
+    '404': Board or card does not exist within your company.
+  cross_ref: errors/aptly-problem-types.yml
+field_keys:
+  notes: >-
+    Card reads/writes use field UUIDs (or, in the MCP layer, field display names)
+    obtained from the board schema — always fetch GET /api/schema/{boardId} first
+    to discover the field keys before reading or writing card data.
+  schema_operation: openapi/aptly-openapi-original.yml#getSchema
+  field_types_docs: https://docs.getaptly.com/field-types
+versioning:
+  scheme: none-documented
+  api_version: '1.0'
+  path_style: '/api/*'
+  notes: >-
+    No version prefix in the path. Backwards-incompatible path renames are shipped
+    as legacy aliases that remain active (e.g. POST /api/board/{boardId}/tabView is
+    a legacy alias of /configuration/tabViews). See lifecycle/aptly-lifecycle.yml.
+  cross_ref: lifecycle/aptly-lifecycle.yml
+tracing:
+  conduit: >-
+    Write operations accept an optional createdConduit tag (default "aptly-mcp"
+    for MCP-created cards) recording the origin channel; no request-id echo header
+    is documented.

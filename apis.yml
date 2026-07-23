@@ -1,8 +1,15 @@
 aid: aptly
 name: Aptly
-description: 'Aptly is a company surfaced as a portfolio company of accel and added to the API Evangelist
-  network as a stub for enrichment. Sector: cloud-saas. This profile is a lead awaiting the enrichment
-  pipeline.'
+description: >-
+  Aptly is the AI operations layer for property management, built by Invisible Apps, Inc. It unifies
+  resident and owner communication (calls, texts, emails, and chat) with board-based workflows,
+  automation, and AI agents that handle leasing inquiries, maintenance requests, and around-the-clock
+  resident communication, and it syncs bidirectionally with property management systems including
+  Yardi, RealPage, Entrata, and AppFolio. The Aptly Core API (https://core-api.getaptly.com) gives
+  external systems and AI agents direct read/write access to boards, cards, contacts, tasks, inboxes,
+  calendars, files, and knowledge documents using a per-company API key, and Aptly ships an official
+  hosted MCP server (https://mcp.getaptly.com/mcp) as the recommended way to connect LLMs. A separate
+  Portal API powers the rental-application screening portal.
 url: https://raw.githubusercontent.com/api-evangelist/aptly/refs/heads/main/apis.yml
 x-type: company
 x-source: vc-portfolio
@@ -10,18 +17,278 @@ x-backed-by:
 - accel
 x-tier: stub
 x-tier-reason: portfolio-lead
+accessModel:
+  pricing: unknown
+  onboarding: self-serve
+  trial: false
+  try_now: false
+  public: false
+  label: Self-serve signup
+  confidence: medium
+  source:
+  - authentication
+  generated: '2026-07-22'
+  method: derived
 specificationVersion: '0.20'
 created: '2026-07-17'
-modified: '2026-07-17'
+modified: '2026-07-18'
+image: https://www.getaptly.com/images/aptly-logo-light.png
 tags:
 - Company
 - Cloud Saas
-apis: []
+- Property Management
+- Real Estate
+- PropTech
+- CRM
+- Workflow Automation
+- AI Agents
+- Communications
+- MCP
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
+apis:
+- aid: aptly:aptly-app-api
+  name: Aptly App API
+  description: The App API from Aptly — 2 operation(s) for app.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - App
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-app-api-openapi.yml
+  - type: APIReference
+    url: https://docs.getaptly.com/api-reference/users/list-users
+- aid: aptly:aptly-board-api
+  name: Aptly Board API
+  description: The Board API from Aptly — 12 operation(s) for board.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - Board
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-board-api-openapi.yml
+  - type: APIReference
+    url: https://docs.getaptly.com/api-reference/users/list-users
+- aid: aptly:aptly-boards-api
+  name: Aptly Boards API
+  description: The Boards API from Aptly — 1 operation(s) for boards.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - Boards
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-boards-api-openapi.yml
+  - type: APIReference
+    url: https://docs.getaptly.com/api-reference/users/list-users
+- aid: aptly:aptly-cards-api
+  name: Aptly Cards API
+  description: The Cards API from Aptly — 6 operation(s) for cards.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - Cards
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-cards-api-openapi.yml
+  - type: APIReference
+    url: https://docs.getaptly.com/api-reference/users/list-users
+- aid: aptly:aptly-company-api
+  name: Aptly Company API
+  description: The Company API from Aptly — 1 operation(s) for company.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - Company
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-company-api-openapi.yml
+  - type: APIReference
+    url: https://docs.getaptly.com/api-reference/users/list-users
+- aid: aptly:aptly-contacts-api
+  name: Aptly Contacts API
+  description: The Contacts API from Aptly — 5 operation(s) for contacts.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - Contacts
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-contacts-api-openapi.yml
+  - type: APIReference
+    url: https://docs.getaptly.com/api-reference/users/list-users
+- aid: aptly:aptly-email-api
+  name: Aptly Email API
+  description: The Email API from Aptly — 2 operation(s) for email.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - Email
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-email-api-openapi.yml
+  - type: APIReference
+    url: https://docs.getaptly.com/api-reference/users/list-users
+- aid: aptly:aptly-files-api
+  name: Aptly Files API
+  description: The Files API from Aptly — 2 operation(s) for files.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - Files
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-files-api-openapi.yml
+  - type: APIReference
+    url: https://docs.getaptly.com/api-reference/users/list-users
+- aid: aptly:aptly-inboxes-api
+  name: Aptly Inboxes API
+  description: The Inboxes API from Aptly — 1 operation(s) for inboxes.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - Inboxes
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-inboxes-api-openapi.yml
+  - type: APIReference
+    url: https://docs.getaptly.com/api-reference/users/list-users
+- aid: aptly:aptly-knowledge-api
+  name: Aptly Knowledge API
+  description: The Knowledge API from Aptly — 2 operation(s) for knowledge.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - Knowledge
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-knowledge-api-openapi.yml
+  - type: APIReference
+    url: https://docs.getaptly.com/api-reference/users/list-users
+- aid: aptly:aptly-routinggroups-api
+  name: Aptly RoutingGroups API
+  description: The RoutingGroups API from Aptly — 4 operation(s) for routinggroups.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - RoutingGroups
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-routinggroups-api-openapi.yml
+  - type: APIReference
+    url: https://docs.getaptly.com/api-reference/users/list-users
+- aid: aptly:aptly-schema-api
+  name: Aptly Schema API
+  description: The Schema API from Aptly — 1 operation(s) for schema.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - Schema
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-schema-api-openapi.yml
+  - type: APIReference
+    url: https://docs.getaptly.com/api-reference/users/list-users
+- aid: aptly:aptly-tasks-api
+  name: Aptly Tasks API
+  description: The Tasks API from Aptly — 3 operation(s) for tasks.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - Tasks
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-tasks-api-openapi.yml
+  - type: APIReference
+    url: https://docs.getaptly.com/api-reference/users/list-users
+- aid: aptly:aptly-templates-api
+  name: Aptly Templates API
+  description: The Templates API from Aptly — 2 operation(s) for templates.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - Templates
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-templates-api-openapi.yml
+  - type: APIReference
+    url: https://docs.getaptly.com/api-reference/users/list-users
+- aid: aptly:aptly-users-api
+  name: Aptly Users API
+  description: The Users API from Aptly — 2 operation(s) for users.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - Users
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-users-api-openapi.yml
+  - type: APIReference
+    url: https://docs.getaptly.com/api-reference/users/list-users
 common:
+- type: DeveloperPortal
+  url: https://docs.getaptly.com
+- type: Documentation
+  url: https://docs.getaptly.com/introduction
+- type: APIReference
+  url: https://docs.getaptly.com/api-reference/users/list-users
+- type: GettingStarted
+  url: https://docs.getaptly.com/authentication
+- type: Blog
+  url: https://www.getaptly.com/blog
+- type: Pricing
+  url: https://www.getaptly.com/pricing
+- type: SignUp
+  url: https://app.getaptly.com/login
+- type: TermsOfService
+  url: https://www.getaptly.com/terms
+- type: PrivacyPolicy
+  url: https://www.getaptly.com/privacy-policy
+- type: GitHubOrganization
+  url: https://github.com/getaptly
+- type: OpenAPI
+  url: openapi/aptly-openapi-original.yml
+- type: MCPServer
+  url: mcp/aptly-mcp.yml
+- type: LLMsTxt
+  url: llms/aptly-llms.txt
+- type: Authentication
+  url: authentication/aptly-authentication.yml
+- type: AgenticAccess
+  url: agentic-access/aptly-agentic-access.yml
+- type: Conventions
+  url: conventions/aptly-conventions.yml
+- type: RateLimits
+  url: conventions/aptly-conventions.yml
+- type: ErrorCatalog
+  url: errors/aptly-problem-types.yml
+- type: Lifecycle
+  url: lifecycle/aptly-lifecycle.yml
+- type: Deprecation
+  url: lifecycle/aptly-lifecycle.yml
+- type: ChangeLog
+  url: changelog/aptly-changelog.yml
+- type: Conformance
+  url: conformance/aptly-conformance.yml
+- type: Components
+  url: components/aptly-components.yml
+- type: DataModel
+  url: data-model/aptly-data-model.yml
+- type: Overlay
+  url: overlays/aptly-openapi-overlay.yaml
+- type: DomainSecurity
+  url: security/aptly-domain-security.yml
+- type: AgentSkill
+  url: skills/_index.yml
 - type: Website
-  url: http://getaptly.com
+  url: https://www.getaptly.com
+x-enrichment:
+  date: '2026-07-19'
+  status: backfilled
+  pass: local-v1
+  note: backfilled from .gitignore signal + verified work evidence

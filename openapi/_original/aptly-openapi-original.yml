@@ -1,0 +1,3662 @@
+openapi: 3.0.3
+info:
+  title: Aptly API
+  version: "1.0"
+  description: |
+    The Aptly API lets you read and write cards on any Aptly board from external systems.
+
+    All requests require an API key passed as the `x-token` header.
+    API keys are scoped to your company and work across all boards.
+
+servers:
+  - url: https://core-api.getaptly.com
+    description: Production
+
+security:
+  - ApiKeyHeader: []
+
+components:
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-token
+    DelegateToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: "Delegate token issued by the platform. Format: `DelegateToken <token>`"
+    PartnerBearer:
+      type: http
+      scheme: bearer
+      description: "Partner token. Format: `Authorization: Bearer <token>`"
+
+  schemas:
+    Card:
+      type: object
+      properties:
+        cardId:
+          type: string
+          description: Unique ID of the card.
+        boardUuid:
+          type: string
+          description: UUID of the board this card belongs to.
+        archived:
+          type: boolean
+        assignee:
+          type: string
+          description: Full name of the assigned user.
+      additionalProperties:
+        description: Additional properties are dynamic board fields keyed by their field UUID.
+
+    SchemaField:
+      type: object
+      properties:
+        key:
+          type: string
+          description: Field UUID — use this as the key when reading/writing card data.
+        label:
+          type: string
+          description: Human-readable field name.
+        type:
+          type: string
+          description: Field type (e.g. text, date, money, multiselect, etc.)
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    TabView:
+      type: object
+      properties:
+        uuid:
+          type: string
+        name:
+          type: string
+        url:
+          type: string
+        icon:
+          type: string
+        embedSource:
+          type: string
+        type:
+          type: string
+
+    Contact:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: MongoDB ObjectId of the contact.
+        uuid:
+          type: string
+        firstname:
+          type: string
+        lastname:
+          type: string
+        fullName:
+          type: string
+          description: Computed display name (first + last, or company name for org records).
+        duogram:
+          type: string
+          description: Two-letter initials derived from first and last name.
+        photoId:
+          type: string
+          nullable: true
+        imageUrl:
+          type: string
+          nullable: true
+          description: CDN thumbnail URL for the contact's photo, or null if none.
+        email:
+          type: string
+        phone:
+          type: string
+        typeId:
+          type: string
+        companyId:
+          type: string
+        address:
+          type: object
+        title:
+          type: string
+        alerts:
+          type: array
+          items:
+            type: object
+        company:
+          type: string
+          description: Company name — populated when isCompany is true.
+        isCompany:
+          type: boolean
+
+    KnowledgeDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Document ID.
+        name:
+          type: string
+          description: Document title.
+        html:
+          type: string
+          description: Document body rendered as HTML.
+
+    EmailRecipient:
+      type: object
+      required: [value]
+      properties:
+        value:
+          type: string
+          description: Email address.
+        label:
+          type: string
+          description: Optional display name for the recipient.
+
+    Board:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: Board UUID — use this as `boardId` in board/card endpoints.
+        name:
+          type: string
+          description: Display name of the board.
+        endpoints:
+          type: array
+          description: Pre-built endpoint URLs for this board.
+          items:
+            type: object
+            properties:
+              method:
+                type: string
+                description: HTTP method.
+              url:
+                type: string
+                description: Full endpoint URL.
+              description:
+                type: string
+                description: What the endpoint does.
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+    TaskDateRange:
+      type: object
+      description: Date-range filter. Either bound may be supplied independently — `startDate` maps to `$gte`, `endDate` to `$lte`.
+      properties:
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+
+    Task:
+      type: object
+      properties:
+        _id:
+          type: string
+        companyId:
+          type: string
+        title:
+          type: string
+        mergedTitle:
+          type: string
+          description: Title with `{{ }}` merge tags resolved against the task's representative contact, the company, and the acting user.
+        description:
+          type: string
+        mergedDescription:
+          type: string
+          description: Description with `{{ }}` merge tags resolved (HTML output).
+        userId:
+          type: string
+          description: Assigned user id.
+        checked:
+          type: boolean
+        archived:
+          type: boolean
+        status:
+          type: string
+        priority:
+          type: string
+        dueAt:
+          type: string
+          format: date-time
+        aptletInstanceId:
+          type: string
+        aptletUuid:
+          type: string
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+              name:
+                type: string
+              type:
+                type: string
+        priorityLabel:
+          type: string
+          description: Present only when includeMetadata=true.
+        statusLabel:
+          type: string
+          description: Present only when includeMetadata=true.
+        assignee:
+          type: object
+          description: Present only when includeMetadata=true.
+          properties:
+            _id:
+              type: string
+            fullName:
+              type: string
+      additionalProperties: true
+
+    Automation:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: Unique identifier for the automation.
+        title:
+          type: string
+          description: Display name of the automation.
+        automationType:
+          type: string
+          enum: [board, schedule]
+          description: "`board` automations move/copy cards based on board events; `schedule` automations run on a time-based schedule."
+        archived:
+          type: boolean
+        destinationBoardUuid:
+          type: string
+          description: UUID of the destination board. Defaults to the current board.
+        sourceBoardUuid:
+          type: string
+          description: (board type only) UUID of the source board.
+        runMode:
+          type: string
+          description: "Board type: `continuously`, `onDate`, `onMonth`, `dateRange`, `onDayOfWeek`. Schedule type: `onDayOfWeek`, `onDate`, `onDayOfYear`."
+        segment:
+          description: (board type only) Card segment/stage filter.
+        moveMode:
+          type: string
+          enum: [Copy, Move]
+          description: (board type only) Whether to copy or move matching cards.
+        timeOfDay:
+          type: number
+          description: (schedule type only) Hour of the day to run (0–23).
+
+    BoardField:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: Unique field identifier — use this as the key when reading/writing card data.
+        name:
+          type: string
+          description: Display name of the field.
+        type:
+          type: string
+          description: "Field type. One of: `text`, `string`, `email`, `tel`, `number`, `money`, `date`, `datetime-local`, `boolean`, `singleselect`, `multiselect`, `checkboxlist`, `file`, `files`, `url`, `address`, `person`, `persons`, `relatedAptlets`, `mirror`, `mirror-contact`, `rich-text`, `calculation`, `percent`, `multiplier`, `board`, `heroImage`, `embedVideo`, `ai-computed`."
+        position:
+          type: integer
+          description: Display order (zero-based).
+        optional:
+          type: boolean
+          description: Whether the field is optional on cards.
+        archived:
+          type: boolean
+          description: Whether the field has been archived (hidden from the UI).
+
+    BoardOptions:
+      type: object
+      description: Configurable board-level settings. All fields are optional — only include the ones you want to change on PATCH.
+      properties:
+        conversionFlair:
+          type: string
+          enum: [confetti, fireworks]
+        reassignDiscussions:
+          type: string
+          enum: ["", prompt, auto]
+        minCallDuration:
+          type: number
+          description: Minimum call duration in seconds before the call is logged.
+        boardEmailOnlyParsedCards:
+          type: boolean
+        displayFieldNames:
+          type: boolean
+        agingIndicator:
+          type: boolean
+        applicationFeatures:
+          type: boolean
+        applicationLinking:
+          type: boolean
+        defaultContactType:
+          type: string
+        updateBadgeField:
+          type: string
+          description: Field UUID to use as the card badge label.
+
+    Template:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Template ID.
+        companyId:
+          type: string
+          description: Company the template belongs to.
+        name:
+          type: string
+          description: Template display name.
+        templateType:
+          type: string
+          enum: [sms, email, form, eSignature, pdf, blockDocument]
+          description: Template category.
+        archived:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+          description: User ID of the creator, or `"api"` if created via the API.
+        updatedAt:
+          type: string
+          format: date-time
+      additionalProperties:
+        description: "Additional properties depend on the templateType (e.g. `subject`, `content` for email templates)."
+
+paths:
+  /api/users:
+    get:
+      summary: List users
+      description: |
+        Returns all non-archived users for the API key's company.
+      operationId: listUsers
+      tags: [Users]
+      security:
+        - ApiKeyHeader: []
+      responses:
+        "200":
+          description: List of users.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          description: User ID.
+                        name:
+                          type: string
+                          description: Full name (firstname + lastname).
+                        role:
+                          type: string
+                          nullable: true
+                          description: Role name, or null if the role has been deleted.
+              example:
+                data:
+                  - _id: "abc123"
+                    name: "Alice Smith"
+                    role: "Admin"
+                  - _id: "def456"
+                    name: "Bob Jones"
+                    role: "Staff"
+        "401":
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/users/{userId}/inboxes:
+    get:
+      summary: List a user's email inboxes
+      description: |
+        Returns the email inboxes (Hermes/Nylas channels) accessible to the given user
+        within your company. Includes personal inboxes (where the user is a direct member)
+        and shared inboxes the user can access via team membership.
+
+        Each inbox is tagged `kind: "personal"` (`isShared` is false and the user is in the
+        channel's `userIds`) or `kind: "shared"` (channel marked `isShared`, or accessible
+        only through a team membership).
+
+        The user must belong to the company associated with your API key. Returns `401` if
+        the user does not belong to your company.
+      operationId: listUserInboxes
+      tags: [Users]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+        - PartnerBearer: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The user's ID.
+      responses:
+        "200":
+          description: List of inboxes accessible to the user.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          description: Channel document ID.
+                        channelId:
+                          type: string
+                          nullable: true
+                          description: External channel meta ID (`meta.id`).
+                        type:
+                          type: string
+                          description: "Channel transport type: `Hermes` or `Nylas`."
+                        provider:
+                          type: string
+                          nullable: true
+                          description: "Upstream provider, e.g. `google`, `office365`."
+                        email:
+                          type: string
+                          nullable: true
+                          description: Email address of the inbox.
+                        name:
+                          type: string
+                          nullable: true
+                          description: Display name of the inbox.
+                        kind:
+                          type: string
+                          enum: [personal, shared]
+                          description: Whether the user has personal or shared access.
+              example:
+                data:
+                  - _id: "ch_abc"
+                    channelId: "acc-1"
+                    type: "Hermes"
+                    provider: "google"
+                    email: "alice@example.com"
+                    name: "Alice's Inbox"
+                    kind: "personal"
+                  - _id: "ch_def"
+                    channelId: "acc-2"
+                    type: "Hermes"
+                    provider: "google"
+                    email: "leasing@example.com"
+                    name: "Leasing Team"
+                    kind: "shared"
+        "401":
+          description: Invalid or missing API key, or user does not belong to your company.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/inboxes/{channelId}/drafts:
+    get:
+      summary: List unsent drafts on an inbox
+      description: |
+        Returns the unsent drafts on the given email inbox. The inbox is identified
+        by its `channelId` — the same value returned as `channelId` from
+        `GET /api/users/{userId}/inboxes`.
+
+        Each item in the response is a draft entry with the parent discussion's
+        `streamId` attached. Drafts currently in the process of sending (after
+        `POST /api/email/send` was called and before the upstream provider accepts
+        the message) are excluded.
+
+        With API-key auth the only scope check is that the inbox belongs to your
+        company. With delegate-token auth (`email:*` scope) the inbox must also be
+        one the authenticated user can reach personally or via a team membership.
+      operationId: listInboxDrafts
+      tags: [Inboxes]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+        - PartnerBearer: []
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: External channel meta ID (`meta.id`) of the inbox.
+      responses:
+        "200":
+          description: List of unsent drafts on the inbox.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        streamId:
+                          type: string
+                          description: ID of the discussion the draft belongs to.
+                        uuid:
+                          type: string
+                          description: Draft entry UUID — pass as `uuid` to `POST /api/email/send`.
+                        channelId:
+                          type: string
+                          description: External channel meta ID this draft will be sent from.
+                        subject:
+                          type: string
+                          nullable: true
+                        content:
+                          type: string
+                          nullable: true
+                          description: HTML body of the draft (Email type).
+                        to:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              value:
+                                type: string
+                              label:
+                                type: string
+                                nullable: true
+                        cc:
+                          type: array
+                          items:
+                            type: object
+                        bcc:
+                          type: array
+                          items:
+                            type: object
+                        attachments:
+                          type: array
+                          items:
+                            type: object
+                        ownerId:
+                          type: string
+                          nullable: true
+                        sentBy:
+                          type: string
+                          nullable: true
+                        addedToOutboxAt:
+                          type: string
+                          format: date-time
+                          nullable: true
+              example:
+                data:
+                  - streamId: "stm_abc"
+                    uuid: "drf_123"
+                    channelId: "acc-1"
+                    subject: "Welcome"
+                    content: "<p>Hi there</p>"
+                    to:
+                      - value: "tenant@example.com"
+                    cc: []
+                    bcc: []
+                    attachments: []
+                    ownerId: "u_42"
+                    sentBy: "u_42"
+                    addedToOutboxAt: "2026-05-25T18:14:00.000Z"
+        "401":
+          description: Invalid or missing API key, or inbox not accessible.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Inbox not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/schema/{boardId}:
+    get:
+      summary: Get board schema
+      description: |
+        Returns the list of fields defined on the board. Always fetch the schema first so
+        you know which field keys to use when reading or writing card data.
+      operationId: getSchema
+      tags: [Schema]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The board's UUID (`aptlet.uuid`).
+      responses:
+        "200":
+          description: Array of field definitions.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SchemaField"
+              example:
+                - key: "abc123"
+                  label: "Tenant Name"
+                  type: "text"
+                - key: "def456"
+                  label: "Move-in Date"
+                  type: "date"
+                - key: "ghi789"
+                  label: "Monthly Rent"
+                  type: "money"
+        "401":
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: API access is disabled for this board.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Board not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/boards:
+    get:
+      summary: List boards
+      description: |
+        Returns all boards in your company that have API access enabled.
+        Each board includes its UUID, display name, and a list of pre-built endpoint URLs
+        you can use to interact with cards on that board.
+
+        Accepts an API key (`x-token`) or a delegate token (`Authorization: DelegateToken <token>`).
+      operationId: listBoards
+      tags: [Boards]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      responses:
+        "200":
+          description: List of API-enabled boards.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Board"
+              example:
+                data:
+                  - uuid: "abc-123-board"
+                    name: "Leases"
+                    endpoints:
+                      - method: "GET"
+                        url: "https://core-api.getaptly.com/api/board/abc-123-board"
+                        description: "List cards (query: page, pageSize, updatedAtMin, includeArchived)"
+                      - method: "POST"
+                        url: "https://core-api.getaptly.com/api/board/abc-123-board"
+                        description: "Create or update a card"
+        "401":
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+
+  /api/board/{boardId}:
+    get:
+      summary: List cards
+      description: |
+        Returns a paginated list of cards on the board.
+
+        Field values are keyed by field UUID — use the schema endpoint to map keys to labels.
+        Money fields are returned as `{ amount, currency }` where `amount` is a decimal.
+
+        All filter params are optional and ANDed together.
+      operationId: listCards
+      tags: [Cards]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The board's UUID.
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 9999
+          description: Zero-based page number.
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 20
+          description: Number of cards per page.
+        - name: updatedAtMin
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Only return cards updated after this ISO timestamp.
+        - name: includeArchived
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Include archived cards.
+        - name: relatedId
+          in: query
+          schema:
+            type: string
+          description: Only return cards where `references.value` contains this ID.
+        - name: contactEmail
+          in: query
+          schema:
+            type: string
+          description: Resolves the email to contact IDs, then filters cards referencing those contacts.
+        - name: keyTerm
+          in: query
+          schema:
+            type: string
+          description: Full-text autocomplete search on card title using the Atlas Search index.
+        - name: assignee
+          in: query
+          schema:
+            type: string
+          description: Filter cards by assignee user ID.
+      responses:
+        "200":
+          description: Paginated list of cards.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Card"
+                  count:
+                    type: integer
+                    description: Total number of matching cards.
+                  page:
+                    type: integer
+                  pageSize:
+                    type: integer
+        "401":
+          description: Invalid or missing API key.
+        "403":
+          description: API access is disabled for this board.
+        "404":
+          description: Board not found.
+
+    post:
+      summary: Create or update a card
+      description: |
+        Creates a new card on the board. Use field UUIDs (from the schema endpoint) as keys in the request body.
+
+        To update an existing card, include its `_id` in the request body. The card must belong to this board.
+        Fields not provided in the body are left unchanged on update.
+      operationId: createCard
+      tags: [Cards]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                _id:
+                  type: string
+                  description: Existing card ID. When provided, updates that card instead of creating a new one.
+                name:
+                  type: string
+                  description: Card title (also accepted as `title`).
+              additionalProperties:
+                description: Any board field UUID as key, with the field's value.
+            example:
+              name: "John Smith"
+              abc123: "john@example.com"
+              ghi789: 1500
+      responses:
+        "200":
+          description: Card created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        description: ID of the created card.
+        "401":
+          description: Invalid or missing API key.
+        "403":
+          description: API access is disabled for this board.
+        "404":
+          description: Board not found.
+
+  /api/board/{boardId}/{cardId}:
+    get:
+      summary: Get a card
+      description: Returns a single card by its ID.
+      operationId: getCard
+      tags: [Cards]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Card data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Card"
+        "401":
+          description: Invalid or missing API key.
+        "403":
+          description: API access is disabled for this board.
+        "404":
+          description: Card not found.
+
+  /api/board/{boardId}/{cardId}/comments:
+    get:
+      summary: List comments on a card
+      description: Returns all comments on the specified card in chronological order.
+      operationId: listComments
+      tags: [Cards]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Array of comments.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Comment"
+              example:
+                data:
+                  - id: "lk3jf8"
+                    userId: "user_abc"
+                    content: "Application approved."
+                    createdAt: "2026-01-15T10:30:00Z"
+        "401":
+          description: Invalid or missing API key.
+        "403":
+          description: API access is disabled for this board.
+        "404":
+          description: Board or card not found.
+
+  /api/board/{boardId}/{cardId}/contacts:
+    get:
+      summary: List contacts linked to a card
+      description: |
+        Returns all person contacts linked to the card via its person/persons fields.
+        Returns an empty array if the board has no person fields or none are populated.
+      operationId: listCardContacts
+      tags: [Cards]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Array of linked contacts.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Contact"
+        "401":
+          description: Invalid or missing API key.
+        "403":
+          description: API access is disabled for this board.
+        "404":
+          description: Board or card not found.
+
+  /api/board/{boardId}/{cardId}/comment:
+    post:
+      summary: Add or update a comment
+      description: |
+        Adds a new comment to a card. To update an existing comment, include its `id` in the body —
+        the `userId` must match the original comment's author.
+      operationId: postComment
+      tags: [Cards]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, content]
+              properties:
+                userId:
+                  type: string
+                  description: Aptly user ID of the comment author.
+                content:
+                  type: string
+                  description: Comment text.
+                id:
+                  type: string
+                  description: Existing comment ID — include to update rather than create.
+      responses:
+        "200":
+          description: Comment created or updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Comment"
+        "401":
+          description: Invalid or missing API key.
+        "404":
+          description: Card or comment not found.
+
+  /api/board/{boardId}/{cardId}/file:
+    post:
+      summary: Upload a file to a card
+      description: |
+        Uploads a file and attaches it to a card. Send as `multipart/form-data` with the file in the `file` field.
+
+        **Max file size:** 50 MB
+
+        **Accepted types:** JPEG, PNG, GIF, WebP, SVG, PDF, Word, Excel, plain text, CSV, MP4, MOV, MP3, WAV
+      operationId: uploadFile
+      tags: [Cards]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: File uploaded and attached.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      fileId:
+                        type: string
+                      name:
+                        type: string
+                      size:
+                        type: integer
+                      type:
+                        type: string
+        "400":
+          description: Missing file or unsupported file type.
+        "401":
+          description: Invalid or missing API key.
+        "404":
+          description: Card not found.
+
+  /api/board/{boardId}/configuration/tabViews:
+    post:
+      summary: Add a tab view
+      description: Adds an embedded tab view to the board's tab list.
+      operationId: postTabView
+      tags: [Board]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, url]
+              properties:
+                name:
+                  type: string
+                  description: Display name for the tab.
+                url:
+                  type: string
+                  description: URL to embed in the tab.
+                icon:
+                  type: string
+                  description: Font Awesome icon class (default `fa-regular fa-globe`).
+                embedSource:
+                  type: string
+                  description: Embed source identifier (default `aptly-ai`).
+                filter:
+                  type: string
+                  description: Filter preset (default `quickview_all-records`).
+                userIds:
+                  type: array
+                  items:
+                    type: string
+                  description: User IDs that can see this tab. Empty = visible to all.
+                createdBy:
+                  type: string
+                  description: Aptly user ID of the creator.
+      responses:
+        "200":
+          description: Tab view created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/TabView"
+        "400":
+          description: Missing required fields.
+        "401":
+          description: Invalid or missing API key.
+        "404":
+          description: Board not found.
+
+  /api/board/{boardId}/tabView:
+    post:
+      summary: Add a tab view (legacy)
+      description: |
+        Deprecated alias for `POST /api/board/{boardId}/configuration/tabViews`. Adds an
+        embedded tab view to the board's tab list. Use the `/configuration/tabViews` path
+        for new integrations.
+      operationId: postTabViewLegacy
+      tags: [Board]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, url]
+              properties:
+                name:
+                  type: string
+                  description: Display name for the tab.
+                url:
+                  type: string
+                  description: URL to embed in the tab.
+                icon:
+                  type: string
+                  description: Font Awesome icon class (default `fa-regular fa-globe`).
+                embedSource:
+                  type: string
+                  description: Embed source identifier (default `aptly-ai`).
+                filter:
+                  type: string
+                  description: Filter preset (default `quickview_all-records`).
+                userIds:
+                  type: array
+                  items:
+                    type: string
+                  description: User IDs that can see this tab. Empty = visible to all.
+                createdBy:
+                  type: string
+                  description: Aptly user ID of the creator.
+      responses:
+        "200":
+          description: Tab view created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/TabView"
+        "400":
+          description: Missing required fields.
+        "401":
+          description: Invalid or missing API key.
+        "404":
+          description: Board not found.
+
+  /api/board/verify-user:
+    post:
+      summary: Verify a delegate token
+      description: |
+        Validates a short-lived delegate token issued by `POST /api/platform/user-token`.
+        Checks the JWT signature, expiry, and confirms the token was issued for the same
+        company as the API key. Use this to confirm the identity of an authenticated Aptly
+        user inside an embedded plugin or iframe.
+      operationId: verifyAppUser
+      tags: [Board]
+      security:
+        - ApiKeyHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+                  description: Delegate token returned by `POST /api/platform/user-token`.
+      responses:
+        "200":
+          description: Token is valid. Returns the user identity.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                  email:
+                    type: string
+                    nullable: true
+                  firstName:
+                    type: string
+                    nullable: true
+                  lastName:
+                    type: string
+                    nullable: true
+                  companyId:
+                    type: string
+        "400":
+          description: token field is missing.
+        "401":
+          description: Invalid or missing API key, or delegate token is invalid/expired/wrong company.
+
+  /api/company/info:
+    get:
+      summary: Get company info
+      description: Returns the name, address, contact details, and logo URL for the company associated with the API key.
+      operationId: getCompanyInfo
+      tags: [Company]
+      security:
+        - ApiKeyHeader: []
+      responses:
+        "200":
+          description: Company information.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    nullable: true
+                  address:
+                    type: object
+                    properties:
+                      street:
+                        type: string
+                        nullable: true
+                      city:
+                        type: string
+                        nullable: true
+                      state:
+                        type: string
+                        nullable: true
+                      zip:
+                        type: string
+                        nullable: true
+                  phone:
+                    type: string
+                    nullable: true
+                  phone2:
+                    type: string
+                    nullable: true
+                  website:
+                    type: string
+                    nullable: true
+                  logo:
+                    type: string
+                    nullable: true
+                    description: Absolute URL to the company logo thumbnail.
+        "401":
+          description: Invalid or missing API key.
+
+  /api/contacts:
+    get:
+      summary: List contacts
+      description: |
+        Returns a paginated list of contacts scoped to your company. All filter params are optional and ANDed together.
+      operationId: listContacts
+      tags: [Contacts]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+          description: Zero-based page index.
+        - name: contact_type
+          in: query
+          schema:
+            type: string
+          description: Filter by contact type name.
+        - name: email
+          in: query
+          schema:
+            type: string
+          description: Filter by exact email address (case-insensitive).
+        - name: phone
+          in: query
+          schema:
+            type: string
+          description: Filter by phone number (digits only, partial match).
+        - name: name
+          in: query
+          schema:
+            type: string
+          description: Filter by full name (case-insensitive, all words must match).
+        - name: updated_after
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Return only contacts updated after this ISO 8601 timestamp.
+        - name: updated_before
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Return only contacts updated before this ISO 8601 timestamp.
+      responses:
+        "200":
+          description: Paginated contact list.
+          headers:
+            x-offset:
+              schema:
+                type: integer
+              description: Current page index.
+            x-count:
+              schema:
+                type: integer
+              description: Total matching contacts.
+            x-size:
+              schema:
+                type: integer
+              description: Page size.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  count:
+                    type: integer
+                  page:
+                    type: integer
+                  pageSize:
+                    type: integer
+        "400":
+          description: Missing or invalid parameters.
+        "401":
+          description: Invalid or missing API key.
+
+    post:
+      summary: Create or update a contact
+      description: |
+        Creates a new contact or updates an existing one (upsert).
+
+        **Lookup order:**
+        1. If `_id` is provided, finds by ID.
+        2. Otherwise finds by first email address.
+        3. If no match is found, creates a new contact.
+
+        **Body formats** — either native or legacy (capitalized keys) are accepted:
+
+        *Native:* `firstname`, `lastname`, `email` (string or array), `phone` (array of `{number, type}`),
+        `typeId`, `contactType`, `isCompany`, `title`, `company`, `imageUrl`, `customFields`
+
+        *Legacy:* `"First Name"`, `"Last Name"`, `Email`, `"Mobile Phone"`, `"Work Phone"`,
+        `"Home Phone"`, `"Contact Type"`, `Title`, `Company`
+
+        Returns the enriched contact with custom fields populated by their type definitions.
+      operationId: upsertContact
+      tags: [Contacts]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                _id:
+                  type: string
+                  description: Existing contact ID — when provided, updates that contact.
+                firstname:
+                  type: string
+                lastname:
+                  type: string
+                email:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+                  description: One or more email addresses.
+                phone:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      number:
+                        type: string
+                      type:
+                        type: string
+                        enum: [mobile, work, home]
+                typeId:
+                  type: string
+                  description: Contact type ID.
+                contactType:
+                  type: string
+                  description: Contact type name (alternative to `typeId` — resolved to an ID automatically).
+                isCompany:
+                  type: boolean
+                title:
+                  type: string
+                company:
+                  type: string
+                imageUrl:
+                  type: string
+                  description: Absolute URL to a JPG or PNG photo.
+                customFields:
+                  type: object
+                  description: Map of custom field ID to value. Unknown field IDs are rejected.
+            example:
+              firstname: "Jane"
+              lastname: "Smith"
+              email: "jane@example.com"
+              phone:
+                - number: "+15555550100"
+                  type: "mobile"
+              contactType: "Tenant"
+      responses:
+        "200":
+          description: Contact created or updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+        "400":
+          description: Invalid input (bad URL, unknown custom field, invalid date, etc.).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Invalid or missing API key.
+
+  /api/contacts/by-email:
+    post:
+      summary: Look up contacts by email
+      description: |
+        Returns contacts whose email address matches one or more of the provided values.
+        Matching is case-insensitive and exact. Results are scoped to your company.
+      operationId: getContactsByEmail
+      tags: [Contacts]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+                  description: A single email address or an array of email addresses to look up.
+                limit:
+                  type: integer
+                  default: 20
+                  description: Maximum number of results to return.
+                skip:
+                  type: integer
+                  default: 0
+                  description: Number of results to skip (for pagination).
+            example:
+              email: "jane@example.com"
+              limit: 20
+              skip: 0
+      responses:
+        "200":
+          description: Matching contacts.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  contacts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Contact"
+        "400":
+          description: Missing or invalid email field.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Invalid or missing API key.
+
+  /api/contacts/verify-email:
+    post:
+      summary: Initiate contact email verification
+      description: |
+        Looks up an email address against your org's contact database. If a match is found,
+        generates a cryptographically strong 6-digit code, sends it to the address, and
+        returns a `requestId` and `verifyUrl` to complete the verification.
+
+        The code expires after 10 minutes and can only be used once.
+      operationId: initiateContactVerification
+      tags: [Contacts]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  description: The email address to verify.
+                emailSubject:
+                  type: string
+                  description: Subject line for the verification email. Defaults to "Your verification code".
+                replyTo:
+                  type: string
+                  description: Reply-To address for the verification email.
+                emailHtml:
+                  type: string
+                  description: |
+                    Custom HTML body for the verification email. Supports two placeholders:
+                    `{{ verificationCode }}` — replaced with the 6-digit code.
+                    `{{ expirationTime }}` — replaced with the expiry duration (e.g. "10 minutes").
+            example:
+              email: "jane@example.com"
+              emailSubject: "Your access code"
+              replyTo: "support@example.com"
+              emailHtml: "<p>Your code is <strong>{{ verificationCode }}</strong>. It expires in {{ expirationTime }}.</p>"
+      responses:
+        "200":
+          description: Verification initiated — code sent to the email address.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requestId:
+                    type: string
+                    description: Opaque ID used to complete the verification.
+                  verifyUrl:
+                    type: string
+                    description: API path to POST the code to (relative URL).
+              example:
+                requestId: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"
+                verifyUrl: "/api/contacts/verify-email/a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4/confirm"
+        "400":
+          description: Missing or invalid email field.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: No contact found with that email address.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Verification request was created but the email could not be delivered (EMAIL_SEND_FAILURE).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/contacts/verify-email/{requestId}/confirm:
+    post:
+      summary: Confirm contact email verification
+      description: |
+        Submits the 6-digit code received by email. Returns the matching contact records
+        if the code is valid, not expired, and has not already been used.
+
+        After 5 consecutive failed attempts the verification is permanently invalidated.
+        The caller must re-initiate a new verification to try again.
+      operationId: confirmContactVerification
+      tags: [Contacts]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The `requestId` returned by the initiate endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  description: The 6-digit verification code sent to the email address.
+            example:
+              code: "042815"
+      responses:
+        "200":
+          description: Code accepted — returns verified status and matching contacts.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verified:
+                    type: boolean
+                    example: true
+                  contacts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Contact"
+        "400":
+          description: Missing code field.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Invalid or missing API key, or code is invalid/expired/already used.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/contacts/{contactId}:
+    get:
+      summary: Get a contact
+      description: Returns a single contact by its ID, with custom fields enriched by their type definitions.
+      operationId: getContact
+      tags: [Contacts]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: contactId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The contact's `_id`.
+      responses:
+        "200":
+          description: Contact record.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Contact"
+                  count:
+                    type: integer
+                  page:
+                    type: integer
+                  pageSize:
+                    type: integer
+        "401":
+          description: Invalid or missing API key.
+
+    post:
+      summary: Update a contact
+      description: |
+        Updates an existing contact by ID using the same upsert logic as `POST /api/contacts`.
+        The `_id` is taken from the URL — any `_id` in the body is ignored.
+
+        Accepts the same **native** or **legacy** body formats as `POST /api/contacts`.
+        Returns the updated, enriched contact.
+      operationId: updateContact
+      tags: [Contacts]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: contactId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The contact's `_id`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstname:
+                  type: string
+                lastname:
+                  type: string
+                email:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+                  description: One or more email addresses.
+                phone:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      number:
+                        type: string
+                      type:
+                        type: string
+                        enum: [mobile, work, home]
+                typeId:
+                  type: string
+                  description: Contact type ID.
+                contactType:
+                  type: string
+                  description: Contact type name (alternative to `typeId`).
+                isCompany:
+                  type: boolean
+                title:
+                  type: string
+                company:
+                  type: string
+                imageUrl:
+                  type: string
+                  description: Absolute URL to a JPG or PNG photo.
+                customFields:
+                  type: object
+                  description: Map of custom field ID to value.
+            example:
+              firstname: "Jane"
+              lastname: "Smith"
+              email: "jane@example.com"
+      responses:
+        "200":
+          description: Updated contact.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+        "400":
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Invalid or missing API key.
+
+  /api/knowledge/create:
+    post:
+      summary: Create a knowledge document
+      description: |
+        Creates a new knowledge document scoped to your company. Optionally associates the
+        document with a board (`aptletUuid`), a card (`aptletInstanceId`), or a parent
+        document (`parentId`).
+
+        HTML content is accepted and stored internally as a structured document format.
+      operationId: createKnowledgeDoc
+      tags: [Knowledge]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+        - PartnerBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  description: Document title.
+                html:
+                  type: string
+                  description: Initial HTML content for the document body.
+                aptletUuid:
+                  type: string
+                  description: UUID of the board to associate this document with.
+                aptletInstanceId:
+                  type: string
+                  description: Card ID to link this document to. Creates a reference on the card.
+                parentId:
+                  type: string
+                  description: ID of a parent knowledge document (for nested pages).
+                accessType:
+                  type: string
+                  enum: [public, private]
+                  description: Access level. Defaults to `public`.
+            example:
+              name: "Lease Addendum Policy"
+              html: "<p>This policy applies to all lease agreements...</p>"
+              accessType: "private"
+      responses:
+        "201":
+          description: Document created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                    description: ID of the created document.
+                  name:
+                    type: string
+        "401":
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Card or parent document not found (when `aptletInstanceId` or `parentId` provided).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/knowledge/{id}:
+    get:
+      summary: Get a knowledge document
+      description: Returns a knowledge document's content rendered as HTML.
+      operationId: getKnowledgeDoc
+      tags: [Knowledge]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+        - PartnerBearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The knowledge document ID.
+      responses:
+        "200":
+          description: Knowledge document content.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeDoc"
+              example:
+                _id: "kdoc_abc123"
+                name: "Lease Addendum Policy"
+                html: "<p>This policy applies to all lease agreements...</p>"
+        "401":
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Document not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      summary: Update a knowledge document
+      description: |
+        Updates a knowledge document's content and/or metadata. Only fields provided in the
+        request body are updated — omitted fields are left unchanged.
+      operationId: updateKnowledgeDoc
+      tags: [Knowledge]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+        - PartnerBearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The knowledge document ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: New document title.
+                html:
+                  type: string
+                  description: Replacement HTML content for the document body.
+                accessType:
+                  type: string
+                  enum: [public, private]
+                  description: New access level.
+            example:
+              name: "Updated Lease Addendum Policy"
+              html: "<p>Revised policy effective March 2026...</p>"
+      responses:
+        "200":
+          description: Document updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+        "401":
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Document not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/email/create-draft:
+    post:
+      summary: Create an email draft
+      description: |
+        Creates a new outbound email discussion (stream) with a single draft entry, scoped to
+        your company. Returns the `streamId` and `draftUuid` needed to send via
+        `POST /api/email/send`.
+
+        Recipient fields (`to`, `cc`, `bcc`) accept an array of `{ value, label? }` objects
+        where `value` is the email address.
+
+        ### Adding attachments
+
+        Attachments must be uploaded to storage **before** you reference them here — you
+        cannot post file bytes to this endpoint. Upload each file with the three-step direct
+        upload flow, then attach it:
+
+        1. **Get an upload URL** — `POST /api/files/upload-url` with `attachEntityType: "channel"`,
+           `attachEntityId` set to the same `channelId` you're emailing from, and the file's
+           `name`, `extension`, `size`, and `contentType`. It returns `{ fileId, url, fields }`.
+        2. **Upload to S3** — send a `multipart/form-data` `POST` to `url`, appending every
+           entry from `fields` first and the file bytes last as a `file` field. S3 returns `204`.
+        3. **Mark complete** — `POST /api/files/upload-complete` with the `fileId` from step 1.
+
+        Then, on this request:
+        - **Regular attachment** — add the `fileId`(s) to `attachmentIds`.
+        - **Inline image** — embed an `<img>` in the HTML `body` whose `src` is the file's
+          download URL (`.../cdn/storage/AptlyFiles/<fileId>/original/...`, returned by step 3).
+          It is auto-detected and registered; do **not** also list it in `attachmentIds`.
+
+        Repeat steps 1–3 per file. Each `fileId` must reference a finished upload or the
+        request is rejected.
+      operationId: createEmailDraft
+      tags: [Email]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+        - PartnerBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, channelId]
+              properties:
+                userId:
+                  type: string
+                  description: User to record as the draft creator/sender.
+                channelId:
+                  type: string
+                  description: "`channel.meta.id` of the outbound email channel."
+                discussionId:
+                  type: string
+                  description: |
+                    When set, append the draft as a reply to this existing thread (stream
+                    ID) instead of starting a new discussion. The thread must belong to the
+                    same company and channel. The thread's subject is kept and the draft is
+                    threaded onto the thread's last message.
+                to:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/EmailRecipient"
+                cc:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/EmailRecipient"
+                bcc:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/EmailRecipient"
+                subject:
+                  type: string
+                body:
+                  type: string
+                  description: |
+                    Email body (plain text or HTML). To embed an uploaded image inline, add
+                    an `<img>` whose `src` is the file's download URL from
+                    `POST /api/files/upload-complete`
+                    (`.../cdn/storage/AptlyFiles/<fileId>/original/...`). Inline images are
+                    auto-detected, tagged with `data-inline-image-id`, and registered on the
+                    draft — do not also list them in `attachmentIds`.
+                attachmentIds:
+                  type: array
+                  items:
+                    type: string
+                  description: |
+                    File ids to include as regular attachments. Upload each file first
+                    (`POST /api/files/upload-url` with attachEntityType `channel` and the same
+                    channelId → upload to S3 → `POST /api/files/upload-complete`), then pass the
+                    resulting `fileId`s here. Each must reference a finished upload.
+                aptletInstanceId:
+                  type: string
+                  description: |
+                    Card to link the outbound to. When set, sending the draft logs the
+                    email as an activity on the card and tags the discussion with it.
+            example:
+              userId: "user_abc"
+              channelId: "channel_abc"
+              to:
+                - value: "tenant@example.com"
+                  label: "Jane Tenant"
+              subject: "Your lease renewal"
+              body: "Please review the attached renewal terms."
+              aptletInstanceId: "card_abc"
+      responses:
+        "200":
+          description: Draft stream created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  streamId:
+                    type: string
+                    description: Discussion/stream ID to pass to `POST /api/email/send`.
+                  draftUuid:
+                    type: string
+                    description: Draft UUID to pass to `POST /api/email/send`.
+        "401":
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/email/send:
+    post:
+      summary: Send an email
+      description: |
+        Sends an outbound email scoped to your company. Two usage patterns:
+
+        **From an existing draft** — provide `discussionId` and `uuid` returned by
+        `POST /api/email/create-draft`. The draft's stored recipients, subject, and body are
+        used.
+
+        **On-the-fly** — omit `uuid` and provide `userId`, `channelId`, recipients, subject,
+        and body. A draft is created automatically before sending. Supplying `discussionId`
+        (without `uuid`) sends the message as a reply into that existing thread — the
+        thread's subject is kept; omitting both `discussionId` and `uuid` starts a new thread.
+
+        ### Adding attachments
+
+        Attachments apply to the **on-the-fly** pattern (for an existing draft, attach files
+        when you call `POST /api/email/create-draft`). Upload each file with the three-step
+        direct upload flow first — you cannot post file bytes to this endpoint:
+
+        1. **Get an upload URL** — `POST /api/files/upload-url` with `attachEntityType: "channel"`,
+           `attachEntityId` set to the same `channelId` you're sending from, and the file's
+           `name`, `extension`, `size`, and `contentType`. Returns `{ fileId, url, fields }`.
+        2. **Upload to S3** — `multipart/form-data` `POST` to `url`, all `fields` first then the
+           file bytes last as a `file` field. S3 returns `204`.
+        3. **Mark complete** — `POST /api/files/upload-complete` with the `fileId`.
+
+        Then, on this request:
+        - **Regular attachment** — add the `fileId`(s) to `attachmentIds`.
+        - **Inline image** — embed an `<img>` in the HTML `body` whose `src` is the file's
+          download URL (`.../cdn/storage/AptlyFiles/<fileId>/original/...`). Auto-detected and
+          registered; do **not** also list it in `attachmentIds`.
+
+        Each `fileId` must reference a finished upload.
+      operationId: sendEmail
+      tags: [Email]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+        - PartnerBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                discussionId:
+                  type: string
+                  description: |
+                    Stream ID from `POST /api/email/create-draft` (required if `uuid` is set).
+                    When supplied without `uuid`, the on-the-fly draft is appended as a reply
+                    into this existing thread (same company + channel) instead of starting a
+                    new discussion; the thread's subject is kept.
+                uuid:
+                  type: string
+                  description: Draft UUID from `POST /api/email/create-draft`. Required if `discussionId` is set.
+                failOnCreateNewThread:
+                  type: boolean
+                  default: true
+                  description: |
+                    If `true` (default), the send fails when the email would create a new
+                    discussion thread rather than reply to an existing one.
+                userId:
+                  type: string
+                  description: Required when sending on-the-fly (no `discussionId`/`uuid`).
+                channelId:
+                  type: string
+                  description: Required when sending on-the-fly.
+                to:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/EmailRecipient"
+                cc:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/EmailRecipient"
+                bcc:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/EmailRecipient"
+                subject:
+                  type: string
+                body:
+                  type: string
+                  description: |
+                    Email body (plain text or HTML). To embed an uploaded image inline, add
+                    an `<img>` whose `src` is the file's download URL from
+                    `POST /api/files/upload-complete`
+                    (`.../cdn/storage/AptlyFiles/<fileId>/original/...`). Inline images are
+                    auto-detected, tagged with `data-inline-image-id`, and registered on the
+                    draft — do not also list them in `attachmentIds`. Applies when the draft
+                    is created on-the-fly (no `discussionId`/`uuid`).
+                attachmentIds:
+                  type: array
+                  items:
+                    type: string
+                  description: |
+                    File ids to include as regular attachments (applies when the draft is
+                    created on-the-fly). Upload each file first (`POST /api/files/upload-url`
+                    with attachEntityType `channel` and the same channelId → upload to S3 →
+                    `POST /api/files/upload-complete`), then pass the resulting `fileId`s here.
+                    Each must reference a finished upload.
+                aptletInstanceId:
+                  type: string
+                  description: |
+                    Card to link the outbound to. Logs the email as an activity on the
+                    card and tags the discussion. Works whether the draft was pre-created
+                    or is created on-the-fly.
+            examples:
+              from_draft:
+                summary: Send from an existing draft
+                value:
+                  discussionId: "stream_abc"
+                  uuid: "draft_xyz"
+              on_the_fly:
+                summary: On-the-fly send
+                value:
+                  userId: "user_abc"
+                  channelId: "channel_abc"
+                  to:
+                    - value: "tenant@example.com"
+                  subject: "Your lease renewal"
+                  body: "Please review the attached renewal terms."
+                  aptletInstanceId: "card_abc"
+      responses:
+        "200":
+          description: Email sent successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+        "401":
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/app/verify:
+    post:
+      summary: Verify a delegate token (keyless)
+      description: |
+        Validates a short-lived delegate token without requiring an API key. The token must
+        include an `appClientId` (i.e. it was issued for an embedded app via
+        `POST /api/platform/user-token`). Returns the user's identity, company name, and
+        the app's title.
+      operationId: verifyDelegateToken
+      tags: [App]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+                  description: Delegate token returned by `POST /api/platform/user-token`.
+      responses:
+        "200":
+          description: Token is valid.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                  email:
+                    type: string
+                    nullable: true
+                  firstName:
+                    type: string
+                    nullable: true
+                  lastName:
+                    type: string
+                    nullable: true
+                  companyId:
+                    type: string
+                  companyName:
+                    type: string
+                    nullable: true
+                  appClientId:
+                    type: string
+                  appTitle:
+                    type: string
+                    nullable: true
+        "400":
+          description: token field is missing.
+        "401":
+          description: Token is invalid, expired, or was not issued for an embedded app (missing appClientId).
+
+  /api/app/me:
+    get:
+      summary: Get credential info
+      description: |
+        Returns identity information for the credential used in the request. The response shape
+        depends on the auth method:
+
+        - **Delegate token** (`Authorization: DelegateToken <token>`): returns user identity and,
+          if the token has an `appClientId`, embedded-app context.
+        - **API key** (`x-token` header or query param): returns company identity.
+        - **Partner token** (`Authorization: Bearer <token>`): returns the partner's permission list.
+      operationId: getMe
+      tags: [App]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+        - PartnerBearer: []
+      responses:
+        "200":
+          description: Credential identity.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - title: Delegate token — user
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        enum: [user]
+                      userId:
+                        type: string
+                      email:
+                        type: string
+                        nullable: true
+                      firstName:
+                        type: string
+                        nullable: true
+                      lastName:
+                        type: string
+                        nullable: true
+                      companyId:
+                        type: string
+                      companyName:
+                        type: string
+                        nullable: true
+                  - title: Delegate token — app
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        enum: [app]
+                      userId:
+                        type: string
+                      email:
+                        type: string
+                        nullable: true
+                      firstName:
+                        type: string
+                        nullable: true
+                      lastName:
+                        type: string
+                        nullable: true
+                      companyId:
+                        type: string
+                      companyName:
+                        type: string
+                        nullable: true
+                      appClientId:
+                        type: string
+                      appTitle:
+                        type: string
+                        nullable: true
+                  - title: API key
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        enum: [apiKey]
+                      companyId:
+                        type: string
+                      companyName:
+                        type: string
+                        nullable: true
+                  - title: Partner token
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        enum: [partner]
+                      permissions:
+                        type: array
+                        items:
+                          type: string
+        "401":
+          description: Invalid or missing credential.
+
+  /api/board/{boardId}/configuration:
+    get:
+      summary: Get full board configuration
+      description: |
+        Returns all configuration sections for the board in a single response:
+        fields, automations, options, tabViews, workflows, groups, shares, theme, and filters.
+      operationId: getBoardConfiguration
+      tags: [Board]
+      security:
+        - ApiKeyHeader: []
+        - PartnerBearer: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The board's UUID.
+      responses:
+        "200":
+          description: Full board configuration.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      fields:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/BoardField"
+                      automations:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Automation"
+                      options:
+                        $ref: "#/components/schemas/BoardOptions"
+                      tabViews:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/TabView"
+                      workflows:
+                        type: array
+                        description: Board workflows (sequences).
+                        items:
+                          type: object
+                      groups:
+                        type: array
+                        description: Field groups (sections) configured on the board.
+                        items:
+                          type: object
+                      shares:
+                        type: object
+                        description: Board access settings.
+                        properties:
+                          accessType:
+                            type: string
+                            enum: [public, private]
+                          acl:
+                            type: array
+                            items:
+                              type: object
+                      theme:
+                        type: object
+                        description: Board identity fields.
+                        properties:
+                          name:
+                            type: string
+                          cardName:
+                            type: string
+                          color:
+                            type: string
+                            description: Hex color for the board gradient.
+                          icon:
+                            type: string
+                          description:
+                            type: string
+                          shortCode:
+                            type: string
+                      filters:
+                        type: array
+                        description: Saved filters visible to the caller.
+                        items:
+                          type: object
+        "401":
+          description: Invalid or missing API key.
+        "404":
+          description: Board not found.
+
+
+  /api/board/{boardId}/configuration/automations:
+    get:
+      summary: List board automations
+      description: Returns the automations configured on a board.
+      operationId: listAutomations
+      tags: [Board]
+      security:
+        - ApiKeyHeader: []
+        - PartnerBearer: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The board's UUID.
+      responses:
+        "200":
+          description: Array of automations.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Automation"
+        "401":
+          description: Invalid or missing API key.
+        "404":
+          description: Board not found.
+
+
+  /api/board/{boardId}/configuration/options:
+    get:
+      summary: Get board options
+      description: Returns the current configuration options for the board.
+      operationId: getBoardOptions
+      tags: [Board]
+      security:
+        - ApiKeyHeader: []
+        - PartnerBearer: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Board options.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/BoardOptions"
+        "401":
+          description: Invalid or missing API key.
+        "404":
+          description: Board not found.
+
+
+  /api/board/{boardId}/configuration/fields:
+    get:
+      summary: List board fields
+      description: Returns all fields defined on the board, including archived ones.
+      operationId: listBoardFields
+      tags: [Board]
+      security:
+        - ApiKeyHeader: []
+        - PartnerBearer: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Array of board fields.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BoardField"
+        "401":
+          description: Invalid or missing API key.
+        "404":
+          description: Board not found.
+
+
+  /api/board/{boardId}/configuration/workflows:
+    get:
+      summary: List board workflows
+      description: Returns the workflows (sequences) configured on a board.
+      operationId: listWorkflows
+      tags: [Board]
+      security:
+        - ApiKeyHeader: []
+        - PartnerBearer: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The board's UUID.
+      responses:
+        "200":
+          description: Array of workflows.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+        "401":
+          description: Invalid or missing API key.
+        "404":
+          description: Board not found.
+
+
+  /api/board/{boardId}/configuration/groups:
+    get:
+      summary: List board field groups
+      description: Returns the field groups (sections) configured on the board.
+      operationId: listGroups
+      tags: [Board]
+      security:
+        - ApiKeyHeader: []
+        - PartnerBearer: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Array of groups.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+        "401":
+          description: Invalid or missing API key.
+        "404":
+          description: Board not found.
+
+
+  /api/board/{boardId}/configuration/shares:
+    get:
+      summary: Get board access settings
+      description: Returns the board's access type and ACL (shares array).
+      operationId: getBoardShares
+      tags: [Board]
+      security:
+        - ApiKeyHeader: []
+        - PartnerBearer: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Board access settings.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      accessType:
+                        type: string
+                        enum: [public, private]
+                      acl:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                            userId:
+                              type: string
+                            teamId:
+                              type: string
+                            permissions:
+                              type: array
+                              items:
+                                type: string
+        "401":
+          description: Invalid or missing API key.
+        "404":
+          description: Board not found.
+
+
+  /api/board/{boardId}/configuration/theme:
+    get:
+      summary: Get board identity fields
+      description: Returns the board's display name, color, icon, description, and short code.
+      operationId: getBoardTheme
+      tags: [Board]
+      security:
+        - ApiKeyHeader: []
+        - PartnerBearer: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Board identity fields.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      cardName:
+                        type: string
+                      color:
+                        type: string
+                        description: Hex color for the board gradient.
+                      icon:
+                        type: string
+                      description:
+                        type: string
+                      shortCode:
+                        type: string
+                        description: Up to 5-character uppercase alphanumeric code.
+        "401":
+          description: Invalid or missing API key.
+        "404":
+          description: Board not found.
+
+
+  /api/board/{boardId}/configuration/filters:
+    get:
+      summary: List board filters
+      description: |
+        Returns saved filters for this board visible to the caller.
+        Company-scoped filters are always included; user-scoped (private) filters
+        are included when authenticating with a delegate token that has a `userId`.
+        Quick-view filters are excluded.
+      operationId: getBoardFilters
+      tags: [Board]
+      security:
+        - ApiKeyHeader: []
+        - PartnerBearer: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of filters.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        name:
+                          type: string
+                        scope:
+                          type: string
+                          enum: [company, user]
+                        aptletUuid:
+                          type: string
+                        rules:
+                          type: array
+                          items:
+                            type: object
+                        archived:
+                          type: boolean
+        "401":
+          description: Invalid or missing API key.
+        "404":
+          description: Board not found.
+
+  /api/templates:
+    get:
+      summary: List templates
+      description: |
+        Returns communication templates for the company. All filter parameters are optional.
+
+        Accepts an API key (`x-token`), delegate token (`Authorization: DelegateToken <token>`),
+        or partner token (`Authorization: Bearer <token>` with `templates` permission).
+        When using a partner token, pass `companyId` as a query parameter.
+      operationId: listTemplates
+      tags: [Templates]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+        - PartnerBearer: []
+      parameters:
+        - name: companyId
+          in: query
+          schema:
+            type: string
+          description: Company ID. Required when using a partner token; resolved automatically for API key and delegate token auth.
+        - name: templateType
+          in: query
+          schema:
+            type: string
+            enum: [sms, email, form, eSignature, pdf, blockDocument]
+          description: Filter by template type.
+        - name: aptletUuid
+          in: query
+          schema:
+            type: string
+          description: Filter by associated board UUID.
+        - name: archived
+          in: query
+          schema:
+            type: boolean
+          description: Filter by archived status.
+      responses:
+        "200":
+          description: Array of templates.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Template"
+        "400":
+          description: Missing companyId.
+        "401":
+          description: Invalid or missing credential.
+
+
+  /api/templates/{id}:
+    get:
+      summary: Get a template
+      description: Returns a single template by its ID. The template must belong to the authenticated company.
+      operationId: getTemplate
+      tags: [Templates]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+        - PartnerBearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Template ID.
+        - name: companyId
+          in: query
+          schema:
+            type: string
+          description: Required for partner token auth.
+      responses:
+        "200":
+          description: Template record.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Template"
+        "401":
+          description: Invalid or missing credential.
+        "404":
+          description: Template not found.
+
+  /api/tasks/search:
+    post:
+      summary: Search tasks
+      description: |
+        Query tasks for the authenticated company. All body fields are optional filters.
+        Date-range filters (`dueAt`, `checkedAt`, `updatedAt`) take an object of
+        `{ startDate, endDate }` — either bound may be supplied independently. Set
+        `useCount: true` to return `{ count }` instead of `{ tasks }`.
+      operationId: searchTasks
+      tags: [Tasks]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Restrict to tasks assigned to these user ids.
+                isChecked:
+                  type: boolean
+                  description: Filter by completion state.
+                isPinned:
+                  type: boolean
+                archived:
+                  type: boolean
+                  default: false
+                taskPriority:
+                  type: string
+                  description: One of asap|high|medium|low.
+                streamId:
+                  type: string
+                channelId:
+                  type: string
+                aptletUuid:
+                  type: string
+                  description: Board UUID.
+                aptletInstanceId:
+                  type: string
+                leaderboard:
+                  type: boolean
+                onlyAssigned:
+                  type: boolean
+                unAssigned:
+                  type: boolean
+                useCount:
+                  type: boolean
+                  description: Return a count instead of the task list.
+                limit:
+                  type: integer
+                  default: 1000
+                dueAt:
+                  $ref: "#/components/schemas/TaskDateRange"
+                checkedAt:
+                  $ref: "#/components/schemas/TaskDateRange"
+                updatedAt:
+                  $ref: "#/components/schemas/TaskDateRange"
+            example:
+              isChecked: false
+              archived: false
+              taskPriority: high
+              dueAt:
+                startDate: "2026-06-01T00:00:00.000Z"
+                endDate: "2026-06-30T00:00:00.000Z"
+              limit: 100
+      responses:
+        "200":
+          description: Matching tasks (or a count).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Task"
+                  count:
+                    type: integer
+                    description: Present instead of `tasks` when `useCount` is true.
+        "400":
+          description: Invalid filter value.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Invalid or missing credential.
+
+  /api/tasks:
+    post:
+      summary: Create a task
+      description: |
+        Creates a task. When `aptletInstanceId` is set, the task is also mirrored as a
+        checklist entry on that card.
+
+        The task is attributed to an acting user who must belong to the company. With a
+        delegate token the user is taken from the token. With an API key (no associated
+        user), supply `userId` in the body — it must belong to the company or the
+        request is rejected.
+      operationId: createTask
+      tags: [Tasks]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, assigneeId, dueAt, type]
+              properties:
+                userId:
+                  type: string
+                  description: |
+                    Acting user the task is attributed to (createdBy/updatedBy).
+                    Required with API-key auth (must belong to the company); ignored
+                    with a delegate token, which supplies the user itself.
+                title:
+                  type: string
+                assigneeId:
+                  type: string
+                  description: User id the task is assigned to.
+                dueAt:
+                  type: string
+                  format: date-time
+                type:
+                  type: string
+                  description: Follow-up type — one of email|comment|sms|voice|card|note|task|logActivity.
+                note:
+                  type: string
+                  description: Task description.
+                status:
+                  type: string
+                  description: One of backlog|notStarted|inProgress|onHold|completed.
+                priority:
+                  type: string
+                  description: One of asap|high|medium|low.
+                logType:
+                  type: string
+                  description: Required when type is "logActivity".
+                aptletInstanceId:
+                  type: string
+                  description: Card id — when set the task is mirrored onto the card checklist.
+                aptletUuid:
+                  type: string
+                channelId:
+                  type: string
+                streamId:
+                  type: string
+                fieldId:
+                  type: string
+                  description: Checklist array field on the card (defaults to "checklist").
+                attachmentIds:
+                  type: array
+                  items:
+                    type: string
+                references:
+                  type: array
+                  items:
+                    type: object
+            example:
+              title: Call the tenant
+              assigneeId: usr_123
+              dueAt: "2026-06-10T00:00:00.000Z"
+              type: task
+              priority: high
+              status: notStarted
+      responses:
+        "200":
+          description: Task created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  taskId:
+                    type: string
+        "400":
+          description: Missing or invalid field.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Invalid or missing credential.
+
+  /api/tasks/{taskId}:
+    get:
+      summary: Get a task by ID
+      description: |
+        Fetches a single task with related card/board context and resolved attachment
+        metadata. When `includeMetadata=true`, also returns display labels
+        (`priorityLabel`, `statusLabel`) and the resolved `assignee`.
+      operationId: getTask
+      tags: [Tasks]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: includeMetadata
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Include display labels and the resolved assignee.
+      responses:
+        "200":
+          description: The task.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "401":
+          description: Invalid or missing credential.
+        "404":
+          description: Task not found.
+    put:
+      summary: Update a task
+      description: |
+        Updates a task and keeps its card-checklist mirror entry in sync.
+
+        The update is attributed to a user who must belong to the company. With a
+        delegate token the user is taken from the token. With an API key (no
+        associated user), supply `userId` in the body — it must belong to the
+        company or the request is rejected.
+      operationId: updateTask
+      tags: [Tasks]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  description: |
+                    Acting user the update is attributed to. Required with API-key
+                    auth (must belong to the company); ignored with a delegate
+                    token, which supplies the user itself.
+                title:
+                  type: string
+                description:
+                  type: string
+                checked:
+                  type: boolean
+                dueAt:
+                  type: string
+                  format: date-time
+                status:
+                  type: string
+                  description: One of backlog|notStarted|inProgress|onHold|completed.
+                priority:
+                  type: string
+                  description: One of asap|high|medium|low.
+                assigneeId:
+                  type: string
+                archived:
+                  type: boolean
+                archivedAt:
+                  type: string
+                  format: date-time
+                startedAt:
+                  type: string
+                  format: date-time
+                checkedAt:
+                  type: string
+                  format: date-time
+                pinned:
+                  type: boolean
+                rank:
+                  type: number
+                attachmentIds:
+                  type: array
+                  items:
+                    type: string
+                outcomeType:
+                  type: string
+                aptletInstanceId:
+                  type: string
+                fieldId:
+                  type: string
+            example:
+              title: Renamed task
+              checked: true
+              status: completed
+              priority: high
+      responses:
+        "200":
+          description: Task updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+        "400":
+          description: Missing or invalid field.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Invalid or missing credential.
+        "404":
+          description: Task not found.
+
+  /api/routing-groups:
+    get:
+      summary: List routing groups
+      description: Returns all active routing groups for the authenticated company.
+      operationId: listRoutingGroups
+      tags: [RoutingGroups]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      responses:
+        "200":
+          description: Array of routing groups.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    name:
+                      type: string
+                    type:
+                      type: string
+                      enum: [simultaneous, sequential]
+                    destination:
+                      type: object
+                    ringDurationSeconds:
+                      type: number
+                    callerExperience:
+                      type: object
+                    maxWaitSeconds:
+                      type: number
+                    overflow:
+                      type: object
+                    archived:
+                      type: boolean
+        "401":
+          description: Invalid or missing credential.
+
+  /api/routing-groups/create:
+    post:
+      summary: Create a routing group
+      description: Creates a new routing group for the authenticated company. Returns the new group's ID.
+      operationId: createRoutingGroup
+      tags: [RoutingGroups]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, type]
+              properties:
+                name:
+                  type: string
+                  description: Display name for the routing group.
+                type:
+                  type: string
+                  enum: [simultaneous, sequential]
+                  description: Ring mode. `simultaneous` rings all members at once; `sequential` tries each in order.
+                destination:
+                  type: object
+                  description: Ring target configuration. Supports `ringType` of `user`, `phone`, `browser`, `agent`, or `multi`.
+                ringDurationSeconds:
+                  type: number
+                  description: How long (in seconds) to ring each target before moving on. Defaults to 20.
+                callerExperience:
+                  type: object
+                  description: Caller-side experience config. Set `mode` to `ring` (default) or `hold-music`.
+                maxWaitSeconds:
+                  type: number
+                  description: Maximum time (in seconds) a caller will wait before overflow handling triggers.
+                overflow:
+                  type: object
+                  description: Overflow/voicemail config. Supports `greetingText` and `voicemailNotification` (array of emails).
+            example:
+              name: "Support Queue"
+              type: "simultaneous"
+              destination:
+                ringType: "multi"
+                ringToList: []
+              ringDurationSeconds: 20
+              callerExperience:
+                mode: "ring"
+      responses:
+        "200":
+          description: Routing group created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                    description: ID of the created routing group.
+        "400":
+          description: Missing or invalid field (`name` required; `type` must be simultaneous or sequential).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Invalid or missing credential.
+
+  /api/routing-groups/{id}:
+    put:
+      summary: Update a routing group
+      description: |
+        Updates an existing routing group. All fields are optional — only provided fields are changed.
+        Pass `null` for a field to clear it.
+      operationId: updateRoutingGroup
+      tags: [RoutingGroups]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The routing group ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                type:
+                  type: string
+                  enum: [simultaneous, sequential]
+                destination:
+                  type: object
+                  description: Ring target configuration.
+                ringDurationSeconds:
+                  type: number
+                callerExperience:
+                  type: object
+                maxWaitSeconds:
+                  type: number
+                overflow:
+                  type: object
+            example:
+              name: "Support Queue"
+              ringDurationSeconds: 30
+              overflow:
+                greetingText: "Please leave a message."
+                voicemailNotification: ["support@example.com"]
+      responses:
+        "200":
+          description: Routing group updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+        "400":
+          description: Invalid field value (e.g. unrecognized `type`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Invalid or missing credential.
+        "404":
+          description: Routing group not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/routing-groups/{id}/archive:
+    post:
+      summary: Archive a routing group
+      description: Soft-deletes a routing group. Archived groups are excluded from list results and cannot be updated.
+      operationId: archiveRoutingGroup
+      tags: [RoutingGroups]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The routing group ID.
+      responses:
+        "200":
+          description: Routing group archived.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+        "401":
+          description: Invalid or missing credential.
+        "404":
+          description: Routing group not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/files/upload-url:
+    post:
+      summary: Get a presigned URL for a direct file upload
+      description: |
+        First step of the direct file-upload flow. Issues a presigned S3 POST
+        policy and records a pending upload.
+
+        **Uploading a file takes three steps:**
+
+        1. **Get a URL** — call this endpoint. It returns `{ fileId, url, fields }`.
+        2. **Upload directly to S3** — send a `multipart/form-data` `POST` to
+           `url`. Include **every** key/value from `fields` as form fields first,
+           then the file itself as the last field named `file`. The upload goes
+           straight to S3; it does not pass through this API. A successful upload
+           returns HTTP `204` from S3.
+        3. **Mark the upload complete** — call
+           `POST /api/files/upload-complete` with the `fileId` from step 1. This
+           records the file and returns its download URL.
+
+        The presigned policy enforces the content type and a 1 byte–50 MB size
+        range. Both `extension` and `contentType` must be on the accepted lists.
+
+        `attachEntityType` is `channel`, `aptlet`, or `knowledge`, and
+        `attachEntityId` is the channel id, aptlet uuid, or knowledge doc id
+        respectively. The target must exist (scoped to your company) or the
+        request is rejected. The file is stored under that entity's folder.
+      operationId: getFileUploadUrl
+      tags: [Files]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+        - PartnerBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, extension, size, contentType, attachEntityType, attachEntityId]
+              properties:
+                name:
+                  type: string
+                  description: Original file name.
+                  example: invoice.pdf
+                extension:
+                  type: string
+                  description: File extension (lowercase, no dot). Must be an accepted extension.
+                  example: pdf
+                size:
+                  type: integer
+                  description: File size in bytes. Must be 1–52428800 (50 MB).
+                  example: 20480
+                contentType:
+                  type: string
+                  description: MIME type. Must be an accepted content type.
+                  example: application/pdf
+                attachEntityType:
+                  type: string
+                  enum: [channel, aptlet, knowledge]
+                  description: The kind of entity the file is attached to.
+                  example: channel
+                attachEntityId:
+                  type: string
+                  description: The channel id (`channel`), aptlet uuid (`aptlet`), or knowledge doc id (`knowledge`) the file belongs to. Must exist within your company.
+                  example: 7f3c2a1b9d4e5f6a7b8c9d0e
+      responses:
+        "200":
+          description: Presigned upload policy.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fileId:
+                    type: string
+                    description: ID to pass to `/api/files/upload-complete`.
+                  url:
+                    type: string
+                    description: S3 endpoint to POST the multipart form to.
+                  fields:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    description: Form fields that must be included in the multipart POST (the file part goes last).
+        "400":
+          description: Invalid or unsupported file, or missing required field.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Invalid or missing credential.
+        "404":
+          description: Target channel, aptlet, or knowledge doc not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/files/upload-complete:
+    post:
+      summary: Finalize a direct file upload
+      description: |
+        Final (third) step of the direct file-upload flow. Confirms the file
+        was uploaded to S3 and records it. Call this with the `fileId` from
+        `/api/files/upload-url` after the `multipart/form-data` POST to the
+        presigned `url` succeeded. Returns the file's download URL.
+      operationId: completeFileUpload
+      tags: [Files]
+      security:
+        - ApiKeyHeader: []
+        - DelegateToken: []
+        - PartnerBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fileId]
+              properties:
+                fileId:
+                  type: string
+                  description: The `fileId` returned by `/api/files/upload-url`.
+      responses:
+        "200":
+          description: Upload finalized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fileId:
+                    type: string
+                    description: ID of the stored file.
+                  url:
+                    type: string
+                    description: Download URL for the stored file.
+        "400":
+          description: Missing fileId or the upload was already completed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Invalid or missing credential.
+        "404":
+          description: No pending upload found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+

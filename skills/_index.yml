@@ -1,0 +1,20 @@
+generated: '2026-07-18'
+method: generated
+source: openapi/aptly-openapi-original.yml
+skills:
+  - file: aptly-create-and-update-card.md
+    name: Create and update an Aptly card
+    api: openapi/aptly-openapi-original.yml
+    operations: [listBoards, getSchema, createCard, postComment, uploadFile]
+  - file: aptly-manage-contacts.md
+    name: Look up and upsert Aptly contacts
+    api: openapi/aptly-openapi-original.yml
+    operations: [getContactsByEmail, listContacts, upsertContact, getContact, updateContact]
+  - file: aptly-track-tasks.md
+    name: Search and manage Aptly tasks
+    api: openapi/aptly-openapi-original.yml
+    operations: [searchTasks, createTask, getTask, updateTask]
+  - file: aptly-send-email.md
+    name: Draft and send Aptly email
+    api: openapi/aptly-openapi-original.yml
+    operations: [listUserInboxes, createEmailDraft, sendEmail]

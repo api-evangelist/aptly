@@ -1,0 +1,520 @@
+openapi: 3.0.3
+info:
+  title: Aptly App Cards API
+  version: '1.0'
+  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+
+
+    All requests require an API key passed as the `x-token` header.
+
+    API keys are scoped to your company and work across all boards.
+
+    '
+servers:
+- url: https://core-api.getaptly.com
+  description: Production
+security:
+- ApiKeyHeader: []
+tags:
+- name: Cards
+paths:
+  /api/board/{boardId}:
+    get:
+      summary: List cards
+      description: 'Returns a paginated list of cards on the board.
+
+
+        Field values are keyed by field UUID — use the schema endpoint to map keys to labels.
+
+        Money fields are returned as `{ amount, currency }` where `amount` is a decimal.
+
+
+        All filter params are optional and ANDed together.
+
+        '
+      operationId: listCards
+      tags:
+      - Cards
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The board's UUID.
+      - name: page
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 9999
+        description: Zero-based page number.
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          default: 20
+        description: Number of cards per page.
+      - name: updatedAtMin
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: Only return cards updated after this ISO timestamp.
+      - name: includeArchived
+        in: query
+        schema:
+          type: boolean
+          default: false
+        description: Include archived cards.
+      - name: relatedId
+        in: query
+        schema:
+          type: string
+        description: Only return cards where `references.value` contains this ID.
+      - name: contactEmail
+        in: query
+        schema:
+          type: string
+        description: Resolves the email to contact IDs, then filters cards referencing those contacts.
+      - name: keyTerm
+        in: query
+        schema:
+          type: string
+        description: Full-text autocomplete search on card title using the Atlas Search index.
+      - name: assignee
+        in: query
+        schema:
+          type: string
+        description: Filter cards by assignee user ID.
+      responses:
+        '200':
+          description: Paginated list of cards.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Card'
+                  count:
+                    type: integer
+                    description: Total number of matching cards.
+                  page:
+                    type: integer
+                  pageSize:
+                    type: integer
+        '401':
+          description: Invalid or missing API key.
+        '403':
+          description: API access is disabled for this board.
+        '404':
+          description: Board not found.
+    post:
+      summary: Create or update a card
+      description: 'Creates a new card on the board. Use field UUIDs (from the schema endpoint) as keys in the request body.
+
+
+        To update an existing card, include its `_id` in the request body. The card must belong to this board.
+
+        Fields not provided in the body are left unchanged on update.
+
+        '
+      operationId: createCard
+      tags:
+      - Cards
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                _id:
+                  type: string
+                  description: Existing card ID. When provided, updates that card instead of creating a new one.
+                name:
+                  type: string
+                  description: Card title (also accepted as `title`).
+              additionalProperties:
+                description: Any board field UUID as key, with the field's value.
+            example:
+              name: John Smith
+              abc123: john@example.com
+              ghi789: 1500
+      responses:
+        '200':
+          description: Card created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        description: ID of the created card.
+        '401':
+          description: Invalid or missing API key.
+        '403':
+          description: API access is disabled for this board.
+        '404':
+          description: Board not found.
+  /api/board/{boardId}/{cardId}:
+    get:
+      summary: Get a card
+      description: Returns a single card by its ID.
+      operationId: getCard
+      tags:
+      - Cards
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Card data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Card'
+        '401':
+          description: Invalid or missing API key.
+        '403':
+          description: API access is disabled for this board.
+        '404':
+          description: Card not found.
+  /api/board/{boardId}/{cardId}/comments:
+    get:
+      summary: List comments on a card
+      description: Returns all comments on the specified card in chronological order.
+      operationId: listComments
+      tags:
+      - Cards
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Array of comments.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Comment'
+              example:
+                data:
+                - id: lk3jf8
+                  userId: user_abc
+                  content: Application approved.
+                  createdAt: '2026-01-15T10:30:00Z'
+        '401':
+          description: Invalid or missing API key.
+        '403':
+          description: API access is disabled for this board.
+        '404':
+          description: Board or card not found.
+  /api/board/{boardId}/{cardId}/contacts:
+    get:
+      summary: List contacts linked to a card
+      description: 'Returns all person contacts linked to the card via its person/persons fields.
+
+        Returns an empty array if the board has no person fields or none are populated.
+
+        '
+      operationId: listCardContacts
+      tags:
+      - Cards
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Array of linked contacts.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Contact'
+        '401':
+          description: Invalid or missing API key.
+        '403':
+          description: API access is disabled for this board.
+        '404':
+          description: Board or card not found.
+  /api/board/{boardId}/{cardId}/comment:
+    post:
+      summary: Add or update a comment
+      description: 'Adds a new comment to a card. To update an existing comment, include its `id` in the body —
+
+        the `userId` must match the original comment''s author.
+
+        '
+      operationId: postComment
+      tags:
+      - Cards
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - userId
+              - content
+              properties:
+                userId:
+                  type: string
+                  description: Aptly user ID of the comment author.
+                content:
+                  type: string
+                  description: Comment text.
+                id:
+                  type: string
+                  description: Existing comment ID — include to update rather than create.
+      responses:
+        '200':
+          description: Comment created or updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Comment'
+        '401':
+          description: Invalid or missing API key.
+        '404':
+          description: Card or comment not found.
+  /api/board/{boardId}/{cardId}/file:
+    post:
+      summary: Upload a file to a card
+      description: 'Uploads a file and attaches it to a card. Send as `multipart/form-data` with the file in the `file` field.
+
+
+        **Max file size:** 50 MB
+
+
+        **Accepted types:** JPEG, PNG, GIF, WebP, SVG, PDF, Word, Excel, plain text, CSV, MP4, MOV, MP3, WAV
+
+        '
+      operationId: uploadFile
+      tags:
+      - Cards
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: File uploaded and attached.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      fileId:
+                        type: string
+                      name:
+                        type: string
+                      size:
+                        type: integer
+                      type:
+                        type: string
+        '400':
+          description: Missing file or unsupported file type.
+        '401':
+          description: Invalid or missing API key.
+        '404':
+          description: Card not found.
+components:
+  schemas:
+    Contact:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: MongoDB ObjectId of the contact.
+        uuid:
+          type: string
+        firstname:
+          type: string
+        lastname:
+          type: string
+        fullName:
+          type: string
+          description: Computed display name (first + last, or company name for org records).
+        duogram:
+          type: string
+          description: Two-letter initials derived from first and last name.
+        photoId:
+          type: string
+          nullable: true
+        imageUrl:
+          type: string
+          nullable: true
+          description: CDN thumbnail URL for the contact's photo, or null if none.
+        email:
+          type: string
+        phone:
+          type: string
+        typeId:
+          type: string
+        companyId:
+          type: string
+        address:
+          type: object
+        title:
+          type: string
+        alerts:
+          type: array
+          items:
+            type: object
+        company:
+          type: string
+          description: Company name — populated when isCompany is true.
+        isCompany:
+          type: boolean
+    Card:
+      type: object
+      properties:
+        cardId:
+          type: string
+          description: Unique ID of the card.
+        boardUuid:
+          type: string
+          description: UUID of the board this card belongs to.
+        archived:
+          type: boolean
+        assignee:
+          type: string
+          description: Full name of the assigned user.
+      additionalProperties:
+        description: Additional properties are dynamic board fields keyed by their field UUID.
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-token
+    DelegateToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Delegate token issued by the platform. Format: `DelegateToken <token>`'
+    PartnerBearer:
+      type: http
+      scheme: bearer
+      description: 'Partner token. Format: `Authorization: Bearer <token>`'

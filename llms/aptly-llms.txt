@@ -1,0 +1,85 @@
+# Aptly API
+
+## Docs
+
+- [Get credential info](https://docs.getaptly.com/api-reference/app/get-credential-info.md): Returns identity information for the credential used in the request. The response shape depends on the auth method:
+- [Verify a delegate token (keyless)](https://docs.getaptly.com/api-reference/app/verify-a-delegate-token-keyless.md): Validates a short-lived delegate token without requiring an API key. The token must include an `appClientId` (i.e. it was issued for an embedded app via `POST /api/platform/user-token`). Returns the user's identity, company name, and the app's title.
+- [Add a tab view](https://docs.getaptly.com/api-reference/board/add-a-tab-view.md): Adds an embedded tab view to the board's tab list.
+- [Add a tab view (legacy)](https://docs.getaptly.com/api-reference/board/add-a-tab-view-legacy.md): Deprecated alias for `POST /api/board/{boardId}/configuration/tabViews`. Adds an embedded tab view to the board's tab list. Use the `/configuration/tabViews` path for new integrations.
+- [Get board access settings](https://docs.getaptly.com/api-reference/board/get-board-access-settings.md): Returns the board's access type and ACL (shares array).
+- [Get board identity fields](https://docs.getaptly.com/api-reference/board/get-board-identity-fields.md): Returns the board's display name, color, icon, description, and short code.
+- [Get board options](https://docs.getaptly.com/api-reference/board/get-board-options.md): Returns the current configuration options for the board.
+- [Get full board configuration](https://docs.getaptly.com/api-reference/board/get-full-board-configuration.md): Returns all configuration sections for the board in a single response: fields, automations, options, tabViews, workflows, groups, shares, theme, and filters.
+- [List board automations](https://docs.getaptly.com/api-reference/board/list-board-automations.md): Returns the automations configured on a board.
+- [List board field groups](https://docs.getaptly.com/api-reference/board/list-board-field-groups.md): Returns the field groups (sections) configured on the board.
+- [List board fields](https://docs.getaptly.com/api-reference/board/list-board-fields.md): Returns all fields defined on the board, including archived ones.
+- [List board filters](https://docs.getaptly.com/api-reference/board/list-board-filters.md): Returns saved filters for this board visible to the caller. Company-scoped filters are always included; user-scoped (private) filters are included when authenticating with a delegate token that has a `userId`. Quick-view filters are excluded.
+- [List board workflows](https://docs.getaptly.com/api-reference/board/list-board-workflows.md): Returns the workflows (sequences) configured on a board.
+- [Verify a delegate token](https://docs.getaptly.com/api-reference/board/verify-a-delegate-token.md): Validates a short-lived delegate token issued by `POST /api/platform/user-token`. Checks the JWT signature, expiry, and confirms the token was issued for the same company as the API key. Use this to confirm the identity of an authenticated Aptly user inside an embedded plugin or iframe.
+- [List boards](https://docs.getaptly.com/api-reference/boards/list-boards.md): Returns all boards in your company that have API access enabled. Each board includes its UUID, display name, and a list of pre-built endpoint URLs you can use to interact with cards on that board.
+- [Add or update a comment](https://docs.getaptly.com/api-reference/cards/add-or-update-a-comment.md): Adds a new comment to a card. To update an existing comment, include its `id` in the body — the `userId` must match the original comment's author.
+- [Create or update a card](https://docs.getaptly.com/api-reference/cards/create-or-update-a-card.md): Creates a new card on the board. Use field UUIDs (from the schema endpoint) as keys in the request body.
+- [Get a card](https://docs.getaptly.com/api-reference/cards/get-a-card.md): Returns a single card by its ID.
+- [List cards](https://docs.getaptly.com/api-reference/cards/list-cards.md): Returns a paginated list of cards on the board.
+- [List comments on a card](https://docs.getaptly.com/api-reference/cards/list-comments-on-a-card.md): Returns all comments on the specified card in chronological order.
+- [List contacts linked to a card](https://docs.getaptly.com/api-reference/cards/list-contacts-linked-to-a-card.md): Returns all person contacts linked to the card via its person/persons fields. Returns an empty array if the board has no person fields or none are populated.
+- [Upload a file to a card](https://docs.getaptly.com/api-reference/cards/upload-a-file-to-a-card.md): Uploads a file and attaches it to a card. Send as `multipart/form-data` with the file in the `file` field.
+- [Get company info](https://docs.getaptly.com/api-reference/company/get-company-info.md): Returns the name, address, contact details, and logo URL for the company associated with the API key.
+- [Confirm contact email verification](https://docs.getaptly.com/api-reference/contacts/confirm-contact-email-verification.md): Submits the 6-digit code received by email. Returns the matching contact records if the code is valid, not expired, and has not already been used.
+- [Create or update a contact](https://docs.getaptly.com/api-reference/contacts/create-or-update-a-contact.md): Creates a new contact or updates an existing one (upsert).
+- [Get a contact](https://docs.getaptly.com/api-reference/contacts/get-a-contact.md): Returns a single contact by its ID, with custom fields enriched by their type definitions.
+- [Initiate contact email verification](https://docs.getaptly.com/api-reference/contacts/initiate-contact-email-verification.md): Looks up an email address against your org's contact database. If a match is found, generates a cryptographically strong 6-digit code, sends it to the address, and returns a `requestId` and `verifyUrl` to complete the verification.
+- [List contacts](https://docs.getaptly.com/api-reference/contacts/list-contacts.md): Returns a paginated list of contacts scoped to your company. All filter params are optional and ANDed together.
+- [Look up contacts by email](https://docs.getaptly.com/api-reference/contacts/look-up-contacts-by-email.md): Returns contacts whose email address matches one or more of the provided values. Matching is case-insensitive and exact. Results are scoped to your company.
+- [Update a contact](https://docs.getaptly.com/api-reference/contacts/update-a-contact.md): Updates an existing contact by ID using the same upsert logic as `POST /api/contacts`. The `_id` is taken from the URL — any `_id` in the body is ignored.
+- [Get nearby schools for a property](https://docs.getaptly.com/api-reference/context-&-locations/get-nearby-schools-for-a-property.md)
+- [Get single listing details](https://docs.getaptly.com/api-reference/context-&-locations/get-single-listing-details.md)
+- [List all locations for an organization](https://docs.getaptly.com/api-reference/context-&-locations/list-all-locations-for-an-organization.md)
+- [List public property listings](https://docs.getaptly.com/api-reference/context-&-locations/list-public-property-listings.md)
+- [Load company-level config](https://docs.getaptly.com/api-reference/context-&-locations/load-company-level-config.md)
+- [Load property/location context](https://docs.getaptly.com/api-reference/context-&-locations/load-propertylocation-context.md)
+- [Create an email draft](https://docs.getaptly.com/api-reference/email/create-an-email-draft.md): Creates a new outbound email discussion (stream) with a single draft entry, scoped to your company. Returns the `streamId` and `draftUuid` needed to send via `POST /api/email/send`.
+- [Send an email](https://docs.getaptly.com/api-reference/email/send-an-email.md): Sends an outbound email scoped to your company. Two usage patterns:
+- [Finalize a direct file upload](https://docs.getaptly.com/api-reference/files/finalize-a-direct-file-upload.md): Final (third) step of the direct file-upload flow. Confirms the file was uploaded to S3 and records it. Call this with the `fileId` from `/api/files/upload-url` after the `multipart/form-data` POST to the presigned `url` succeeded. Returns the file's download URL.
+- [Get a presigned URL for a direct file upload](https://docs.getaptly.com/api-reference/files/get-a-presigned-url-for-a-direct-file-upload.md): First step of the direct file-upload flow. Issues a presigned S3 POST policy and records a pending upload.
+- [Get embeddable form definition](https://docs.getaptly.com/api-reference/forms/get-embeddable-form-definition.md)
+- [Search locations for form location picker](https://docs.getaptly.com/api-reference/forms/search-locations-for-form-location-picker.md)
+- [Submit a completed form](https://docs.getaptly.com/api-reference/forms/submit-a-completed-form.md)
+- [List unsent drafts on an inbox](https://docs.getaptly.com/api-reference/inboxes/list-unsent-drafts-on-an-inbox.md): Returns the unsent drafts on the given email inbox. The inbox is identified by its `channelId` — the same value returned as `channelId` from `GET /api/users/{userId}/inboxes`.
+- [Get knowledge base document](https://docs.getaptly.com/api-reference/knowledge-base/get-knowledge-base-document.md)
+- [Create a knowledge document](https://docs.getaptly.com/api-reference/knowledge/create-a-knowledge-document.md): Creates a new knowledge document scoped to your company. Optionally associates the document with a board (`aptletUuid`), a card (`aptletInstanceId`), or a parent document (`parentId`).
+- [Get a knowledge document](https://docs.getaptly.com/api-reference/knowledge/get-a-knowledge-document.md): Returns a knowledge document's content rendered as HTML.
+- [Update a knowledge document](https://docs.getaptly.com/api-reference/knowledge/update-a-knowledge-document.md): Updates a knowledge document's content and/or metadata. Only fields provided in the request body are updated — omitted fields are left unchanged.
+- [Archive a routing group](https://docs.getaptly.com/api-reference/routinggroups/archive-a-routing-group.md): Soft-deletes a routing group. Archived groups are excluded from list results and cannot be updated.
+- [Create a routing group](https://docs.getaptly.com/api-reference/routinggroups/create-a-routing-group.md): Creates a new routing group for the authenticated company. Returns the new group's ID.
+- [List routing groups](https://docs.getaptly.com/api-reference/routinggroups/list-routing-groups.md): Returns all active routing groups for the authenticated company.
+- [Update a routing group](https://docs.getaptly.com/api-reference/routinggroups/update-a-routing-group.md): Updates an existing routing group. All fields are optional — only provided fields are changed. Pass `null` for a field to clear it.
+- [Get board schema](https://docs.getaptly.com/api-reference/schema/get-board-schema.md): Returns the list of fields defined on the board. Always fetch the schema first so you know which field keys to use when reading or writing card data.
+- [Create a task](https://docs.getaptly.com/api-reference/tasks/create-a-task.md): Creates a task. When `aptletInstanceId` is set, the task is also mirrored as a checklist entry on that card.
+- [Get a task by ID](https://docs.getaptly.com/api-reference/tasks/get-a-task-by-id.md): Fetches a single task with related card/board context and resolved attachment metadata. When `includeMetadata=true`, also returns display labels (`priorityLabel`, `statusLabel`) and the resolved `assignee`.
+- [Search tasks](https://docs.getaptly.com/api-reference/tasks/search-tasks.md): Query tasks for the authenticated company. All body fields are optional filters. Date-range filters (`dueAt`, `checkedAt`, `updatedAt`) take an object of `{ startDate, endDate }` — either bound may be supplied independently. Set `useCount: true` to return `{ count }` instead of `{ tasks }`.
+- [Update a task](https://docs.getaptly.com/api-reference/tasks/update-a-task.md): Updates a task and keeps its card-checklist mirror entry in sync.
+- [Get a template](https://docs.getaptly.com/api-reference/templates/get-a-template.md): Returns a single template by its ID. The template must belong to the authenticated company.
+- [List templates](https://docs.getaptly.com/api-reference/templates/list-templates.md): Returns communication templates for the company. All filter parameters are optional.
+- [List a user's email inboxes](https://docs.getaptly.com/api-reference/users/list-a-users-email-inboxes.md): Returns the email inboxes (Hermes/Nylas channels) accessible to the given user within your company. Includes personal inboxes (where the user is a direct member) and shared inboxes the user can access via team membership.
+- [List users](https://docs.getaptly.com/api-reference/users/list-users.md): Returns all non-archived users for the API key's company.
+- [Aptly SDK Reference](https://docs.getaptly.com/aptly-sdk-reference.md): Complete reference for the window.aptly object — properties, methods, config scoping, and dev testing URL parameters.
+- [Authentication](https://docs.getaptly.com/authentication.md): How to authenticate requests to the Aptly API.
+- [Building Embedded Apps & Dashboards](https://docs.getaptly.com/building-embedded-apps-&-dashboards.md): Add the Aptly SDK to a custom dashboard or embedded app to get delegate auth, user identity, and config variables — then read and write Aptly data directly from the page.
+- [Changelog](https://docs.getaptly.com/changelog.md): A record of notable changes to the Aptly API, grouped by date.
+- [Contact Verification & Lightweight SSO](https://docs.getaptly.com/contact-verification-sso.md): Use the email verification flow to confirm a contact's identity, then load their data — no passwords required.
+- [Delegate Tokens](https://docs.getaptly.com/delegate-tokens.md): Issue short-lived JWTs so an embedded app, server-side script, or AI agent can call the Aptly API on behalf of a logged-in user — without exposing a raw API key.
+- [Embed App Actions](https://docs.getaptly.com/embed-actions.md): Trigger Aptly UI interactions (open a card, start a call, compose an email, and more) from an embedded iframe app using the SDK or raw postMessage.
+- [Field Types Reference](https://docs.getaptly.com/field-types.md): All field types returned by the board schema endpoint and the value formats to use when reading or writing card data.
+- [Introduction](https://docs.getaptly.com/introduction.md): Aptly is a property management platform. This API gives external tools, scripts, and AI agents direct read/write access to your boards, cards, contacts, and more.
+- [Mcp server](https://docs.getaptly.com/mcp-server.md)
+- [Pagination](https://docs.getaptly.com/pagination.md): How to paginate through list endpoints and detect when you have reached the last page.
+- [Context & Locations](https://docs.getaptly.com/portal/api-context.md): Company/org config, property listings, location search, and nearby schools.
+- [Forms](https://docs.getaptly.com/portal/api-forms.md): Embeddable external forms with location search for third-party websites.
+- [Knowledge Base](https://docs.getaptly.com/portal/api-knowledge.md): Retrieve help and knowledge documents for display in the portal.
+- [Aptly Portal API](https://docs.getaptly.com/portal/introduction.md): HTTP API for the Aptly rental application screening portal.
+- [Rate Limits](https://docs.getaptly.com/rate-limits.md): Request limits per API key and how to handle 429 responses.
+
+## OpenAPI Specs
+
+- [openapi](https://docs.getaptly.com/openapi.yaml)

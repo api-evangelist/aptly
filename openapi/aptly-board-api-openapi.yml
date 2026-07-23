@@ -1,0 +1,741 @@
+openapi: 3.0.3
+info:
+  title: Aptly App Board API
+  version: '1.0'
+  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+
+
+    All requests require an API key passed as the `x-token` header.
+
+    API keys are scoped to your company and work across all boards.
+
+    '
+servers:
+- url: https://core-api.getaptly.com
+  description: Production
+security:
+- ApiKeyHeader: []
+tags:
+- name: Board
+paths:
+  /api/board/{boardId}/configuration/tabViews:
+    post:
+      summary: Add a tab view
+      description: Adds an embedded tab view to the board's tab list.
+      operationId: postTabView
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              - url
+              properties:
+                name:
+                  type: string
+                  description: Display name for the tab.
+                url:
+                  type: string
+                  description: URL to embed in the tab.
+                icon:
+                  type: string
+                  description: Font Awesome icon class (default `fa-regular fa-globe`).
+                embedSource:
+                  type: string
+                  description: Embed source identifier (default `aptly-ai`).
+                filter:
+                  type: string
+                  description: Filter preset (default `quickview_all-records`).
+                userIds:
+                  type: array
+                  items:
+                    type: string
+                  description: User IDs that can see this tab. Empty = visible to all.
+                createdBy:
+                  type: string
+                  description: Aptly user ID of the creator.
+      responses:
+        '200':
+          description: Tab view created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TabView'
+        '400':
+          description: Missing required fields.
+        '401':
+          description: Invalid or missing API key.
+        '404':
+          description: Board not found.
+  /api/board/{boardId}/tabView:
+    post:
+      summary: Add a tab view (legacy)
+      description: 'Deprecated alias for `POST /api/board/{boardId}/configuration/tabViews`. Adds an
+
+        embedded tab view to the board''s tab list. Use the `/configuration/tabViews` path
+
+        for new integrations.
+
+        '
+      operationId: postTabViewLegacy
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              - url
+              properties:
+                name:
+                  type: string
+                  description: Display name for the tab.
+                url:
+                  type: string
+                  description: URL to embed in the tab.
+                icon:
+                  type: string
+                  description: Font Awesome icon class (default `fa-regular fa-globe`).
+                embedSource:
+                  type: string
+                  description: Embed source identifier (default `aptly-ai`).
+                filter:
+                  type: string
+                  description: Filter preset (default `quickview_all-records`).
+                userIds:
+                  type: array
+                  items:
+                    type: string
+                  description: User IDs that can see this tab. Empty = visible to all.
+                createdBy:
+                  type: string
+                  description: Aptly user ID of the creator.
+      responses:
+        '200':
+          description: Tab view created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TabView'
+        '400':
+          description: Missing required fields.
+        '401':
+          description: Invalid or missing API key.
+        '404':
+          description: Board not found.
+  /api/board/verify-user:
+    post:
+      summary: Verify a delegate token
+      description: 'Validates a short-lived delegate token issued by `POST /api/platform/user-token`.
+
+        Checks the JWT signature, expiry, and confirms the token was issued for the same
+
+        company as the API key. Use this to confirm the identity of an authenticated Aptly
+
+        user inside an embedded plugin or iframe.
+
+        '
+      operationId: verifyAppUser
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - token
+              properties:
+                token:
+                  type: string
+                  description: Delegate token returned by `POST /api/platform/user-token`.
+      responses:
+        '200':
+          description: Token is valid. Returns the user identity.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                  email:
+                    type: string
+                    nullable: true
+                  firstName:
+                    type: string
+                    nullable: true
+                  lastName:
+                    type: string
+                    nullable: true
+                  companyId:
+                    type: string
+        '400':
+          description: token field is missing.
+        '401':
+          description: Invalid or missing API key, or delegate token is invalid/expired/wrong company.
+  /api/board/{boardId}/configuration:
+    get:
+      summary: Get full board configuration
+      description: 'Returns all configuration sections for the board in a single response:
+
+        fields, automations, options, tabViews, workflows, groups, shares, theme, and filters.
+
+        '
+      operationId: getBoardConfiguration
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - PartnerBearer: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The board's UUID.
+      responses:
+        '200':
+          description: Full board configuration.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      fields:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/BoardField'
+                      automations:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Automation'
+                      options:
+                        $ref: '#/components/schemas/BoardOptions'
+                      tabViews:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/TabView'
+                      workflows:
+                        type: array
+                        description: Board workflows (sequences).
+                        items:
+                          type: object
+                      groups:
+                        type: array
+                        description: Field groups (sections) configured on the board.
+                        items:
+                          type: object
+                      shares:
+                        type: object
+                        description: Board access settings.
+                        properties:
+                          accessType:
+                            type: string
+                            enum:
+                            - public
+                            - private
+                          acl:
+                            type: array
+                            items:
+                              type: object
+                      theme:
+                        type: object
+                        description: Board identity fields.
+                        properties:
+                          name:
+                            type: string
+                          cardName:
+                            type: string
+                          color:
+                            type: string
+                            description: Hex color for the board gradient.
+                          icon:
+                            type: string
+                          description:
+                            type: string
+                          shortCode:
+                            type: string
+                      filters:
+                        type: array
+                        description: Saved filters visible to the caller.
+                        items:
+                          type: object
+        '401':
+          description: Invalid or missing API key.
+        '404':
+          description: Board not found.
+  /api/board/{boardId}/configuration/automations:
+    get:
+      summary: List board automations
+      description: Returns the automations configured on a board.
+      operationId: listAutomations
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - PartnerBearer: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The board's UUID.
+      responses:
+        '200':
+          description: Array of automations.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Automation'
+        '401':
+          description: Invalid or missing API key.
+        '404':
+          description: Board not found.
+  /api/board/{boardId}/configuration/options:
+    get:
+      summary: Get board options
+      description: Returns the current configuration options for the board.
+      operationId: getBoardOptions
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - PartnerBearer: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Board options.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BoardOptions'
+        '401':
+          description: Invalid or missing API key.
+        '404':
+          description: Board not found.
+  /api/board/{boardId}/configuration/fields:
+    get:
+      summary: List board fields
+      description: Returns all fields defined on the board, including archived ones.
+      operationId: listBoardFields
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - PartnerBearer: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Array of board fields.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BoardField'
+        '401':
+          description: Invalid or missing API key.
+        '404':
+          description: Board not found.
+  /api/board/{boardId}/configuration/workflows:
+    get:
+      summary: List board workflows
+      description: Returns the workflows (sequences) configured on a board.
+      operationId: listWorkflows
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - PartnerBearer: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The board's UUID.
+      responses:
+        '200':
+          description: Array of workflows.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Invalid or missing API key.
+        '404':
+          description: Board not found.
+  /api/board/{boardId}/configuration/groups:
+    get:
+      summary: List board field groups
+      description: Returns the field groups (sections) configured on the board.
+      operationId: listGroups
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - PartnerBearer: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Array of groups.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Invalid or missing API key.
+        '404':
+          description: Board not found.
+  /api/board/{boardId}/configuration/shares:
+    get:
+      summary: Get board access settings
+      description: Returns the board's access type and ACL (shares array).
+      operationId: getBoardShares
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - PartnerBearer: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Board access settings.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      accessType:
+                        type: string
+                        enum:
+                        - public
+                        - private
+                      acl:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                            userId:
+                              type: string
+                            teamId:
+                              type: string
+                            permissions:
+                              type: array
+                              items:
+                                type: string
+        '401':
+          description: Invalid or missing API key.
+        '404':
+          description: Board not found.
+  /api/board/{boardId}/configuration/theme:
+    get:
+      summary: Get board identity fields
+      description: Returns the board's display name, color, icon, description, and short code.
+      operationId: getBoardTheme
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - PartnerBearer: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Board identity fields.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      cardName:
+                        type: string
+                      color:
+                        type: string
+                        description: Hex color for the board gradient.
+                      icon:
+                        type: string
+                      description:
+                        type: string
+                      shortCode:
+                        type: string
+                        description: Up to 5-character uppercase alphanumeric code.
+        '401':
+          description: Invalid or missing API key.
+        '404':
+          description: Board not found.
+  /api/board/{boardId}/configuration/filters:
+    get:
+      summary: List board filters
+      description: 'Returns saved filters for this board visible to the caller.
+
+        Company-scoped filters are always included; user-scoped (private) filters
+
+        are included when authenticating with a delegate token that has a `userId`.
+
+        Quick-view filters are excluded.
+
+        '
+      operationId: getBoardFilters
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - PartnerBearer: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: List of filters.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        name:
+                          type: string
+                        scope:
+                          type: string
+                          enum:
+                          - company
+                          - user
+                        aptletUuid:
+                          type: string
+                        rules:
+                          type: array
+                          items:
+                            type: object
+                        archived:
+                          type: boolean
+        '401':
+          description: Invalid or missing API key.
+        '404':
+          description: Board not found.
+components:
+  schemas:
+    TabView:
+      type: object
+      properties:
+        uuid:
+          type: string
+        name:
+          type: string
+        url:
+          type: string
+        icon:
+          type: string
+        embedSource:
+          type: string
+        type:
+          type: string
+    BoardOptions:
+      type: object
+      description: Configurable board-level settings. All fields are optional — only include the ones you want to change on PATCH.
+      properties:
+        conversionFlair:
+          type: string
+          enum:
+          - confetti
+          - fireworks
+        reassignDiscussions:
+          type: string
+          enum:
+          - ''
+          - prompt
+          - auto
+        minCallDuration:
+          type: number
+          description: Minimum call duration in seconds before the call is logged.
+        boardEmailOnlyParsedCards:
+          type: boolean
+        displayFieldNames:
+          type: boolean
+        agingIndicator:
+          type: boolean
+        applicationFeatures:
+          type: boolean
+        applicationLinking:
+          type: boolean
+        defaultContactType:
+          type: string
+        updateBadgeField:
+          type: string
+          description: Field UUID to use as the card badge label.
+    Automation:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: Unique identifier for the automation.
+        title:
+          type: string
+          description: Display name of the automation.
+        automationType:
+          type: string
+          enum:
+          - board
+          - schedule
+          description: '`board` automations move/copy cards based on board events; `schedule` automations run on a time-based schedule.'
+        archived:
+          type: boolean
+        destinationBoardUuid:
+          type: string
+          description: UUID of the destination board. Defaults to the current board.
+        sourceBoardUuid:
+          type: string
+          description: (board type only) UUID of the source board.
+        runMode:
+          type: string
+          description: 'Board type: `continuously`, `onDate`, `onMonth`, `dateRange`, `onDayOfWeek`. Schedule type: `onDayOfWeek`, `onDate`, `onDayOfYear`.'
+        segment:
+          description: (board type only) Card segment/stage filter.
+        moveMode:
+          type: string
+          enum:
+          - Copy
+          - Move
+          description: (board type only) Whether to copy or move matching cards.
+        timeOfDay:
+          type: number
+          description: (schedule type only) Hour of the day to run (0–23).
+    BoardField:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: Unique field identifier — use this as the key when reading/writing card data.
+        name:
+          type: string
+          description: Display name of the field.
+        type:
+          type: string
+          description: 'Field type. One of: `text`, `string`, `email`, `tel`, `number`, `money`, `date`, `datetime-local`, `boolean`, `singleselect`, `multiselect`, `checkboxlist`, `file`, `files`, `url`, `address`, `person`, `persons`, `relatedAptlets`, `mirror`, `mirror-contact`, `rich-text`, `calculation`, `percent`, `multiplier`, `board`, `heroImage`, `embedVideo`, `ai-computed`.'
+        position:
+          type: integer
+          description: Display order (zero-based).
+        optional:
+          type: boolean
+          description: Whether the field is optional on cards.
+        archived:
+          type: boolean
+          description: Whether the field has been archived (hidden from the UI).
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-token
+    DelegateToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Delegate token issued by the platform. Format: `DelegateToken <token>`'
+    PartnerBearer:
+      type: http
+      scheme: bearer
+      description: 'Partner token. Format: `Authorization: Bearer <token>`'

@@ -1,0 +1,55 @@
+generated: '2026-07-18'
+method: derived
+source: openapi/aptly-openapi-original.yml
+enriched_from: https://docs.getaptly.com/authentication
+format: json
+envelope:
+  shape: '{ "error": string, "message": string }'
+  content_type: application/json
+  note: >-
+    Aptly returns a simple JSON error envelope, NOT RFC 9457 application/problem+json.
+    Some endpoints return an empty body with only the status code. The envelope is
+    described by components.schemas.Error in the OpenAPI.
+problems:
+  - status: 400
+    title: Bad Request
+    meaning: >-
+      Invalid input — bad URL, unknown/unrecognized custom field, invalid date,
+      invalid filter value, missing required field (name/type/email/token/code/
+      companyId/fileId), or an unsupported file type.
+    remediation: >-
+      Validate the request body against the board schema (GET /api/schema/{boardId})
+      and the endpoint's documented required fields before retrying.
+  - status: 401
+    title: Unauthorized
+    meaning: >-
+      API key is missing, invalid, or expired; or a delegate token is invalid,
+      expired, or was issued for a different company / not for an embedded app;
+      or a verification code is invalid/expired/already used.
+    remediation: >-
+      Pass a valid x-token header (or Authorization delegate/partner token). Keys
+      without an expiry stay active until archived; expired or archived keys 401.
+    source_doc: https://docs.getaptly.com/authentication
+  - status: 403
+    title: Forbidden
+    meaning: API access is not enabled for the board being accessed.
+    remediation: >-
+      Enable the API on the board (Board -> Card Sources -> API -> toggle on),
+      then retry with a key scoped to that company.
+  - status: 404
+    title: Not Found
+    meaning: >-
+      Board, card, comment, contact, task, template, routing group, knowledge
+      document, inbox, or pending upload does not exist within your company.
+    remediation: Confirm the resource id and that it belongs to the authenticated company.
+  - status: 500
+    title: Internal Server Error
+    meaning: >-
+      Server-side failure — e.g. a contact email verification request was created
+      but the confirmation email could not be delivered (EMAIL_SEND_FAILURE).
+    remediation: Retry; if it persists, contact Aptly support.
+error_codes:
+  - code: EMAIL_SEND_FAILURE
+    status: 500
+    source_operation: openapi/aptly-openapi-original.yml#initiateContactVerification
+    meaning: Verification request created but the code email could not be delivered.
