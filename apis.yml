@@ -252,7 +252,7 @@ common:
 - type: GitHubOrganization
   url: https://github.com/getaptly
 - type: OpenAPI
-  url: openapi/aptly-openapi-original.yml
+  url: openapi/_original/aptly-openapi-original.yml
 - type: MCPServer
   url: mcp/aptly-mcp.yml
 - type: LLMsTxt
