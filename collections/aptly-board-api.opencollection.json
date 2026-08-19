@@ -1,0 +1,322 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Aptly App Board API",
+    "version": "1.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-token",
+      "value": "{{x-token}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Board",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Add a tab view",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/board/:boardId/configuration/tabViews",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Adds an embedded tab view to the board's tab list."
+        },
+        {
+          "info": {
+            "name": "Add a tab view (legacy)",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/board/:boardId/tabView",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Deprecated alias for `POST /api/board/{boardId}/configuration/tabViews`. Adds an\nembedded tab view to the board's tab list. Use the `/configuration/tabViews` path\nfor new integrations.\n"
+        },
+        {
+          "info": {
+            "name": "Verify a delegate token",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/board/verify-user",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Validates a short-lived delegate token issued by `POST /api/platform/user-token`.\nChecks the JWT signature, expiry, and confirms the token was issued for the same\ncompany as the API key. Use this to confirm the identity of an authenticated Aptly\nuser inside an embedded plugin or iframe.\n"
+        },
+        {
+          "info": {
+            "name": "Get full board configuration",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/board/:boardId/configuration",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path",
+                "description": "The board's UUID."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns all configuration sections for the board in a single response:\nfields, automations, options, tabViews, workflows, groups, shares, theme, and filters.\n"
+        },
+        {
+          "info": {
+            "name": "List board automations",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/board/:boardId/configuration/automations",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path",
+                "description": "The board's UUID."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns the automations configured on a board."
+        },
+        {
+          "info": {
+            "name": "Get board options",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/board/:boardId/configuration/options",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns the current configuration options for the board."
+        },
+        {
+          "info": {
+            "name": "List board fields",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/board/:boardId/configuration/fields",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns all fields defined on the board, including archived ones."
+        },
+        {
+          "info": {
+            "name": "List board workflows",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/board/:boardId/configuration/workflows",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path",
+                "description": "The board's UUID."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns the workflows (sequences) configured on a board."
+        },
+        {
+          "info": {
+            "name": "List board field groups",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/board/:boardId/configuration/groups",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns the field groups (sections) configured on the board."
+        },
+        {
+          "info": {
+            "name": "Get board access settings",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/board/:boardId/configuration/shares",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns the board's access type and ACL (shares array)."
+        },
+        {
+          "info": {
+            "name": "Get board identity fields",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/board/:boardId/configuration/theme",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns the board's display name, color, icon, description, and short code."
+        },
+        {
+          "info": {
+            "name": "List board filters",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/board/:boardId/configuration/filters",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns saved filters for this board visible to the caller.\nCompany-scoped filters are always included; user-scoped (private) filters\nare included when authenticating with a delegate token that has a `userId`.\nQuick-view filters are excluded.\n"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

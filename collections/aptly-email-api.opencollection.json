@@ -1,0 +1,68 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Aptly App Email API",
+    "version": "1.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-token",
+      "value": "{{x-token}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Email",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Create an email draft",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/email/create-draft",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Creates a new outbound email discussion (stream) with a single draft entry, scoped to\nyour company. Returns the `streamId` and `draftUuid` needed to send via\n`POST /api/email/send`.\n\nRecipient fields (`to`, `cc`, `bcc`) accept an array of `{ value, label? }` objects\nwhere `value` is the email address.\n\n### Adding attachments\n\nAttachments must be uploaded to storage **before** you reference them here — you\ncannot post file bytes to this endpoint. Upload each file with the three-step direct\nupload"
+        },
+        {
+          "info": {
+            "name": "Send an email",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/email/send",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Sends an outbound email scoped to your company. Two usage patterns:\n\n**From an existing draft** — provide `discussionId` and `uuid` returned by\n`POST /api/email/create-draft`. The draft's stored recipients, subject, and body are\nused.\n\n**On-the-fly** — omit `uuid` and provide `userId`, `channelId`, recipients, subject,\nand body. A draft is created automatically before sending. Supplying `discussionId`\n(without `uuid`) sends the message as a reply into that existing thread — the\nthread's subject "
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

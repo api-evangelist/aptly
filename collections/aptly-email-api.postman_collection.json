@@ -1,0 +1,393 @@
+{
+  "item": [
+    {
+      "id": "7bfea863-8ff0-4dee-b71e-17932270ed27",
+      "name": "Email",
+      "description": {
+        "content": "",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "def1530e-6303-4ed2-9ba0-45e2d88f5d30",
+          "name": "Create an email draft",
+          "request": {
+            "name": "Create an email draft",
+            "description": {
+              "content": "Creates a new outbound email discussion (stream) with a single draft entry, scoped to\nyour company. Returns the `streamId` and `draftUuid` needed to send via\n`POST /api/email/send`.\n\nRecipient fields (`to`, `cc`, `bcc`) accept an array of `{ value, label? }` objects\nwhere `value` is the email address.\n\n### Adding attachments\n\nAttachments must be uploaded to storage **before** you reference them here — you\ncannot post file bytes to this endpoint. Upload each file with the three-step direct\nupload flow, then attach it:\n\n1. **Get an upload URL** — `POST /api/files/upload-url` with `attachEntityType: \"channel\"`,\n   `attachEntityId` set to the same `channelId` you're emailing from, and the file's\n   `name`, `extension`, `size`, and `contentType`. It returns `{ fileId, url, fields }`.\n2. **Upload to S3** — send a `multipart/form-data` `POST` to `url`, appending every\n   entry from `fields` first and the file bytes last as a `file` field. S3 returns `204`.\n3. **Mark complete** — `POST /api/files/upload-complete` with the `fileId` from step 1.\n\nThen, on this request:\n- **Regular attachment** — add the `fileId`(s) to `attachmentIds`.\n- **Inline image** — embed an `<img>` in the HTML `body` whose `src` is the file's\n  download URL (`.../cdn/storage/AptlyFiles/<fileId>/original/...`, returned by step 3).\n  It is auto-detected and registered; do **not** also list it in `attachmentIds`.\n\nRepeat steps 1–3 per file. Each `fileId` must reference a finished upload or the\nrequest is rejected.\n",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "email",
+                "create-draft"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "x-token"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"<string>\",\n  \"channelId\": \"<string>\",\n  \"discussionId\": \"<string>\",\n  \"to\": [\n    {\n      \"value\": \"<string>\",\n      \"label\": \"<string>\"\n    },\n    {\n      \"value\": \"<string>\",\n      \"label\": \"<string>\"\n    }\n  ],\n  \"cc\": [\n    {\n      \"value\": \"<string>\",\n      \"label\": \"<string>\"\n    },\n    {\n      \"value\": \"<string>\",\n      \"label\": \"<string>\"\n    }\n  ],\n  \"bcc\": [\n    {\n      \"value\": \"<string>\",\n      \"label\": \"<string>\"\n    },\n    {\n      \"value\": \"<string>\",\n      \"label\": \"<string>\"\n    }\n  ],\n  \"subject\": \"<string>\",\n  \"body\": \"<string>\",\n  \"attachmentIds\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"aptletInstanceId\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "8e6d1c59-1772-4048-9c83-a12b2162d356",
+              "name": "Draft stream created.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "email",
+                    "create-draft"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"userId\": \"user_abc\",\n  \"channelId\": \"channel_abc\",\n  \"to\": [\n    {\n      \"value\": \"tenant@example.com\",\n      \"label\": \"Jane Tenant\"\n    }\n  ],\n  \"subject\": \"Your lease renewal\",\n  \"body\": \"Please review the attached renewal terms.\",\n  \"aptletInstanceId\": \"card_abc\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"streamId\": \"string\",\n  \"draftUuid\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "64a8c636-30de-4ea7-ab46-d3f5f33622bd",
+              "name": "Invalid or missing API key.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "email",
+                    "create-draft"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"userId\": \"user_abc\",\n  \"channelId\": \"channel_abc\",\n  \"to\": [\n    {\n      \"value\": \"tenant@example.com\",\n      \"label\": \"Jane Tenant\"\n    }\n  ],\n  \"subject\": \"Your lease renewal\",\n  \"body\": \"Please review the attached renewal terms.\",\n  \"aptletInstanceId\": \"card_abc\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"string\",\n  \"message\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "b3b573ef-1a39-45e2-b2b6-0fc559212389",
+          "name": "Send an email",
+          "request": {
+            "name": "Send an email",
+            "description": {
+              "content": "Sends an outbound email scoped to your company. Two usage patterns:\n\n**From an existing draft** — provide `discussionId` and `uuid` returned by\n`POST /api/email/create-draft`. The draft's stored recipients, subject, and body are\nused.\n\n**On-the-fly** — omit `uuid` and provide `userId`, `channelId`, recipients, subject,\nand body. A draft is created automatically before sending. Supplying `discussionId`\n(without `uuid`) sends the message as a reply into that existing thread — the\nthread's subject is kept; omitting both `discussionId` and `uuid` starts a new thread.\n\n### Adding attachments\n\nAttachments apply to the **on-the-fly** pattern (for an existing draft, attach files\nwhen you call `POST /api/email/create-draft`). Upload each file with the three-step\ndirect upload flow first — you cannot post file bytes to this endpoint:\n\n1. **Get an upload URL** — `POST /api/files/upload-url` with `attachEntityType: \"channel\"`,\n   `attachEntityId` set to the same `channelId` you're sending from, and the file's\n   `name`, `extension`, `size`, and `contentType`. Returns `{ fileId, url, fields }`.\n2. **Upload to S3** — `multipart/form-data` `POST` to `url`, all `fields` first then the\n   file bytes last as a `file` field. S3 returns `204`.\n3. **Mark complete** — `POST /api/files/upload-complete` with the `fileId`.\n\nThen, on this request:\n- **Regular attachment** — add the `fileId`(s) to `attachmentIds`.\n- **Inline image** — embed an `<img>` in the HTML `body` whose `src` is the file's\n  download URL (`.../cdn/storage/AptlyFiles/<fileId>/original/...`). Auto-detected and\n  registered; do **not** also list it in `attachmentIds`.\n\nEach `fileId` must reference a finished upload.\n",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "email",
+                "send"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "x-token"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"discussionId\": \"<string>\",\n  \"uuid\": \"<string>\",\n  \"failOnCreateNewThread\": true,\n  \"userId\": \"<string>\",\n  \"channelId\": \"<string>\",\n  \"to\": [\n    {\n      \"value\": \"<string>\",\n      \"label\": \"<string>\"\n    },\n    {\n      \"value\": \"<string>\",\n      \"label\": \"<string>\"\n    }\n  ],\n  \"cc\": [\n    {\n      \"value\": \"<string>\",\n      \"label\": \"<string>\"\n    },\n    {\n      \"value\": \"<string>\",\n      \"label\": \"<string>\"\n    }\n  ],\n  \"bcc\": [\n    {\n      \"value\": \"<string>\",\n      \"label\": \"<string>\"\n    },\n    {\n      \"value\": \"<string>\",\n      \"label\": \"<string>\"\n    }\n  ],\n  \"subject\": \"<string>\",\n  \"body\": \"<string>\",\n  \"attachmentIds\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"aptletInstanceId\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "5632cd21-b95d-449f-9753-f6b7194f729a",
+              "name": "Email sent successfully.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "email",
+                    "send"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"discussionId\": \"stream_abc\",\n  \"uuid\": \"draft_xyz\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "a0ba1bf1-1110-457d-bc25-847fa7d634d6",
+              "name": "Invalid or missing API key.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "email",
+                    "send"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"discussionId\": \"stream_abc\",\n  \"uuid\": \"draft_xyz\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"string\",\n  \"message\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://core-api.getaptly.com",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-token"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "b0bbbad2-1602-4f93-9223-ba6d5b2ef81f",
+    "name": "Aptly App Email API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "The Aptly API lets you read and write cards on any Aptly board from external systems.\n\nAll requests require an API key passed as the `x-token` header.\nAPI keys are scoped to your company and work across all boards.\n",
+      "type": "text/plain"
+    }
+  }
+}

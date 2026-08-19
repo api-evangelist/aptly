@@ -1,0 +1,51 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Aptly App Schema API",
+    "version": "1.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-token",
+      "value": "{{x-token}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Schema",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Get board schema",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/schema/:boardId",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path",
+                "description": "The board's UUID (`aptlet.uuid`)."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns the list of fields defined on the board. Always fetch the schema first so\nyou know which field keys to use when reading or writing card data.\n"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

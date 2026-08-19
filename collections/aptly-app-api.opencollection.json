@@ -1,0 +1,58 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Aptly App API",
+    "version": "1.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-token",
+      "value": "{{x-token}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "App",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Verify a delegate token (keyless)",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/app/verify",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Validates a short-lived delegate token without requiring an API key. The token must\ninclude an `appClientId` (i.e. it was issued for an embedded app via\n`POST /api/platform/user-token`). Returns the user's identity, company name, and\nthe app's title.\n"
+        },
+        {
+          "info": {
+            "name": "Get credential info",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/app/me",
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns identity information for the credential used in the request. The response shape\ndepends on the auth method:\n\n- **Delegate token** (`Authorization: DelegateToken <token>`): returns user identity and,\n  if the token has an `appClientId`, embedded-app context.\n- **API key** (`x-token` header or query param): returns company identity.\n- **Partner token** (`Authorization: Bearer <token>`): returns the partner's permission list.\n"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

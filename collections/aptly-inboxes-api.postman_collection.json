@@ -1,0 +1,273 @@
+{
+  "item": [
+    {
+      "id": "7874a8ea-23b7-4cf7-b092-f0498184232a",
+      "name": "Inboxes",
+      "description": {
+        "content": "",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "f31fabb4-e765-4a3e-aa65-21b174362bb5",
+          "name": "List unsent drafts on an inbox",
+          "request": {
+            "name": "List unsent drafts on an inbox",
+            "description": {
+              "content": "Returns the unsent drafts on the given email inbox. The inbox is identified\nby its `channelId` — the same value returned as `channelId` from\n`GET /api/users/{userId}/inboxes`.\n\nEach item in the response is a draft entry with the parent discussion's\n`streamId` attached. Drafts currently in the process of sending (after\n`POST /api/email/send` was called and before the upstream provider accepts\nthe message) are excluded.\n\nWith API-key auth the only scope check is that the inbox belongs to your\ncompany. With delegate-token auth (`email:*` scope) the inbox must also be\none the authenticated user can reach personally or via a team membership.\n",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "inboxes",
+                ":channelId",
+                "drafts"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "channelId",
+                  "description": "(Required) External channel meta ID (`meta.id`) of the inbox."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "x-token"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "17e072cf-ff1d-487b-82aa-746957fec020",
+              "name": "List of unsent drafts on the inbox.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "inboxes",
+                    ":channelId",
+                    "drafts"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "channelId",
+                      "description": "(Required) External channel meta ID (`meta.id`) of the inbox."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"streamId\": \"stm_abc\",\n      \"uuid\": \"drf_123\",\n      \"channelId\": \"acc-1\",\n      \"subject\": \"Welcome\",\n      \"content\": \"<p>Hi there</p>\",\n      \"to\": [\n        {\n          \"value\": \"tenant@example.com\"\n        }\n      ],\n      \"cc\": [],\n      \"bcc\": [],\n      \"attachments\": [],\n      \"ownerId\": \"u_42\",\n      \"sentBy\": \"u_42\",\n      \"addedToOutboxAt\": \"2026-05-25T18:14:00.000Z\"\n    }\n  ]\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "c288be56-413e-41ae-a588-0570959018e5",
+              "name": "Invalid or missing API key, or inbox not accessible.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "inboxes",
+                    ":channelId",
+                    "drafts"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "channelId",
+                      "description": "(Required) External channel meta ID (`meta.id`) of the inbox."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"string\",\n  \"message\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "33a28656-18ae-42f9-877d-7534222dc435",
+              "name": "Inbox not found.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "inboxes",
+                    ":channelId",
+                    "drafts"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "channelId",
+                      "description": "(Required) External channel meta ID (`meta.id`) of the inbox."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"string\",\n  \"message\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://core-api.getaptly.com",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-token"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "bf0109b5-093c-45de-90d8-f8d493f67c73",
+    "name": "Aptly App Inboxes API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "The Aptly API lets you read and write cards on any Aptly board from external systems.\n\nAll requests require an API key passed as the `x-token` header.\nAPI keys are scoped to your company and work across all boards.\n",
+      "type": "text/plain"
+    }
+  }
+}

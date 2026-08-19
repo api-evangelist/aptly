@@ -1,0 +1,126 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Aptly App Tasks API",
+    "version": "1.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-token",
+      "value": "{{x-token}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Tasks",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Search tasks",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/tasks/search",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Query tasks for the authenticated company. All body fields are optional filters.\nDate-range filters (`dueAt`, `checkedAt`, `updatedAt`) take an object of\n`{ startDate, endDate }` — either bound may be supplied independently. Set\n`useCount: true` to return `{ count }` instead of `{ tasks }`.\n"
+        },
+        {
+          "info": {
+            "name": "Create a task",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/tasks",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Creates a task. When `aptletInstanceId` is set, the task is also mirrored as a\nchecklist entry on that card.\n\nThe task is attributed to an acting user who must belong to the company. With a\ndelegate token the user is taken from the token. With an API key (no associated\nuser), supply `userId` in the body — it must belong to the company or the\nrequest is rejected.\n"
+        },
+        {
+          "info": {
+            "name": "Get a task by ID",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/tasks/:taskId",
+            "params": [
+              {
+                "name": "taskId",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "includeMetadata",
+                "value": "",
+                "type": "query",
+                "description": "Include display labels and the resolved assignee."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Fetches a single task with related card/board context and resolved attachment\nmetadata. When `includeMetadata=true`, also returns display labels\n(`priorityLabel`, `statusLabel`) and the resolved `assignee`.\n"
+        },
+        {
+          "info": {
+            "name": "Update a task",
+            "type": "http"
+          },
+          "http": {
+            "method": "PUT",
+            "url": "https://core-api.getaptly.com/api/tasks/:taskId",
+            "params": [
+              {
+                "name": "taskId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Updates a task and keeps its card-checklist mirror entry in sync.\n\nThe update is attributed to a user who must belong to the company. With a\ndelegate token the user is taken from the token. With an API key (no\nassociated user), supply `userId` in the body — it must belong to the\ncompany or the request is rejected.\n"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

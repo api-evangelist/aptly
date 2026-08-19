@@ -1,0 +1,1031 @@
+{
+  "item": [
+    {
+      "id": "fd332183-3cb6-452f-acdc-d8af6f96e63a",
+      "name": "Tasks",
+      "description": {
+        "content": "",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "7e206d6e-05c2-4f7e-8411-e6cfc07211c6",
+          "name": "Search tasks",
+          "request": {
+            "name": "Search tasks",
+            "description": {
+              "content": "Query tasks for the authenticated company. All body fields are optional filters.\nDate-range filters (`dueAt`, `checkedAt`, `updatedAt`) take an object of\n`{ startDate, endDate }` — either bound may be supplied independently. Set\n`useCount: true` to return `{ count }` instead of `{ tasks }`.\n",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "tasks",
+                "search"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "x-token"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"isChecked\": \"<boolean>\",\n  \"isPinned\": \"<boolean>\",\n  \"archived\": false,\n  \"taskPriority\": \"<string>\",\n  \"streamId\": \"<string>\",\n  \"channelId\": \"<string>\",\n  \"aptletUuid\": \"<string>\",\n  \"aptletInstanceId\": \"<string>\",\n  \"leaderboard\": \"<boolean>\",\n  \"onlyAssigned\": \"<boolean>\",\n  \"unAssigned\": \"<boolean>\",\n  \"useCount\": \"<boolean>\",\n  \"limit\": 1000,\n  \"dueAt\": {\n    \"startDate\": \"<dateTime>\",\n    \"endDate\": \"<dateTime>\"\n  },\n  \"checkedAt\": {\n    \"startDate\": \"<dateTime>\",\n    \"endDate\": \"<dateTime>\"\n  },\n  \"updatedAt\": {\n    \"startDate\": \"<dateTime>\",\n    \"endDate\": \"<dateTime>\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "3e179ea9-93a2-433c-af12-c276f5568df8",
+              "name": "Matching tasks (or a count).",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "tasks",
+                    "search"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"isChecked\": false,\n  \"archived\": false,\n  \"taskPriority\": \"high\",\n  \"dueAt\": {\n    \"startDate\": \"2026-06-01T00:00:00.000Z\",\n    \"endDate\": \"2026-06-30T00:00:00.000Z\"\n  },\n  \"limit\": 100\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"tasks\": [\n    {\n      \"_id\": \"string\",\n      \"companyId\": \"string\",\n      \"title\": \"string\",\n      \"mergedTitle\": \"string\",\n      \"description\": \"string\",\n      \"mergedDescription\": \"string\",\n      \"userId\": \"string\",\n      \"checked\": false,\n      \"archived\": false,\n      \"status\": \"string\",\n      \"priority\": \"string\",\n      \"dueAt\": \"2016-10-23T04:49:27.363Z\",\n      \"aptletInstanceId\": \"string\",\n      \"aptletUuid\": \"string\",\n      \"attachments\": [\n        {\n          \"_id\": \"string\",\n          \"name\": \"string\",\n          \"type\": \"string\"\n        },\n        {\n          \"_id\": \"string\",\n          \"name\": \"string\",\n          \"type\": \"string\"\n        }\n      ],\n      \"priorityLabel\": \"string\",\n      \"statusLabel\": \"string\",\n      \"assignee\": {\n        \"_id\": \"string\",\n        \"fullName\": \"string\"\n      }\n    },\n    {\n      \"_id\": \"string\",\n      \"companyId\": \"string\",\n      \"title\": \"string\",\n      \"mergedTitle\": \"string\",\n      \"description\": \"string\",\n      \"mergedDescription\": \"string\",\n      \"userId\": \"string\",\n      \"checked\": false,\n      \"archived\": false,\n      \"status\": \"string\",\n      \"priority\": \"string\",\n      \"dueAt\": \"1973-12-06T17:09:53.217Z\",\n      \"aptletInstanceId\": \"string\",\n      \"aptletUuid\": \"string\",\n      \"attachments\": [\n        {\n          \"_id\": \"string\",\n          \"name\": \"string\",\n          \"type\": \"string\"\n        },\n        {\n          \"_id\": \"string\",\n          \"name\": \"string\",\n          \"type\": \"string\"\n        }\n      ],\n      \"priorityLabel\": \"string\",\n      \"statusLabel\": \"string\",\n      \"assignee\": {\n        \"_id\": \"string\",\n        \"fullName\": \"string\"\n      }\n    }\n  ],\n  \"count\": 4353\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "2554714c-399c-4875-8fcb-db67c26cd000",
+              "name": "Invalid filter value.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "tasks",
+                    "search"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"isChecked\": false,\n  \"archived\": false,\n  \"taskPriority\": \"high\",\n  \"dueAt\": {\n    \"startDate\": \"2026-06-01T00:00:00.000Z\",\n    \"endDate\": \"2026-06-30T00:00:00.000Z\"\n  },\n  \"limit\": 100\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"string\",\n  \"message\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "002c207d-18ce-46c1-8855-635da4f9ed8d",
+              "name": "Invalid or missing credential.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "tasks",
+                    "search"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"isChecked\": false,\n  \"archived\": false,\n  \"taskPriority\": \"high\",\n  \"dueAt\": {\n    \"startDate\": \"2026-06-01T00:00:00.000Z\",\n    \"endDate\": \"2026-06-30T00:00:00.000Z\"\n  },\n  \"limit\": 100\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "d647e4a8-fcfc-4f8c-809f-d40737dc2a25",
+          "name": "Create a task",
+          "request": {
+            "name": "Create a task",
+            "description": {
+              "content": "Creates a task. When `aptletInstanceId` is set, the task is also mirrored as a\nchecklist entry on that card.\n\nThe task is attributed to an acting user who must belong to the company. With a\ndelegate token the user is taken from the token. With an API key (no associated\nuser), supply `userId` in the body — it must belong to the company or the\nrequest is rejected.\n",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "tasks"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "x-token"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"<string>\",\n  \"assigneeId\": \"<string>\",\n  \"dueAt\": \"<dateTime>\",\n  \"type\": \"<string>\",\n  \"userId\": \"<string>\",\n  \"note\": \"<string>\",\n  \"status\": \"<string>\",\n  \"priority\": \"<string>\",\n  \"logType\": \"<string>\",\n  \"aptletInstanceId\": \"<string>\",\n  \"aptletUuid\": \"<string>\",\n  \"channelId\": \"<string>\",\n  \"streamId\": \"<string>\",\n  \"fieldId\": \"<string>\",\n  \"attachmentIds\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"references\": [\n    \"<object>\",\n    \"<object>\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "483db5f3-0e8e-47dd-90fd-8e70cd4641de",
+              "name": "Task created.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "tasks"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Call the tenant\",\n  \"assigneeId\": \"usr_123\",\n  \"dueAt\": \"2026-06-10T00:00:00.000Z\",\n  \"type\": \"task\",\n  \"priority\": \"high\",\n  \"status\": \"notStarted\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"taskId\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "cd9b49e3-80b4-4c67-b029-f1f4fc6e5433",
+              "name": "Missing or invalid field.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "tasks"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Call the tenant\",\n  \"assigneeId\": \"usr_123\",\n  \"dueAt\": \"2026-06-10T00:00:00.000Z\",\n  \"type\": \"task\",\n  \"priority\": \"high\",\n  \"status\": \"notStarted\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"string\",\n  \"message\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "fbe3a1d4-80ce-48a9-a2e9-dc7822ed4e7d",
+              "name": "Invalid or missing credential.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "tasks"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Call the tenant\",\n  \"assigneeId\": \"usr_123\",\n  \"dueAt\": \"2026-06-10T00:00:00.000Z\",\n  \"type\": \"task\",\n  \"priority\": \"high\",\n  \"status\": \"notStarted\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "f57e0e4f-e394-4970-9e18-3299d7907107",
+          "name": "Get a task by ID",
+          "request": {
+            "name": "Get a task by ID",
+            "description": {
+              "content": "Fetches a single task with related card/board context and resolved attachment\nmetadata. When `includeMetadata=true`, also returns display labels\n(`priorityLabel`, `statusLabel`) and the resolved `assignee`.\n",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "tasks",
+                ":taskId"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "includeMetadata",
+                  "value": "<boolean>",
+                  "description": "Include display labels and the resolved assignee."
+                }
+              ],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "taskId",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "x-token"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "c0f0284a-b8b8-461e-a99b-daafad0aac47",
+              "name": "The task.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "tasks",
+                    ":taskId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "includeMetadata",
+                      "value": "<boolean>"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "taskId",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"_id\": \"string\",\n  \"companyId\": \"string\",\n  \"title\": \"string\",\n  \"mergedTitle\": \"string\",\n  \"description\": \"string\",\n  \"mergedDescription\": \"string\",\n  \"userId\": \"string\",\n  \"checked\": false,\n  \"archived\": true,\n  \"status\": \"string\",\n  \"priority\": \"string\",\n  \"dueAt\": \"1987-02-27T03:44:13.610Z\",\n  \"aptletInstanceId\": \"string\",\n  \"aptletUuid\": \"string\",\n  \"attachments\": [\n    {\n      \"_id\": \"string\",\n      \"name\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"_id\": \"string\",\n      \"name\": \"string\",\n      \"type\": \"string\"\n    }\n  ],\n  \"priorityLabel\": \"string\",\n  \"statusLabel\": \"string\",\n  \"assignee\": {\n    \"_id\": \"string\",\n    \"fullName\": \"string\"\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "753acbd6-4302-4c69-ad58-c8791059a3a7",
+              "name": "Invalid or missing credential.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "tasks",
+                    ":taskId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "includeMetadata",
+                      "value": "<boolean>"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "taskId",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "943ecf24-035d-4f8a-920a-0169191ff010",
+              "name": "Task not found.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "tasks",
+                    ":taskId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "includeMetadata",
+                      "value": "<boolean>"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "taskId",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "35483d09-3ab9-48e4-a5c2-84a265807190",
+          "name": "Update a task",
+          "request": {
+            "name": "Update a task",
+            "description": {
+              "content": "Updates a task and keeps its card-checklist mirror entry in sync.\n\nThe update is attributed to a user who must belong to the company. With a\ndelegate token the user is taken from the token. With an API key (no\nassociated user), supply `userId` in the body — it must belong to the\ncompany or the request is rejected.\n",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "tasks",
+                ":taskId"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "taskId",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "x-token"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"<string>\",\n  \"title\": \"<string>\",\n  \"description\": \"<string>\",\n  \"checked\": \"<boolean>\",\n  \"dueAt\": \"<dateTime>\",\n  \"status\": \"<string>\",\n  \"priority\": \"<string>\",\n  \"assigneeId\": \"<string>\",\n  \"archived\": \"<boolean>\",\n  \"archivedAt\": \"<dateTime>\",\n  \"startedAt\": \"<dateTime>\",\n  \"checkedAt\": \"<dateTime>\",\n  \"pinned\": \"<boolean>\",\n  \"rank\": \"<number>\",\n  \"attachmentIds\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"outcomeType\": \"<string>\",\n  \"aptletInstanceId\": \"<string>\",\n  \"fieldId\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "23fa6d49-f48f-4844-b370-d1f1660b370d",
+              "name": "Task updated.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "tasks",
+                    ":taskId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "taskId",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Renamed task\",\n  \"checked\": true,\n  \"status\": \"completed\",\n  \"priority\": \"high\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"ok\": false\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "38d9b732-0d84-41f7-806b-3c5d87c548e8",
+              "name": "Missing or invalid field.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "tasks",
+                    ":taskId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "taskId",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Renamed task\",\n  \"checked\": true,\n  \"status\": \"completed\",\n  \"priority\": \"high\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"string\",\n  \"message\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "2ef5b824-b9b6-41ba-a767-1829659f21c4",
+              "name": "Invalid or missing credential.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "tasks",
+                    ":taskId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "taskId",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Renamed task\",\n  \"checked\": true,\n  \"status\": \"completed\",\n  \"priority\": \"high\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "acca1e6b-89c1-436c-91a5-e6145147e358",
+              "name": "Task not found.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "tasks",
+                    ":taskId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "taskId",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Renamed task\",\n  \"checked\": true,\n  \"status\": \"completed\",\n  \"priority\": \"high\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://core-api.getaptly.com",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-token"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "351cad3d-6a51-4682-89f3-116f94687083",
+    "name": "Aptly App Tasks API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "The Aptly API lets you read and write cards on any Aptly board from external systems.\n\nAll requests require an API key passed as the `x-token` header.\nAPI keys are scoped to your company and work across all boards.\n",
+      "type": "text/plain"
+    }
+  }
+}

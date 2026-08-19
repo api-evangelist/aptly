@@ -1,0 +1,1823 @@
+{
+  "item": [
+    {
+      "id": "f4bbed77-42df-42c9-92a5-75ff2abe672b",
+      "name": "Contacts",
+      "description": {
+        "content": "",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "2c6cd9c2-2898-4881-820f-6e6d1811ed52",
+          "name": "List contacts",
+          "request": {
+            "name": "List contacts",
+            "description": {
+              "content": "Returns a paginated list of contacts scoped to your company. All filter params are optional and ANDed together.\n",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "contacts"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "page",
+                  "value": "<integer>",
+                  "description": "(Required) Zero-based page index."
+                },
+                {
+                  "disabled": false,
+                  "key": "contact_type",
+                  "value": "<string>",
+                  "description": "Filter by contact type name."
+                },
+                {
+                  "disabled": false,
+                  "key": "email",
+                  "value": "<string>",
+                  "description": "Filter by exact email address (case-insensitive)."
+                },
+                {
+                  "disabled": false,
+                  "key": "phone",
+                  "value": "<string>",
+                  "description": "Filter by phone number (digits only, partial match)."
+                },
+                {
+                  "disabled": false,
+                  "key": "name",
+                  "value": "<string>",
+                  "description": "Filter by full name (case-insensitive, all words must match)."
+                },
+                {
+                  "disabled": false,
+                  "key": "updated_after",
+                  "value": "<dateTime>",
+                  "description": "Return only contacts updated after this ISO 8601 timestamp."
+                },
+                {
+                  "disabled": false,
+                  "key": "updated_before",
+                  "value": "<dateTime>",
+                  "description": "Return only contacts updated before this ISO 8601 timestamp."
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "x-token"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "ae0674f9-375e-436f-9b05-9d9a3b3dc3da",
+              "name": "Paginated contact list.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "<integer>"
+                    },
+                    {
+                      "key": "contact_type",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "email",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "phone",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "name",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "updated_after",
+                      "value": "<dateTime>"
+                    },
+                    {
+                      "key": "updated_before",
+                      "value": "<dateTime>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Current page index.",
+                  "key": "x-offset",
+                  "value": "4590"
+                },
+                {
+                  "disabled": false,
+                  "description": "Total matching contacts.",
+                  "key": "x-count",
+                  "value": "4590"
+                },
+                {
+                  "disabled": false,
+                  "description": "Page size.",
+                  "key": "x-size",
+                  "value": "4590"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"count\": 5205,\n  \"page\": 752,\n  \"pageSize\": 5300\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "c45d2dc0-b072-4169-ab21-cefb64106b37",
+              "name": "Missing or invalid parameters.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "<integer>"
+                    },
+                    {
+                      "key": "contact_type",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "email",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "phone",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "name",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "updated_after",
+                      "value": "<dateTime>"
+                    },
+                    {
+                      "key": "updated_before",
+                      "value": "<dateTime>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "6680175a-a83f-4f94-a787-9acd2718bd03",
+              "name": "Invalid or missing API key.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "<integer>"
+                    },
+                    {
+                      "key": "contact_type",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "email",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "phone",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "name",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "updated_after",
+                      "value": "<dateTime>"
+                    },
+                    {
+                      "key": "updated_before",
+                      "value": "<dateTime>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "e8dafc16-310e-4516-b379-37ea04da2e73",
+          "name": "Create or update a contact",
+          "request": {
+            "name": "Create or update a contact",
+            "description": {
+              "content": "Creates a new contact or updates an existing one (upsert).\n\n**Lookup order:**\n1. If `_id` is provided, finds by ID.\n2. Otherwise finds by first email address.\n3. If no match is found, creates a new contact.\n\n**Body formats** — either native or legacy (capitalized keys) are accepted:\n\n*Native:* `firstname`, `lastname`, `email` (string or array), `phone` (array of `{number, type}`),\n`typeId`, `contactType`, `isCompany`, `title`, `company`, `imageUrl`, `customFields`\n\n*Legacy:* `\"First Name\"`, `\"Last Name\"`, `Email`, `\"Mobile Phone\"`, `\"Work Phone\"`,\n`\"Home Phone\"`, `\"Contact Type\"`, `Title`, `Company`\n\nReturns the enriched contact with custom fields populated by their type definitions.\n",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "contacts"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "x-token"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"_id\": \"<string>\",\n  \"firstname\": \"<string>\",\n  \"lastname\": \"<string>\",\n  \"email\": \"<string>\",\n  \"phone\": [\n    {\n      \"number\": \"<string>\",\n      \"type\": \"<string>\"\n    },\n    {\n      \"number\": \"<string>\",\n      \"type\": \"<string>\"\n    }\n  ],\n  \"typeId\": \"<string>\",\n  \"contactType\": \"<string>\",\n  \"isCompany\": \"<boolean>\",\n  \"title\": \"<string>\",\n  \"company\": \"<string>\",\n  \"imageUrl\": \"<string>\",\n  \"customFields\": \"<object>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "aa561c7b-e9cc-4b72-a388-f63fb2e633dd",
+              "name": "Contact created or updated.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstname\": \"Jane\",\n  \"lastname\": \"Smith\",\n  \"email\": \"jane@example.com\",\n  \"phone\": [\n    {\n      \"number\": \"+15555550100\",\n      \"type\": \"mobile\"\n    }\n  ],\n  \"contactType\": \"Tenant\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"_id\": \"string\",\n  \"uuid\": \"string\",\n  \"firstname\": \"string\",\n  \"lastname\": \"string\",\n  \"fullName\": \"string\",\n  \"duogram\": \"string\",\n  \"photoId\": \"string\",\n  \"imageUrl\": \"string\",\n  \"email\": \"string\",\n  \"phone\": \"string\",\n  \"typeId\": \"string\",\n  \"companyId\": \"string\",\n  \"address\": {},\n  \"title\": \"string\",\n  \"company\": \"string\",\n  \"isCompany\": true\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "77e06a87-ad6e-494a-bb01-6033cf188adf",
+              "name": "Invalid input (bad URL, unknown custom field, invalid date, etc.).",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstname\": \"Jane\",\n  \"lastname\": \"Smith\",\n  \"email\": \"jane@example.com\",\n  \"phone\": [\n    {\n      \"number\": \"+15555550100\",\n      \"type\": \"mobile\"\n    }\n  ],\n  \"contactType\": \"Tenant\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"string\",\n  \"message\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "d6bfabda-5785-4b27-bb25-c9323f6b25c4",
+              "name": "Invalid or missing API key.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstname\": \"Jane\",\n  \"lastname\": \"Smith\",\n  \"email\": \"jane@example.com\",\n  \"phone\": [\n    {\n      \"number\": \"+15555550100\",\n      \"type\": \"mobile\"\n    }\n  ],\n  \"contactType\": \"Tenant\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "bf351fd7-78d9-471f-9117-ff225e162ce5",
+          "name": "Look up contacts by email",
+          "request": {
+            "name": "Look up contacts by email",
+            "description": {
+              "content": "Returns contacts whose email address matches one or more of the provided values.\nMatching is case-insensitive and exact. Results are scoped to your company.\n",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "contacts",
+                "by-email"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "x-token"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"<string>\",\n  \"limit\": 20,\n  \"skip\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "53558000-748f-4588-a6ea-6f21315e32f0",
+              "name": "Matching contacts.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts",
+                    "by-email"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"jane@example.com\",\n  \"limit\": 20,\n  \"skip\": 0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"contacts\": [\n    {\n      \"_id\": \"string\",\n      \"uuid\": \"string\",\n      \"firstname\": \"string\",\n      \"lastname\": \"string\",\n      \"fullName\": \"string\",\n      \"duogram\": \"string\",\n      \"photoId\": \"string\",\n      \"imageUrl\": \"string\",\n      \"email\": \"string\",\n      \"phone\": \"string\",\n      \"typeId\": \"string\",\n      \"companyId\": \"string\",\n      \"address\": {},\n      \"title\": \"string\",\n      \"company\": \"string\",\n      \"isCompany\": false\n    },\n    {\n      \"_id\": \"string\",\n      \"uuid\": \"string\",\n      \"firstname\": \"string\",\n      \"lastname\": \"string\",\n      \"fullName\": \"string\",\n      \"duogram\": \"string\",\n      \"photoId\": \"string\",\n      \"imageUrl\": \"string\",\n      \"email\": \"string\",\n      \"phone\": \"string\",\n      \"typeId\": \"string\",\n      \"companyId\": \"string\",\n      \"address\": {},\n      \"title\": \"string\",\n      \"company\": \"string\",\n      \"isCompany\": true\n    }\n  ]\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "034d37fc-d09e-4c39-94a4-929db21a1691",
+              "name": "Missing or invalid email field.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts",
+                    "by-email"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"jane@example.com\",\n  \"limit\": 20,\n  \"skip\": 0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"string\",\n  \"message\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "408b2680-3fb6-4a90-8133-dd8d8a26ec75",
+              "name": "Invalid or missing API key.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts",
+                    "by-email"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"jane@example.com\",\n  \"limit\": 20,\n  \"skip\": 0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "bb8bf8fb-761b-4434-9759-cda425d5f058",
+          "name": "Initiate contact email verification",
+          "request": {
+            "name": "Initiate contact email verification",
+            "description": {
+              "content": "Looks up an email address against your org's contact database. If a match is found,\ngenerates a cryptographically strong 6-digit code, sends it to the address, and\nreturns a `requestId` and `verifyUrl` to complete the verification.\n\nThe code expires after 10 minutes and can only be used once.\n",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "contacts",
+                "verify-email"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "x-token"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"<string>\",\n  \"emailSubject\": \"<string>\",\n  \"replyTo\": \"<string>\",\n  \"emailHtml\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "916b7388-d081-4dbf-ace2-8410e639dc06",
+              "name": "Verification initiated — code sent to the email address.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts",
+                    "verify-email"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"jane@example.com\",\n  \"emailSubject\": \"Your access code\",\n  \"replyTo\": \"support@example.com\",\n  \"emailHtml\": \"<p>Your code is <strong>{{ verificationCode }}</strong>. It expires in {{ expirationTime }}.</p>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"requestId\": \"a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4\",\n  \"verifyUrl\": \"/api/contacts/verify-email/a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4/confirm\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "f4617c65-5053-4e6c-9c9d-b0c94359f6d4",
+              "name": "Missing or invalid email field.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts",
+                    "verify-email"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"jane@example.com\",\n  \"emailSubject\": \"Your access code\",\n  \"replyTo\": \"support@example.com\",\n  \"emailHtml\": \"<p>Your code is <strong>{{ verificationCode }}</strong>. It expires in {{ expirationTime }}.</p>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"string\",\n  \"message\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "7013cbbb-bec3-49d8-9763-a72441b01c71",
+              "name": "Invalid or missing API key.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts",
+                    "verify-email"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"jane@example.com\",\n  \"emailSubject\": \"Your access code\",\n  \"replyTo\": \"support@example.com\",\n  \"emailHtml\": \"<p>Your code is <strong>{{ verificationCode }}</strong>. It expires in {{ expirationTime }}.</p>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"string\",\n  \"message\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "b70ecb07-f246-4f62-8066-de8e22d3537f",
+              "name": "No contact found with that email address.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts",
+                    "verify-email"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"jane@example.com\",\n  \"emailSubject\": \"Your access code\",\n  \"replyTo\": \"support@example.com\",\n  \"emailHtml\": \"<p>Your code is <strong>{{ verificationCode }}</strong>. It expires in {{ expirationTime }}.</p>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"string\",\n  \"message\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "128f0e1e-5c70-4311-95a5-b8c552abfa45",
+              "name": "Verification request was created but the email could not be delivered (EMAIL_SEND_FAILURE).",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts",
+                    "verify-email"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"jane@example.com\",\n  \"emailSubject\": \"Your access code\",\n  \"replyTo\": \"support@example.com\",\n  \"emailHtml\": \"<p>Your code is <strong>{{ verificationCode }}</strong>. It expires in {{ expirationTime }}.</p>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Internal Server Error",
+              "code": 500,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"string\",\n  \"message\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "fc605ed2-85bb-432e-926c-d5bed5df5bd8",
+          "name": "Confirm contact email verification",
+          "request": {
+            "name": "Confirm contact email verification",
+            "description": {
+              "content": "Submits the 6-digit code received by email. Returns the matching contact records\nif the code is valid, not expired, and has not already been used.\n\nAfter 5 consecutive failed attempts the verification is permanently invalidated.\nThe caller must re-initiate a new verification to try again.\n",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "contacts",
+                "verify-email",
+                ":requestId",
+                "confirm"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "requestId",
+                  "description": "(Required) The `requestId` returned by the initiate endpoint."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "x-token"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "2f778e32-3487-4f77-8dd3-8b6facc2f889",
+              "name": "Code accepted — returns verified status and matching contacts.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts",
+                    "verify-email",
+                    ":requestId",
+                    "confirm"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "requestId",
+                      "description": "(Required) The `requestId` returned by the initiate endpoint."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": 42815\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"verified\": true,\n  \"contacts\": [\n    {\n      \"_id\": \"string\",\n      \"uuid\": \"string\",\n      \"firstname\": \"string\",\n      \"lastname\": \"string\",\n      \"fullName\": \"string\",\n      \"duogram\": \"string\",\n      \"photoId\": \"string\",\n      \"imageUrl\": \"string\",\n      \"email\": \"string\",\n      \"phone\": \"string\",\n      \"typeId\": \"string\",\n      \"companyId\": \"string\",\n      \"address\": {},\n      \"title\": \"string\",\n      \"company\": \"string\",\n      \"isCompany\": true\n    },\n    {\n      \"_id\": \"string\",\n      \"uuid\": \"string\",\n      \"firstname\": \"string\",\n      \"lastname\": \"string\",\n      \"fullName\": \"string\",\n      \"duogram\": \"string\",\n      \"photoId\": \"string\",\n      \"imageUrl\": \"string\",\n      \"email\": \"string\",\n      \"phone\": \"string\",\n      \"typeId\": \"string\",\n      \"companyId\": \"string\",\n      \"address\": {},\n      \"title\": \"string\",\n      \"company\": \"string\",\n      \"isCompany\": true\n    }\n  ]\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "d3b36967-623e-4294-b89a-24ecc68cf087",
+              "name": "Missing code field.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts",
+                    "verify-email",
+                    ":requestId",
+                    "confirm"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "requestId",
+                      "description": "(Required) The `requestId` returned by the initiate endpoint."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": 42815\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"string\",\n  \"message\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "3b673092-e4c4-49f1-a6a3-872e96009b89",
+              "name": "Invalid or missing API key, or code is invalid/expired/already used.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts",
+                    "verify-email",
+                    ":requestId",
+                    "confirm"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "requestId",
+                      "description": "(Required) The `requestId` returned by the initiate endpoint."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": 42815\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"string\",\n  \"message\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "bda8ee23-ae8a-47e8-a4ef-edff78d296f8",
+          "name": "Get a contact",
+          "request": {
+            "name": "Get a contact",
+            "description": {
+              "content": "Returns a single contact by its ID, with custom fields enriched by their type definitions.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "contacts",
+                ":contactId"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "contactId",
+                  "description": "(Required) The contact's `_id`."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "x-token"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "8a15205f-2280-45a9-bf6a-f69ec0c1c2d9",
+              "name": "Contact record.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts",
+                    ":contactId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "contactId",
+                      "description": "(Required) The contact's `_id`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"_id\": \"string\",\n      \"uuid\": \"string\",\n      \"firstname\": \"string\",\n      \"lastname\": \"string\",\n      \"fullName\": \"string\",\n      \"duogram\": \"string\",\n      \"photoId\": \"string\",\n      \"imageUrl\": \"string\",\n      \"email\": \"string\",\n      \"phone\": \"string\",\n      \"typeId\": \"string\",\n      \"companyId\": \"string\",\n      \"address\": {},\n      \"title\": \"string\",\n      \"company\": \"string\",\n      \"isCompany\": true\n    },\n    {\n      \"_id\": \"string\",\n      \"uuid\": \"string\",\n      \"firstname\": \"string\",\n      \"lastname\": \"string\",\n      \"fullName\": \"string\",\n      \"duogram\": \"string\",\n      \"photoId\": \"string\",\n      \"imageUrl\": \"string\",\n      \"email\": \"string\",\n      \"phone\": \"string\",\n      \"typeId\": \"string\",\n      \"companyId\": \"string\",\n      \"address\": {},\n      \"title\": \"string\",\n      \"company\": \"string\",\n      \"isCompany\": true\n    }\n  ],\n  \"count\": 5285,\n  \"page\": 7709,\n  \"pageSize\": 4600\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "40568021-1005-492d-b8c9-c5621809ee80",
+              "name": "Invalid or missing API key.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts",
+                    ":contactId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "contactId",
+                      "description": "(Required) The contact's `_id`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "fb4a6b43-8ce4-4be1-9105-f8dcccb726ef",
+          "name": "Update a contact",
+          "request": {
+            "name": "Update a contact",
+            "description": {
+              "content": "Updates an existing contact by ID using the same upsert logic as `POST /api/contacts`.\nThe `_id` is taken from the URL — any `_id` in the body is ignored.\n\nAccepts the same **native** or **legacy** body formats as `POST /api/contacts`.\nReturns the updated, enriched contact.\n",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "contacts",
+                ":contactId"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "contactId",
+                  "description": "(Required) The contact's `_id`."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "x-token"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstname\": \"<string>\",\n  \"lastname\": \"<string>\",\n  \"email\": \"<string>\",\n  \"phone\": [\n    {\n      \"number\": \"<string>\",\n      \"type\": \"<string>\"\n    },\n    {\n      \"number\": \"<string>\",\n      \"type\": \"<string>\"\n    }\n  ],\n  \"typeId\": \"<string>\",\n  \"contactType\": \"<string>\",\n  \"isCompany\": \"<boolean>\",\n  \"title\": \"<string>\",\n  \"company\": \"<string>\",\n  \"imageUrl\": \"<string>\",\n  \"customFields\": \"<object>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "bd8e342d-b9d8-403a-b552-0b58378cd0c1",
+              "name": "Updated contact.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts",
+                    ":contactId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "contactId",
+                      "description": "(Required) The contact's `_id`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstname\": \"Jane\",\n  \"lastname\": \"Smith\",\n  \"email\": \"jane@example.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"_id\": \"string\",\n  \"uuid\": \"string\",\n  \"firstname\": \"string\",\n  \"lastname\": \"string\",\n  \"fullName\": \"string\",\n  \"duogram\": \"string\",\n  \"photoId\": \"string\",\n  \"imageUrl\": \"string\",\n  \"email\": \"string\",\n  \"phone\": \"string\",\n  \"typeId\": \"string\",\n  \"companyId\": \"string\",\n  \"address\": {},\n  \"title\": \"string\",\n  \"company\": \"string\",\n  \"isCompany\": false\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "469c4de7-e023-4045-b9a8-8d0793020943",
+              "name": "Invalid input.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts",
+                    ":contactId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "contactId",
+                      "description": "(Required) The contact's `_id`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstname\": \"Jane\",\n  \"lastname\": \"Smith\",\n  \"email\": \"jane@example.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"string\",\n  \"message\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "34353476-a3d5-4ac4-84a9-d33f321f0ba9",
+              "name": "Invalid or missing API key.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "contacts",
+                    ":contactId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "contactId",
+                      "description": "(Required) The contact's `_id`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "x-token",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstname\": \"Jane\",\n  \"lastname\": \"Smith\",\n  \"email\": \"jane@example.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://core-api.getaptly.com",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-token"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "ca656f64-0425-4fbf-80d1-01fc58ed4193",
+    "name": "Aptly App Contacts API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "The Aptly API lets you read and write cards on any Aptly board from external systems.\n\nAll requests require an API key passed as the `x-token` header.\nAPI keys are scoped to your company and work across all boards.\n",
+      "type": "text/plain"
+    }
+  }
+}

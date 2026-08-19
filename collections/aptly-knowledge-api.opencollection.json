@@ -1,0 +1,101 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Aptly App Knowledge API",
+    "version": "1.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-token",
+      "value": "{{x-token}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Knowledge",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Create a knowledge document",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/knowledge/create",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Creates a new knowledge document scoped to your company. Optionally associates the\ndocument with a board (`aptletUuid`), a card (`aptletInstanceId`), or a parent\ndocument (`parentId`).\n\nHTML content is accepted and stored internally as a structured document format.\n"
+        },
+        {
+          "info": {
+            "name": "Get a knowledge document",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/knowledge/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path",
+                "description": "The knowledge document ID."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns a knowledge document's content rendered as HTML."
+        },
+        {
+          "info": {
+            "name": "Update a knowledge document",
+            "type": "http"
+          },
+          "http": {
+            "method": "PUT",
+            "url": "https://core-api.getaptly.com/api/knowledge/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path",
+                "description": "The knowledge document ID."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Updates a knowledge document's content and/or metadata. Only fields provided in the\nrequest body are updated — omitted fields are left unchanged.\n"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

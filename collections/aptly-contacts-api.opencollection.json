@@ -1,0 +1,233 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Aptly App Contacts API",
+    "version": "1.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-token",
+      "value": "{{x-token}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Contacts",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List contacts",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/contacts",
+            "params": [
+              {
+                "name": "page",
+                "value": "",
+                "type": "query",
+                "description": "Zero-based page index."
+              },
+              {
+                "name": "contact_type",
+                "value": "",
+                "type": "query",
+                "description": "Filter by contact type name."
+              },
+              {
+                "name": "email",
+                "value": "",
+                "type": "query",
+                "description": "Filter by exact email address (case-insensitive)."
+              },
+              {
+                "name": "phone",
+                "value": "",
+                "type": "query",
+                "description": "Filter by phone number (digits only, partial match)."
+              },
+              {
+                "name": "name",
+                "value": "",
+                "type": "query",
+                "description": "Filter by full name (case-insensitive, all words must match)."
+              },
+              {
+                "name": "updated_after",
+                "value": "",
+                "type": "query",
+                "description": "Return only contacts updated after this ISO 8601 timestamp."
+              },
+              {
+                "name": "updated_before",
+                "value": "",
+                "type": "query",
+                "description": "Return only contacts updated before this ISO 8601 timestamp."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns a paginated list of contacts scoped to your company. All filter params are optional and ANDed together.\n"
+        },
+        {
+          "info": {
+            "name": "Create or update a contact",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/contacts",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Creates a new contact or updates an existing one (upsert).\n\n**Lookup order:**\n1. If `_id` is provided, finds by ID.\n2. Otherwise finds by first email address.\n3. If no match is found, creates a new contact.\n\n**Body formats** — either native or legacy (capitalized keys) are accepted:\n\n*Native:* `firstname`, `lastname`, `email` (string or array), `phone` (array of `{number, type}`),\n`typeId`, `contactType`, `isCompany`, `title`, `company`, `imageUrl`, `customFields`\n\n*Legacy:* `\"First Name\"`, `\"La"
+        },
+        {
+          "info": {
+            "name": "Look up contacts by email",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/contacts/by-email",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns contacts whose email address matches one or more of the provided values.\nMatching is case-insensitive and exact. Results are scoped to your company.\n"
+        },
+        {
+          "info": {
+            "name": "Initiate contact email verification",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/contacts/verify-email",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Looks up an email address against your org's contact database. If a match is found,\ngenerates a cryptographically strong 6-digit code, sends it to the address, and\nreturns a `requestId` and `verifyUrl` to complete the verification.\n\nThe code expires after 10 minutes and can only be used once.\n"
+        },
+        {
+          "info": {
+            "name": "Confirm contact email verification",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/contacts/verify-email/:requestId/confirm",
+            "params": [
+              {
+                "name": "requestId",
+                "value": "",
+                "type": "path",
+                "description": "The `requestId` returned by the initiate endpoint."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Submits the 6-digit code received by email. Returns the matching contact records\nif the code is valid, not expired, and has not already been used.\n\nAfter 5 consecutive failed attempts the verification is permanently invalidated.\nThe caller must re-initiate a new verification to try again.\n"
+        },
+        {
+          "info": {
+            "name": "Get a contact",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/contacts/:contactId",
+            "params": [
+              {
+                "name": "contactId",
+                "value": "",
+                "type": "path",
+                "description": "The contact's `_id`."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns a single contact by its ID, with custom fields enriched by their type definitions."
+        },
+        {
+          "info": {
+            "name": "Update a contact",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/contacts/:contactId",
+            "params": [
+              {
+                "name": "contactId",
+                "value": "",
+                "type": "path",
+                "description": "The contact's `_id`."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Updates an existing contact by ID using the same upsert logic as `POST /api/contacts`.\nThe `_id` is taken from the URL — any `_id` in the body is ignored.\n\nAccepts the same **native** or **legacy** body formats as `POST /api/contacts`.\nReturns the updated, enriched contact.\n"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

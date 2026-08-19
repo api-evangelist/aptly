@@ -1,0 +1,100 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Aptly App Templates API",
+    "version": "1.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-token",
+      "value": "{{x-token}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Templates",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List templates",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/templates",
+            "params": [
+              {
+                "name": "companyId",
+                "value": "",
+                "type": "query",
+                "description": "Company ID. Required when using a partner token; resolved automatically for API key and delegate token auth."
+              },
+              {
+                "name": "templateType",
+                "value": "",
+                "type": "query",
+                "description": "Filter by template type."
+              },
+              {
+                "name": "aptletUuid",
+                "value": "",
+                "type": "query",
+                "description": "Filter by associated board UUID."
+              },
+              {
+                "name": "archived",
+                "value": "",
+                "type": "query",
+                "description": "Filter by archived status."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns communication templates for the company. All filter parameters are optional.\n\nAccepts an API key (`x-token`), delegate token (`Authorization: DelegateToken <token>`),\nor partner token (`Authorization: Bearer <token>` with `templates` permission).\nWhen using a partner token, pass `companyId` as a query parameter.\n"
+        },
+        {
+          "info": {
+            "name": "Get a template",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/templates/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path",
+                "description": "Template ID."
+              },
+              {
+                "name": "companyId",
+                "value": "",
+                "type": "query",
+                "description": "Required for partner token auth."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns a single template by its ID. The template must belong to the authenticated company."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

@@ -1,0 +1,68 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Aptly App Files API",
+    "version": "1.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-token",
+      "value": "{{x-token}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Files",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Get a presigned URL for a direct file upload",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/files/upload-url",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "First step of the direct file-upload flow. Issues a presigned S3 POST\npolicy and records a pending upload.\n\n**Uploading a file takes three steps:**\n\n1. **Get a URL** — call this endpoint. It returns `{ fileId, url, fields }`.\n2. **Upload directly to S3** — send a `multipart/form-data` `POST` to\n   `url`. Include **every** key/value from `fields` as form fields first,\n   then the file itself as the last field named `file`. The upload goes\n   straight to S3; it does not pass through this API. A su"
+        },
+        {
+          "info": {
+            "name": "Finalize a direct file upload",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/files/upload-complete",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Final (third) step of the direct file-upload flow. Confirms the file\nwas uploaded to S3 and records it. Call this with the `fileId` from\n`/api/files/upload-url` after the `multipart/form-data` POST to the\npresigned `url` succeeded. Returns the file's download URL.\n"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

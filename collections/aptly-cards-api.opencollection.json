@@ -1,0 +1,286 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Aptly App Cards API",
+    "version": "1.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-token",
+      "value": "{{x-token}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Cards",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List cards",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/board/:boardId",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path",
+                "description": "The board's UUID."
+              },
+              {
+                "name": "page",
+                "value": "",
+                "type": "query",
+                "description": "Zero-based page number."
+              },
+              {
+                "name": "pageSize",
+                "value": "",
+                "type": "query",
+                "description": "Number of cards per page."
+              },
+              {
+                "name": "updatedAtMin",
+                "value": "",
+                "type": "query",
+                "description": "Only return cards updated after this ISO timestamp."
+              },
+              {
+                "name": "includeArchived",
+                "value": "",
+                "type": "query",
+                "description": "Include archived cards."
+              },
+              {
+                "name": "relatedId",
+                "value": "",
+                "type": "query",
+                "description": "Only return cards where `references.value` contains this ID."
+              },
+              {
+                "name": "contactEmail",
+                "value": "",
+                "type": "query",
+                "description": "Resolves the email to contact IDs, then filters cards referencing those contacts."
+              },
+              {
+                "name": "keyTerm",
+                "value": "",
+                "type": "query",
+                "description": "Full-text autocomplete search on card title using the Atlas Search index."
+              },
+              {
+                "name": "assignee",
+                "value": "",
+                "type": "query",
+                "description": "Filter cards by assignee user ID."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns a paginated list of cards on the board.\n\nField values are keyed by field UUID — use the schema endpoint to map keys to labels.\nMoney fields are returned as `{ amount, currency }` where `amount` is a decimal.\n\nAll filter params are optional and ANDed together.\n"
+        },
+        {
+          "info": {
+            "name": "Create or update a card",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/board/:boardId",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Creates a new card on the board. Use field UUIDs (from the schema endpoint) as keys in the request body.\n\nTo update an existing card, include its `_id` in the request body. The card must belong to this board.\nFields not provided in the body are left unchanged on update.\n"
+        },
+        {
+          "info": {
+            "name": "Get a card",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/board/:boardId/:cardId",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "cardId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns a single card by its ID."
+        },
+        {
+          "info": {
+            "name": "List comments on a card",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/board/:boardId/:cardId/comments",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "cardId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns all comments on the specified card in chronological order."
+        },
+        {
+          "info": {
+            "name": "List contacts linked to a card",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/board/:boardId/:cardId/contacts",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "cardId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns all person contacts linked to the card via its person/persons fields.\nReturns an empty array if the board has no person fields or none are populated.\n"
+        },
+        {
+          "info": {
+            "name": "Add or update a comment",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/board/:boardId/:cardId/comment",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "cardId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Adds a new comment to a card. To update an existing comment, include its `id` in the body —\nthe `userId` must match the original comment's author.\n"
+        },
+        {
+          "info": {
+            "name": "Upload a file to a card",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/board/:boardId/:cardId/file",
+            "params": [
+              {
+                "name": "boardId",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "cardId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "multipart-form",
+              "data": [
+                {
+                  "name": "file",
+                  "type": "text",
+                  "value": ""
+                }
+              ]
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Uploads a file and attaches it to a card. Send as `multipart/form-data` with the file in the `file` field.\n\n**Max file size:** 50 MB\n\n**Accepted types:** JPEG, PNG, GIF, WebP, SVG, PDF, Word, Excel, plain text, CSV, MP4, MOV, MP3, WAV\n"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

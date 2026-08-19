@@ -1,0 +1,118 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Aptly App RoutingGroups API",
+    "version": "1.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "x-token",
+      "value": "{{x-token}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "RoutingGroups",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List routing groups",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://core-api.getaptly.com/api/routing-groups",
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns all active routing groups for the authenticated company."
+        },
+        {
+          "info": {
+            "name": "Create a routing group",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/routing-groups/create",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Creates a new routing group for the authenticated company. Returns the new group's ID."
+        },
+        {
+          "info": {
+            "name": "Update a routing group",
+            "type": "http"
+          },
+          "http": {
+            "method": "PUT",
+            "url": "https://core-api.getaptly.com/api/routing-groups/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path",
+                "description": "The routing group ID."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Updates an existing routing group. All fields are optional — only provided fields are changed.\nPass `null` for a field to clear it.\n"
+        },
+        {
+          "info": {
+            "name": "Archive a routing group",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://core-api.getaptly.com/api/routing-groups/:id/archive",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path",
+                "description": "The routing group ID."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "x-token",
+              "value": "{{x-token}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Soft-deletes a routing group. Archived groups are excluded from list results and cannot be updated."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}
