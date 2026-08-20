@@ -37,6 +37,17 @@ tags:
 - Company
 - Cloud Saas
 - Property Management
+- Real-Estate
+- PropTech
+- CRM
+- Workflow-Automation
+- AI Agents
+- Communications
+- MCP
+tags_raw:
+- Company
+- Cloud Saas
+- Property Management
 - Real Estate
 - PropTech
 - CRM
@@ -68,6 +79,8 @@ apis:
   humanURL: https://docs.getaptly.com/introduction
   baseURL: https://core-api.getaptly.com
   tags:
+  - Boards
+  tags_raw:
   - Board
   properties:
   - type: OpenAPI
@@ -140,6 +153,8 @@ apis:
   humanURL: https://docs.getaptly.com/introduction
   baseURL: https://core-api.getaptly.com
   tags:
+  - File
+  tags_raw:
   - Files
   properties:
   - type: OpenAPI
@@ -200,6 +215,8 @@ apis:
   humanURL: https://docs.getaptly.com/introduction
   baseURL: https://core-api.getaptly.com
   tags:
+  - Task
+  tags_raw:
   - Tasks
   properties:
   - type: OpenAPI
@@ -224,6 +241,8 @@ apis:
   humanURL: https://docs.getaptly.com/introduction
   baseURL: https://core-api.getaptly.com
   tags:
+  - User
+  tags_raw:
   - Users
   properties:
   - type: OpenAPI
