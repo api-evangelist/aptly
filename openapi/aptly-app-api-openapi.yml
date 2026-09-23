@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: Aptly App API
   version: '1.0'
@@ -7,9 +7,7 @@ info:
 
     All requests require an API key passed as the `x-token` header.
 
-    API keys are scoped to your company and work across all boards.
-
-    '
+    API keys are scoped to your company and work across all boards.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production
@@ -27,9 +25,7 @@ paths:
 
         `POST /api/platform/user-token`). Returns the user''s identity, company name, and
 
-        the app''s title.
-
-        '
+        the app''s title.'
       operationId: verifyDelegateToken
       tags:
       - App
@@ -57,24 +53,29 @@ paths:
                   userId:
                     type: string
                   email:
-                    type: string
-                    nullable: true
+                    type:
+                    - string
+                    - 'null'
                   firstName:
-                    type: string
-                    nullable: true
+                    type:
+                    - string
+                    - 'null'
                   lastName:
-                    type: string
-                    nullable: true
+                    type:
+                    - string
+                    - 'null'
                   companyId:
                     type: string
                   companyName:
-                    type: string
-                    nullable: true
+                    type:
+                    - string
+                    - 'null'
                   appClientId:
                     type: string
                   appTitle:
-                    type: string
-                    nullable: true
+                    type:
+                    - string
+                    - 'null'
         '400':
           description: token field is missing.
         '401':
@@ -82,7 +83,18 @@ paths:
   /api/app/me:
     get:
       summary: Get credential info
-      description: "Returns identity information for the credential used in the request. The response shape\ndepends on the auth method:\n\n- **Delegate token** (`Authorization: DelegateToken <token>`): returns user identity and,\n  if the token has an `appClientId`, embedded-app context.\n- **API key** (`x-token` header or query param): returns company identity.\n- **Partner token** (`Authorization: Bearer <token>`): returns the partner's permission list.\n"
+      description: 'Returns identity information for the credential used in the request. The response shape
+
+        depends on the auth method:
+
+
+        - **Delegate token** (`Authorization: DelegateToken `): returns user identity and,
+
+        if the token has an `appClientId`, embedded-app context.
+
+        - **API key** (`x-token` header or query param): returns company identity.
+
+        - **Partner token** (`Authorization: Bearer `): returns the partner''s permission list.'
       operationId: getMe
       tags:
       - App
@@ -107,19 +119,23 @@ paths:
                     userId:
                       type: string
                     email:
-                      type: string
-                      nullable: true
+                      type:
+                      - string
+                      - 'null'
                     firstName:
-                      type: string
-                      nullable: true
+                      type:
+                      - string
+                      - 'null'
                     lastName:
-                      type: string
-                      nullable: true
+                      type:
+                      - string
+                      - 'null'
                     companyId:
                       type: string
                     companyName:
-                      type: string
-                      nullable: true
+                      type:
+                      - string
+                      - 'null'
                 - title: Delegate token — app
                   type: object
                   properties:
@@ -130,24 +146,29 @@ paths:
                     userId:
                       type: string
                     email:
-                      type: string
-                      nullable: true
+                      type:
+                      - string
+                      - 'null'
                     firstName:
-                      type: string
-                      nullable: true
+                      type:
+                      - string
+                      - 'null'
                     lastName:
-                      type: string
-                      nullable: true
+                      type:
+                      - string
+                      - 'null'
                     companyId:
                       type: string
                     companyName:
-                      type: string
-                      nullable: true
+                      type:
+                      - string
+                      - 'null'
                     appClientId:
                       type: string
                     appTitle:
-                      type: string
-                      nullable: true
+                      type:
+                      - string
+                      - 'null'
                 - title: API key
                   type: object
                   properties:
@@ -158,8 +179,9 @@ paths:
                     companyId:
                       type: string
                     companyName:
-                      type: string
-                      nullable: true
+                      type:
+                      - string
+                      - 'null'
                 - title: Partner token
                   type: object
                   properties:

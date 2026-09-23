@@ -1,15 +1,13 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Aptly App Board API
+  title: Aptly Board API
   version: '1.0'
   description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
 
 
     All requests require an API key passed as the `x-token` header.
 
-    API keys are scoped to your company and work across all boards.
-
-    '
+    API keys are scoped to your company and work across all boards.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production
@@ -90,9 +88,7 @@ paths:
 
         embedded tab view to the board''s tab list. Use the `/configuration/tabViews` path
 
-        for new integrations.
-
-        '
+        for new integrations.'
       operationId: postTabViewLegacy
       tags:
       - Board
@@ -163,9 +159,7 @@ paths:
 
         company as the API key. Use this to confirm the identity of an authenticated Aptly
 
-        user inside an embedded plugin or iframe.
-
-        '
+        user inside an embedded plugin or iframe.'
       operationId: verifyAppUser
       tags:
       - Board
@@ -194,14 +188,17 @@ paths:
                   userId:
                     type: string
                   email:
-                    type: string
-                    nullable: true
+                    type:
+                    - string
+                    - 'null'
                   firstName:
-                    type: string
-                    nullable: true
+                    type:
+                    - string
+                    - 'null'
                   lastName:
-                    type: string
-                    nullable: true
+                    type:
+                    - string
+                    - 'null'
                   companyId:
                     type: string
         '400':
@@ -213,9 +210,7 @@ paths:
       summary: Get full board configuration
       description: 'Returns all configuration sections for the board in a single response:
 
-        fields, automations, options, tabViews, workflows, groups, shares, theme, and filters.
-
-        '
+        fields, automations, options, tabViews, workflows, groups, shares, theme, and filters.'
       operationId: getBoardConfiguration
       tags:
       - Board
@@ -568,9 +563,7 @@ paths:
 
         are included when authenticating with a delegate token that has a `userId`.
 
-        Quick-view filters are excluded.
-
-        '
+        Quick-view filters are excluded.'
       operationId: getBoardFilters
       tags:
       - Board
@@ -619,54 +612,6 @@ paths:
           description: Board not found.
 components:
   schemas:
-    TabView:
-      type: object
-      properties:
-        uuid:
-          type: string
-        name:
-          type: string
-        url:
-          type: string
-        icon:
-          type: string
-        embedSource:
-          type: string
-        type:
-          type: string
-    BoardOptions:
-      type: object
-      description: Configurable board-level settings. All fields are optional — only include the ones you want to change on PATCH.
-      properties:
-        conversionFlair:
-          type: string
-          enum:
-          - confetti
-          - fireworks
-        reassignDiscussions:
-          type: string
-          enum:
-          - ''
-          - prompt
-          - auto
-        minCallDuration:
-          type: number
-          description: Minimum call duration in seconds before the call is logged.
-        boardEmailOnlyParsedCards:
-          type: boolean
-        displayFieldNames:
-          type: boolean
-        agingIndicator:
-          type: boolean
-        applicationFeatures:
-          type: boolean
-        applicationLinking:
-          type: boolean
-        defaultContactType:
-          type: string
-        updateBadgeField:
-          type: string
-          description: Field UUID to use as the card badge label.
     Automation:
       type: object
       properties:
@@ -704,6 +649,54 @@ components:
         timeOfDay:
           type: number
           description: (schedule type only) Hour of the day to run (0–23).
+    BoardOptions:
+      type: object
+      description: Configurable board-level settings. All fields are optional — only include the ones you want to change on PATCH.
+      properties:
+        conversionFlair:
+          type: string
+          enum:
+          - confetti
+          - fireworks
+        reassignDiscussions:
+          type: string
+          enum:
+          - ''
+          - prompt
+          - auto
+        minCallDuration:
+          type: number
+          description: Minimum call duration in seconds before the call is logged.
+        boardEmailOnlyParsedCards:
+          type: boolean
+        displayFieldNames:
+          type: boolean
+        agingIndicator:
+          type: boolean
+        applicationFeatures:
+          type: boolean
+        applicationLinking:
+          type: boolean
+        defaultContactType:
+          type: string
+        updateBadgeField:
+          type: string
+          description: Field UUID to use as the card badge label.
+    TabView:
+      type: object
+      properties:
+        uuid:
+          type: string
+        name:
+          type: string
+        url:
+          type: string
+        icon:
+          type: string
+        embedSource:
+          type: string
+        type:
+          type: string
     BoardField:
       type: object
       properties:

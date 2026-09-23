@@ -1,15 +1,13 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Aptly App Company API
+  title: Aptly Company API
   version: '1.0'
   description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
 
 
     All requests require an API key passed as the `x-token` header.
 
-    API keys are scoped to your company and work across all boards.
-
-    '
+    API keys are scoped to your company and work across all boards.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production
@@ -36,35 +34,44 @@ paths:
                 type: object
                 properties:
                   name:
-                    type: string
-                    nullable: true
+                    type:
+                    - string
+                    - 'null'
                   address:
                     type: object
                     properties:
                       street:
-                        type: string
-                        nullable: true
+                        type:
+                        - string
+                        - 'null'
                       city:
-                        type: string
-                        nullable: true
+                        type:
+                        - string
+                        - 'null'
                       state:
-                        type: string
-                        nullable: true
+                        type:
+                        - string
+                        - 'null'
                       zip:
-                        type: string
-                        nullable: true
+                        type:
+                        - string
+                        - 'null'
                   phone:
-                    type: string
-                    nullable: true
+                    type:
+                    - string
+                    - 'null'
                   phone2:
-                    type: string
-                    nullable: true
+                    type:
+                    - string
+                    - 'null'
                   website:
-                    type: string
-                    nullable: true
+                    type:
+                    - string
+                    - 'null'
                   logo:
-                    type: string
-                    nullable: true
+                    type:
+                    - string
+                    - 'null'
                     description: Absolute URL to the company logo thumbnail.
         '401':
           description: Invalid or missing API key.

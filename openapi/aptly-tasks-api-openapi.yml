@@ -1,15 +1,13 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Aptly App Tasks API
+  title: Aptly Tasks API
   version: '1.0'
   description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
 
 
     All requests require an API key passed as the `x-token` header.
 
-    API keys are scoped to your company and work across all boards.
-
-    '
+    API keys are scoped to your company and work across all boards.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production
@@ -27,9 +25,7 @@ paths:
 
         `{ startDate, endDate }` — either bound may be supplied independently. Set
 
-        `useCount: true` to return `{ count }` instead of `{ tasks }`.
-
-        '
+        `useCount: true` to return `{ count }` instead of `{ tasks }`.'
       operationId: searchTasks
       tags:
       - Tasks
@@ -131,9 +127,7 @@ paths:
 
         user), supply `userId` in the body — it must belong to the company or the
 
-        request is rejected.
-
-        '
+        request is rejected.'
       operationId: createTask
       tags:
       - Tasks
@@ -236,9 +230,7 @@ paths:
 
         metadata. When `includeMetadata=true`, also returns display labels
 
-        (`priorityLabel`, `statusLabel`) and the resolved `assignee`.
-
-        '
+        (`priorityLabel`, `statusLabel`) and the resolved `assignee`.'
       operationId: getTask
       tags:
       - Tasks
@@ -279,9 +271,7 @@ paths:
 
         associated user), supply `userId` in the body — it must belong to the
 
-        company or the request is rejected.
-
-        '
+        company or the request is rejected.'
       operationId: updateTask
       tags:
       - Tasks

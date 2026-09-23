@@ -1,15 +1,13 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Aptly App Templates API
+  title: Aptly Templates API
   version: '1.0'
   description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
 
 
     All requests require an API key passed as the `x-token` header.
 
-    API keys are scoped to your company and work across all boards.
-
-    '
+    API keys are scoped to your company and work across all boards.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production
@@ -24,13 +22,11 @@ paths:
       description: 'Returns communication templates for the company. All filter parameters are optional.
 
 
-        Accepts an API key (`x-token`), delegate token (`Authorization: DelegateToken <token>`),
+        Accepts an API key (`x-token`), delegate token (`Authorization: DelegateToken `),
 
-        or partner token (`Authorization: Bearer <token>` with `templates` permission).
+        or partner token (`Authorization: Bearer ` with `templates` permission).
 
-        When using a partner token, pass `companyId` as a query parameter.
-
-        '
+        When using a partner token, pass `companyId` as a query parameter.'
       operationId: listTemplates
       tags:
       - Templates

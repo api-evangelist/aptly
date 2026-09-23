@@ -1,15 +1,13 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Aptly App Contacts API
+  title: Aptly Contacts API
   version: '1.0'
   description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
 
 
     All requests require an API key passed as the `x-token` header.
 
-    API keys are scoped to your company and work across all boards.
-
-    '
+    API keys are scoped to your company and work across all boards.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production
@@ -21,9 +19,7 @@ paths:
   /api/contacts:
     get:
       summary: List contacts
-      description: 'Returns a paginated list of contacts scoped to your company. All filter params are optional and ANDed together.
-
-        '
+      description: Returns a paginated list of contacts scoped to your company. All filter params are optional and ANDed together.
       operationId: listContacts
       tags:
       - Contacts
@@ -132,9 +128,7 @@ paths:
         `"Home Phone"`, `"Contact Type"`, `Title`, `Company`
 
 
-        Returns the enriched contact with custom fields populated by their type definitions.
-
-        '
+        Returns the enriched contact with custom fields populated by their type definitions.'
       operationId: upsertContact
       tags:
       - Contacts
@@ -221,9 +215,7 @@ paths:
       summary: Look up contacts by email
       description: 'Returns contacts whose email address matches one or more of the provided values.
 
-        Matching is case-insensitive and exact. Results are scoped to your company.
-
-        '
+        Matching is case-insensitive and exact. Results are scoped to your company.'
       operationId: getContactsByEmail
       tags:
       - Contacts
@@ -288,9 +280,7 @@ paths:
         returns a `requestId` and `verifyUrl` to complete the verification.
 
 
-        The code expires after 10 minutes and can only be used once.
-
-        '
+        The code expires after 10 minutes and can only be used once.'
       operationId: initiateContactVerification
       tags:
       - Contacts
@@ -380,9 +370,7 @@ paths:
 
         After 5 consecutive failed attempts the verification is permanently invalidated.
 
-        The caller must re-initiate a new verification to try again.
-
-        '
+        The caller must re-initiate a new verification to try again.'
       operationId: confirmContactVerification
       tags:
       - Contacts
@@ -483,9 +471,7 @@ paths:
 
         Accepts the same **native** or **legacy** body formats as `POST /api/contacts`.
 
-        Returns the updated, enriched contact.
-
-        '
+        Returns the updated, enriched contact.'
       operationId: updateContact
       tags:
       - Contacts
@@ -588,11 +574,13 @@ components:
           type: string
           description: Two-letter initials derived from first and last name.
         photoId:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         imageUrl:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: CDN thumbnail URL for the contact's photo, or null if none.
         email:
           type: string

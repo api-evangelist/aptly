@@ -1,15 +1,13 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Aptly App Inboxes API
+  title: Aptly Inboxes API
   version: '1.0'
   description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
 
 
     All requests require an API key passed as the `x-token` header.
 
-    API keys are scoped to your company and work across all boards.
-
-    '
+    API keys are scoped to your company and work across all boards.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production
@@ -41,9 +39,7 @@ paths:
 
         company. With delegate-token auth (`email:*` scope) the inbox must also be
 
-        one the authenticated user can reach personally or via a team membership.
-
-        '
+        one the authenticated user can reach personally or via a team membership.'
       operationId: listInboxDrafts
       tags:
       - Inboxes
@@ -81,11 +77,13 @@ paths:
                           type: string
                           description: External channel meta ID this draft will be sent from.
                         subject:
-                          type: string
-                          nullable: true
+                          type:
+                          - string
+                          - 'null'
                         content:
-                          type: string
-                          nullable: true
+                          type:
+                          - string
+                          - 'null'
                           description: HTML body of the draft (Email type).
                         to:
                           type: array
@@ -95,8 +93,9 @@ paths:
                               value:
                                 type: string
                               label:
-                                type: string
-                                nullable: true
+                                type:
+                                - string
+                                - 'null'
                         cc:
                           type: array
                           items:
@@ -110,15 +109,18 @@ paths:
                           items:
                             type: object
                         ownerId:
-                          type: string
-                          nullable: true
+                          type:
+                          - string
+                          - 'null'
                         sentBy:
-                          type: string
-                          nullable: true
+                          type:
+                          - string
+                          - 'null'
                         addedToOutboxAt:
-                          type: string
+                          type:
+                          - string
+                          - 'null'
                           format: date-time
-                          nullable: true
               example:
                 data:
                 - streamId: stm_abc

@@ -1,15 +1,13 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Aptly App Users API
+  title: Aptly Users API
   version: '1.0'
   description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
 
 
     All requests require an API key passed as the `x-token` header.
 
-    API keys are scoped to your company and work across all boards.
-
-    '
+    API keys are scoped to your company and work across all boards.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production
@@ -21,9 +19,7 @@ paths:
   /api/users:
     get:
       summary: List users
-      description: 'Returns all non-archived users for the API key''s company.
-
-        '
+      description: Returns all non-archived users for the API key's company.
       operationId: listUsers
       tags:
       - Users
@@ -49,8 +45,9 @@ paths:
                           type: string
                           description: Full name (firstname + lastname).
                         role:
-                          type: string
-                          nullable: true
+                          type:
+                          - string
+                          - 'null'
                           description: Role name, or null if the role has been deleted.
               example:
                 data:
@@ -85,9 +82,7 @@ paths:
 
         The user must belong to the company associated with your API key. Returns `401` if
 
-        the user does not belong to your company.
-
-        '
+        the user does not belong to your company.'
       operationId: listUserInboxes
       tags:
       - Users
@@ -119,23 +114,27 @@ paths:
                           type: string
                           description: Channel document ID.
                         channelId:
-                          type: string
-                          nullable: true
+                          type:
+                          - string
+                          - 'null'
                           description: External channel meta ID (`meta.id`).
                         type:
                           type: string
                           description: 'Channel transport type: `Hermes` or `Nylas`.'
                         provider:
-                          type: string
-                          nullable: true
+                          type:
+                          - string
+                          - 'null'
                           description: Upstream provider, e.g. `google`, `office365`.
                         email:
-                          type: string
-                          nullable: true
+                          type:
+                          - string
+                          - 'null'
                           description: Email address of the inbox.
                         name:
-                          type: string
-                          nullable: true
+                          type:
+                          - string
+                          - 'null'
                           description: Display name of the inbox.
                         kind:
                           type: string

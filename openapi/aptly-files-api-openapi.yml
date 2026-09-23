@@ -1,15 +1,13 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Aptly App Files API
+  title: Aptly Files API
   version: '1.0'
   description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
 
 
     All requests require an API key passed as the `x-token` header.
 
-    API keys are scoped to your company and work across all boards.
-
-    '
+    API keys are scoped to your company and work across all boards.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production
@@ -21,7 +19,45 @@ paths:
   /api/files/upload-url:
     post:
       summary: Get a presigned URL for a direct file upload
-      description: "First step of the direct file-upload flow. Issues a presigned S3 POST\npolicy and records a pending upload.\n\n**Uploading a file takes three steps:**\n\n1. **Get a URL** — call this endpoint. It returns `{ fileId, url, fields }`.\n2. **Upload directly to S3** — send a `multipart/form-data` `POST` to\n   `url`. Include **every** key/value from `fields` as form fields first,\n   then the file itself as the last field named `file`. The upload goes\n   straight to S3; it does not pass through this API. A successful upload\n   returns HTTP `204` from S3.\n3. **Mark the upload complete** — call\n   `POST /api/files/upload-complete` with the `fileId` from step 1. This\n   records the file and returns its download URL.\n\nThe presigned policy enforces the content type and a 1 byte–50 MB size\nrange. Both `extension` and `contentType` must be on the accepted lists.\n\n`attachEntityType` is `channel`, `aptlet`, or `knowledge`, and\n`attachEntityId` is the channel id, aptlet uuid, or knowledge doc id\nrespectively. The target must exist (scoped to your company) or the\nrequest is rejected. The file is stored under that entity's folder.\n"
+      description: 'First step of the direct file-upload flow. Issues a presigned S3 POST
+
+        policy and records a pending upload.
+
+
+        **Uploading a file takes three steps:**
+
+
+        1. **Get a URL** — call this endpoint. It returns `{ fileId, url, fields }`.
+
+        2. **Upload directly to S3** — send a `multipart/form-data` `POST` to
+
+        `url`. Include **every** key/value from `fields` as form fields first,
+
+        then the file itself as the last field named `file`. The upload goes
+
+        straight to S3; it does not pass through this API. A successful upload
+
+        returns HTTP `204` from S3.
+
+        3. **Mark the upload complete** — call
+
+        `POST /api/files/upload-complete` with the `fileId` from step 1. This
+
+        records the file and returns its download URL.
+
+
+        The presigned policy enforces the content type and a 1 byte–50 MB size
+
+        range. Both `extension` and `contentType` must be on the accepted lists.
+
+
+        `attachEntityType` is `channel`, `aptlet`, or `knowledge`, and
+
+        `attachEntityId` is the channel id, aptlet uuid, or knowledge doc id
+
+        respectively. The target must exist (scoped to your company) or the
+
+        request is rejected. The file is stored under that entity''s folder.'
       operationId: getFileUploadUrl
       tags:
       - Files
@@ -113,9 +149,7 @@ paths:
 
         `/api/files/upload-url` after the `multipart/form-data` POST to the
 
-        presigned `url` succeeded. Returns the file''s download URL.
-
-        '
+        presigned `url` succeeded. Returns the file''s download URL.'
       operationId: completeFileUpload
       tags:
       - Files
