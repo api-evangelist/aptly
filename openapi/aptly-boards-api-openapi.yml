@@ -64,6 +64,13 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
     Board:
       type: object
       properties:
@@ -88,13 +95,6 @@ components:
               description:
                 type: string
                 description: What the endpoint does.
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-        message:
-          type: string
   securitySchemes:
     ApiKeyHeader:
       type: apiKey

@@ -53,10 +53,10 @@ tags:
 - Company
 - Cloud Saas
 - Property Management
-- Real-Estate
+- Real Estate
 - PropTech
 - CRM
-- Workflow-Automation
+- Workflow Automation
 - AI Agents
 - Communications
 - MCP
@@ -71,6 +71,8 @@ tags_raw:
 - AI Agents
 - Communications
 - MCP
+- Real-Estate
+- Workflow-Automation
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
