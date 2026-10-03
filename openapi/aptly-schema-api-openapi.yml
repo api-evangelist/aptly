@@ -74,13 +74,6 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-        message:
-          type: string
     SchemaField:
       type: object
       properties:
@@ -93,6 +86,13 @@ components:
         type:
           type: string
           description: Field type (e.g. text, date, money, multiselect, etc.)
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
   securitySchemes:
     ApiKeyHeader:
       type: apiKey

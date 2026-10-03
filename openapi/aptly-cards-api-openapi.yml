@@ -418,6 +418,22 @@ paths:
           description: Card not found.
 components:
   schemas:
+    Card:
+      type: object
+      properties:
+        cardId:
+          type: string
+          description: Unique ID of the card.
+        boardUuid:
+          type: string
+          description: UUID of the board this card belongs to.
+        archived:
+          type: boolean
+        assignee:
+          type: string
+          description: Full name of the assigned user.
+      additionalProperties:
+        description: Additional properties are dynamic board fields keyed by their field UUID.
     Comment:
       type: object
       properties:
@@ -478,22 +494,6 @@ components:
           description: Company name — populated when isCompany is true.
         isCompany:
           type: boolean
-    Card:
-      type: object
-      properties:
-        cardId:
-          type: string
-          description: Unique ID of the card.
-        boardUuid:
-          type: string
-          description: UUID of the board this card belongs to.
-        archived:
-          type: boolean
-        assignee:
-          type: string
-          description: Full name of the assigned user.
-      additionalProperties:
-        description: Additional properties are dynamic board fields keyed by their field UUID.
   securitySchemes:
     ApiKeyHeader:
       type: apiKey
