@@ -555,6 +555,13 @@ paths:
           description: Invalid or missing API key.
 components:
   schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
     Contact:
       type: object
       properties:
@@ -603,13 +610,6 @@ components:
           description: Company name — populated when isCompany is true.
         isCompany:
           type: boolean
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-        message:
-          type: string
   securitySchemes:
     ApiKeyHeader:
       type: apiKey

@@ -369,6 +369,13 @@ paths:
           description: Task not found.
 components:
   schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
     Task:
       type: object
       properties:
@@ -440,13 +447,6 @@ components:
         endDate:
           type: string
           format: date-time
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-        message:
-          type: string
   securitySchemes:
     ApiKeyHeader:
       type: apiKey

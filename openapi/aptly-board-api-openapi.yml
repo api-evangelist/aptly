@@ -612,60 +612,6 @@ paths:
           description: Board not found.
 components:
   schemas:
-    BoardField:
-      type: object
-      properties:
-        uuid:
-          type: string
-          description: Unique field identifier — use this as the key when reading/writing card data.
-        name:
-          type: string
-          description: Display name of the field.
-        type:
-          type: string
-          description: 'Field type. One of: `text`, `string`, `email`, `tel`, `number`, `money`, `date`, `datetime-local`, `boolean`, `singleselect`, `multiselect`, `checkboxlist`, `file`, `files`, `url`, `address`, `person`, `persons`, `relatedAptlets`, `mirror`, `mirror-contact`, `rich-text`, `calculation`, `percent`, `multiplier`, `board`, `heroImage`, `embedVideo`, `ai-computed`.'
-        position:
-          type: integer
-          description: Display order (zero-based).
-        optional:
-          type: boolean
-          description: Whether the field is optional on cards.
-        archived:
-          type: boolean
-          description: Whether the field has been archived (hidden from the UI).
-    BoardOptions:
-      type: object
-      description: Configurable board-level settings. All fields are optional — only include the ones you want to change on PATCH.
-      properties:
-        conversionFlair:
-          type: string
-          enum:
-          - confetti
-          - fireworks
-        reassignDiscussions:
-          type: string
-          enum:
-          - ''
-          - prompt
-          - auto
-        minCallDuration:
-          type: number
-          description: Minimum call duration in seconds before the call is logged.
-        boardEmailOnlyParsedCards:
-          type: boolean
-        displayFieldNames:
-          type: boolean
-        agingIndicator:
-          type: boolean
-        applicationFeatures:
-          type: boolean
-        applicationLinking:
-          type: boolean
-        defaultContactType:
-          type: string
-        updateBadgeField:
-          type: string
-          description: Field UUID to use as the card badge label.
     TabView:
       type: object
       properties:
@@ -718,6 +664,60 @@ components:
         timeOfDay:
           type: number
           description: (schedule type only) Hour of the day to run (0–23).
+    BoardOptions:
+      type: object
+      description: Configurable board-level settings. All fields are optional — only include the ones you want to change on PATCH.
+      properties:
+        conversionFlair:
+          type: string
+          enum:
+          - confetti
+          - fireworks
+        reassignDiscussions:
+          type: string
+          enum:
+          - ''
+          - prompt
+          - auto
+        minCallDuration:
+          type: number
+          description: Minimum call duration in seconds before the call is logged.
+        boardEmailOnlyParsedCards:
+          type: boolean
+        displayFieldNames:
+          type: boolean
+        agingIndicator:
+          type: boolean
+        applicationFeatures:
+          type: boolean
+        applicationLinking:
+          type: boolean
+        defaultContactType:
+          type: string
+        updateBadgeField:
+          type: string
+          description: Field UUID to use as the card badge label.
+    BoardField:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: Unique field identifier — use this as the key when reading/writing card data.
+        name:
+          type: string
+          description: Display name of the field.
+        type:
+          type: string
+          description: 'Field type. One of: `text`, `string`, `email`, `tel`, `number`, `money`, `date`, `datetime-local`, `boolean`, `singleselect`, `multiselect`, `checkboxlist`, `file`, `files`, `url`, `address`, `person`, `persons`, `relatedAptlets`, `mirror`, `mirror-contact`, `rich-text`, `calculation`, `percent`, `multiplier`, `board`, `heroImage`, `embedVideo`, `ai-computed`.'
+        position:
+          type: integer
+          description: Display order (zero-based).
+        optional:
+          type: boolean
+          description: Whether the field is optional on cards.
+        archived:
+          type: boolean
+          description: Whether the field has been archived (hidden from the UI).
   securitySchemes:
     ApiKeyHeader:
       type: apiKey

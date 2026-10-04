@@ -434,18 +434,6 @@ components:
           description: Full name of the assigned user.
       additionalProperties:
         description: Additional properties are dynamic board fields keyed by their field UUID.
-    Comment:
-      type: object
-      properties:
-        id:
-          type: string
-        userId:
-          type: string
-        content:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
     Contact:
       type: object
       properties:
@@ -494,6 +482,18 @@ components:
           description: Company name — populated when isCompany is true.
         isCompany:
           type: boolean
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
   securitySchemes:
     ApiKeyHeader:
       type: apiKey
