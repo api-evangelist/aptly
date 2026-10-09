@@ -1,23 +1,43 @@
-generated: '2026-07-18'
+generated: '2026-09-23'
 method: generated
-source: openapi/aptly-openapi-original.yml
+source: openapi/aptly-app-api-openapi.yml, openapi/aptly-board-api-openapi.yml, openapi/aptly-boards-api-openapi.yml,
+  openapi/aptly-cards-api-openapi.yml, openapi/aptly-company-api-openapi.yml, openapi/aptly-contacts-api-openapi.yml,
+  openapi/aptly-email-api-openapi.yml, openapi/aptly-files-api-openapi.yml, openapi/aptly-inboxes-api-openapi.yml,
+  openapi/aptly-knowledge-api-openapi.yml, openapi/aptly-routinggroups-api-openapi.yml, openapi/aptly-schema-api-openapi.yml,
+  openapi/aptly-tasks-api-openapi.yml, openapi/aptly-templates-api-openapi.yml, openapi/aptly-users-api-openapi.yml
 description: Recommended x-agentic-access execution contracts, classified heuristically from
   the OpenAPI. A governance starting point for exposing this API to AI agents — review and bind
   audience per deployment. See research/curity/agentic-governance/.
 summary:
   operations: 51
   by_action_class:
-    connected: 27
-    acting: 24
+    acting: 22
+    connected: 29
   by_consequence:
-    read: 27
-    write: 23
+    write: 21
+    read: 29
     physical: 1
   human_in_the_loop_required: 0
 operations:
-- path: /api/users
+- path: /api/app/verify
+  method: post
+  operationId: verifyDelegateToken
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /api/app/me
   method: get
-  operationId: listUsers
+  operationId: getMe
   x-agentic-access:
     action-class: connected
     consequence: read
@@ -25,9 +45,57 @@ operations:
     token:
       max-ttl: 3600
     audit: none
-- path: /api/users/{userId}/inboxes
+- path: /api/board/{boardId}/configuration/tabViews
+  method: post
+  operationId: postTabView
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /api/board/{boardId}/tabView
+  method: post
+  operationId: postTabViewLegacy
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /api/board/verify-user
+  method: post
+  operationId: verifyAppUser
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /api/board/{boardId}/configuration
   method: get
-  operationId: listUserInboxes
+  operationId: getBoardConfiguration
   x-agentic-access:
     action-class: connected
     consequence: read
@@ -35,9 +103,9 @@ operations:
     token:
       max-ttl: 3600
     audit: none
-- path: /api/inboxes/{channelId}/drafts
+- path: /api/board/{boardId}/configuration/automations
   method: get
-  operationId: listInboxDrafts
+  operationId: listAutomations
   x-agentic-access:
     action-class: connected
     consequence: read
@@ -45,9 +113,69 @@ operations:
     token:
       max-ttl: 3600
     audit: none
-- path: /api/schema/{boardId}
+- path: /api/board/{boardId}/configuration/options
   method: get
-  operationId: getSchema
+  operationId: getBoardOptions
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /api/board/{boardId}/configuration/fields
+  method: get
+  operationId: listBoardFields
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /api/board/{boardId}/configuration/workflows
+  method: get
+  operationId: listWorkflows
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /api/board/{boardId}/configuration/groups
+  method: get
+  operationId: listGroups
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /api/board/{boardId}/configuration/shares
+  method: get
+  operationId: getBoardShares
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /api/board/{boardId}/configuration/theme
+  method: get
+  operationId: getBoardTheme
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /api/board/{boardId}/configuration/filters
+  method: get
+  operationId: getBoardFilters
   x-agentic-access:
     action-class: connected
     consequence: read
@@ -153,54 +281,6 @@ operations:
       - abnormal
       - high-value
     audit: required
-- path: /api/board/{boardId}/configuration/tabViews
-  method: post
-  operationId: postTabView
-  x-agentic-access:
-    action-class: acting
-    consequence: write
-    subject: required
-    audience: null
-    token:
-      max-ttl: 900
-    escalation:
-      human-in-the-loop: conditional
-      triggers:
-      - abnormal
-      - high-value
-    audit: required
-- path: /api/board/{boardId}/tabView
-  method: post
-  operationId: postTabViewLegacy
-  x-agentic-access:
-    action-class: acting
-    consequence: write
-    subject: required
-    audience: null
-    token:
-      max-ttl: 900
-    escalation:
-      human-in-the-loop: conditional
-      triggers:
-      - abnormal
-      - high-value
-    audit: required
-- path: /api/board/verify-user
-  method: post
-  operationId: verifyAppUser
-  x-agentic-access:
-    action-class: acting
-    consequence: write
-    subject: required
-    audience: null
-    token:
-      max-ttl: 900
-    escalation:
-      human-in-the-loop: conditional
-      triggers:
-      - abnormal
-      - high-value
-    audit: required
 - path: /api/company/info
   method: get
   operationId: getCompanyInfo
@@ -241,18 +321,12 @@ operations:
   method: post
   operationId: getContactsByEmail
   x-agentic-access:
-    action-class: acting
-    consequence: write
-    subject: required
-    audience: null
+    action-class: connected
+    consequence: read
+    subject: optional
     token:
-      max-ttl: 900
-    escalation:
-      human-in-the-loop: conditional
-      triggers:
-      - abnormal
-      - high-value
-    audit: required
+      max-ttl: 3600
+    audit: none
 - path: /api/contacts/verify-email
   method: post
   operationId: initiateContactVerification
@@ -311,48 +385,6 @@ operations:
       - abnormal
       - high-value
     audit: required
-- path: /api/knowledge/create
-  method: post
-  operationId: createKnowledgeDoc
-  x-agentic-access:
-    action-class: acting
-    consequence: write
-    subject: required
-    audience: null
-    token:
-      max-ttl: 900
-    escalation:
-      human-in-the-loop: conditional
-      triggers:
-      - abnormal
-      - high-value
-    audit: required
-- path: /api/knowledge/{id}
-  method: get
-  operationId: getKnowledgeDoc
-  x-agentic-access:
-    action-class: connected
-    consequence: read
-    subject: optional
-    token:
-      max-ttl: 3600
-    audit: none
-- path: /api/knowledge/{id}
-  method: put
-  operationId: updateKnowledgeDoc
-  x-agentic-access:
-    action-class: acting
-    consequence: write
-    subject: required
-    audience: null
-    token:
-      max-ttl: 900
-    escalation:
-      human-in-the-loop: conditional
-      triggers:
-      - abnormal
-      - high-value
-    audit: required
 - path: /api/email/create-draft
   method: post
   operationId: createEmailDraft
@@ -387,9 +419,9 @@ operations:
       - abnormal
       - high-value
     audit: required
-- path: /api/app/verify
+- path: /api/files/upload-url
   method: post
-  operationId: verifyDelegateToken
+  operationId: getFileUploadUrl
   x-agentic-access:
     action-class: acting
     consequence: write
@@ -403,129 +435,9 @@ operations:
       - abnormal
       - high-value
     audit: required
-- path: /api/app/me
-  method: get
-  operationId: getMe
-  x-agentic-access:
-    action-class: connected
-    consequence: read
-    subject: optional
-    token:
-      max-ttl: 3600
-    audit: none
-- path: /api/board/{boardId}/configuration
-  method: get
-  operationId: getBoardConfiguration
-  x-agentic-access:
-    action-class: connected
-    consequence: read
-    subject: optional
-    token:
-      max-ttl: 3600
-    audit: none
-- path: /api/board/{boardId}/configuration/automations
-  method: get
-  operationId: listAutomations
-  x-agentic-access:
-    action-class: connected
-    consequence: read
-    subject: optional
-    token:
-      max-ttl: 3600
-    audit: none
-- path: /api/board/{boardId}/configuration/options
-  method: get
-  operationId: getBoardOptions
-  x-agentic-access:
-    action-class: connected
-    consequence: read
-    subject: optional
-    token:
-      max-ttl: 3600
-    audit: none
-- path: /api/board/{boardId}/configuration/fields
-  method: get
-  operationId: listBoardFields
-  x-agentic-access:
-    action-class: connected
-    consequence: read
-    subject: optional
-    token:
-      max-ttl: 3600
-    audit: none
-- path: /api/board/{boardId}/configuration/workflows
-  method: get
-  operationId: listWorkflows
-  x-agentic-access:
-    action-class: connected
-    consequence: read
-    subject: optional
-    token:
-      max-ttl: 3600
-    audit: none
-- path: /api/board/{boardId}/configuration/groups
-  method: get
-  operationId: listGroups
-  x-agentic-access:
-    action-class: connected
-    consequence: read
-    subject: optional
-    token:
-      max-ttl: 3600
-    audit: none
-- path: /api/board/{boardId}/configuration/shares
-  method: get
-  operationId: getBoardShares
-  x-agentic-access:
-    action-class: connected
-    consequence: read
-    subject: optional
-    token:
-      max-ttl: 3600
-    audit: none
-- path: /api/board/{boardId}/configuration/theme
-  method: get
-  operationId: getBoardTheme
-  x-agentic-access:
-    action-class: connected
-    consequence: read
-    subject: optional
-    token:
-      max-ttl: 3600
-    audit: none
-- path: /api/board/{boardId}/configuration/filters
-  method: get
-  operationId: getBoardFilters
-  x-agentic-access:
-    action-class: connected
-    consequence: read
-    subject: optional
-    token:
-      max-ttl: 3600
-    audit: none
-- path: /api/templates
-  method: get
-  operationId: listTemplates
-  x-agentic-access:
-    action-class: connected
-    consequence: read
-    subject: optional
-    token:
-      max-ttl: 3600
-    audit: none
-- path: /api/templates/{id}
-  method: get
-  operationId: getTemplate
-  x-agentic-access:
-    action-class: connected
-    consequence: read
-    subject: optional
-    token:
-      max-ttl: 3600
-    audit: none
-- path: /api/tasks/search
+- path: /api/files/upload-complete
   method: post
-  operationId: searchTasks
+  operationId: completeFileUpload
   x-agentic-access:
     action-class: acting
     consequence: write
@@ -539,9 +451,19 @@ operations:
       - abnormal
       - high-value
     audit: required
-- path: /api/tasks
+- path: /api/inboxes/{channelId}/drafts
+  method: get
+  operationId: listInboxDrafts
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /api/knowledge/create
   method: post
-  operationId: createTask
+  operationId: createKnowledgeDoc
   x-agentic-access:
     action-class: acting
     consequence: write
@@ -555,9 +477,9 @@ operations:
       - abnormal
       - high-value
     audit: required
-- path: /api/tasks/{taskId}
+- path: /api/knowledge/{id}
   method: get
-  operationId: getTask
+  operationId: getKnowledgeDoc
   x-agentic-access:
     action-class: connected
     consequence: read
@@ -565,9 +487,9 @@ operations:
     token:
       max-ttl: 3600
     audit: none
-- path: /api/tasks/{taskId}
+- path: /api/knowledge/{id}
   method: put
-  operationId: updateTask
+  operationId: updateKnowledgeDoc
   x-agentic-access:
     action-class: acting
     consequence: write
@@ -639,9 +561,29 @@ operations:
       - abnormal
       - high-value
     audit: required
-- path: /api/files/upload-url
+- path: /api/schema/{boardId}
+  method: get
+  operationId: getSchema
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /api/tasks/search
   method: post
-  operationId: getFileUploadUrl
+  operationId: searchTasks
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /api/tasks
+  method: post
+  operationId: createTask
   x-agentic-access:
     action-class: acting
     consequence: write
@@ -655,9 +597,19 @@ operations:
       - abnormal
       - high-value
     audit: required
-- path: /api/files/upload-complete
-  method: post
-  operationId: completeFileUpload
+- path: /api/tasks/{taskId}
+  method: get
+  operationId: getTask
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /api/tasks/{taskId}
+  method: put
+  operationId: updateTask
   x-agentic-access:
     action-class: acting
     consequence: write
@@ -671,3 +623,43 @@ operations:
       - abnormal
       - high-value
     audit: required
+- path: /api/templates
+  method: get
+  operationId: listTemplates
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /api/templates/{id}
+  method: get
+  operationId: getTemplate
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /api/users
+  method: get
+  operationId: listUsers
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /api/users/{userId}/inboxes
+  method: get
+  operationId: listUserInboxes
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
