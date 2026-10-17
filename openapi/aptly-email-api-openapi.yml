@@ -365,6 +365,13 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
     EmailRecipient:
       type: object
       required:
@@ -376,13 +383,6 @@ components:
         label:
           type: string
           description: Optional display name for the recipient.
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-        message:
-          type: string
   securitySchemes:
     ApiKeyHeader:
       type: apiKey

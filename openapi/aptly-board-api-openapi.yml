@@ -627,43 +627,6 @@ components:
           type: string
         type:
           type: string
-    Automation:
-      type: object
-      properties:
-        uuid:
-          type: string
-          description: Unique identifier for the automation.
-        title:
-          type: string
-          description: Display name of the automation.
-        automationType:
-          type: string
-          enum:
-          - board
-          - schedule
-          description: '`board` automations move/copy cards based on board events; `schedule` automations run on a time-based schedule.'
-        archived:
-          type: boolean
-        destinationBoardUuid:
-          type: string
-          description: UUID of the destination board. Defaults to the current board.
-        sourceBoardUuid:
-          type: string
-          description: (board type only) UUID of the source board.
-        runMode:
-          type: string
-          description: 'Board type: `continuously`, `onDate`, `onMonth`, `dateRange`, `onDayOfWeek`. Schedule type: `onDayOfWeek`, `onDate`, `onDayOfYear`.'
-        segment:
-          description: (board type only) Card segment/stage filter.
-        moveMode:
-          type: string
-          enum:
-          - Copy
-          - Move
-          description: (board type only) Whether to copy or move matching cards.
-        timeOfDay:
-          type: number
-          description: (schedule type only) Hour of the day to run (0–23).
     BoardOptions:
       type: object
       description: Configurable board-level settings. All fields are optional — only include the ones you want to change on PATCH.
@@ -718,6 +681,43 @@ components:
         archived:
           type: boolean
           description: Whether the field has been archived (hidden from the UI).
+    Automation:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: Unique identifier for the automation.
+        title:
+          type: string
+          description: Display name of the automation.
+        automationType:
+          type: string
+          enum:
+          - board
+          - schedule
+          description: '`board` automations move/copy cards based on board events; `schedule` automations run on a time-based schedule.'
+        archived:
+          type: boolean
+        destinationBoardUuid:
+          type: string
+          description: UUID of the destination board. Defaults to the current board.
+        sourceBoardUuid:
+          type: string
+          description: (board type only) UUID of the source board.
+        runMode:
+          type: string
+          description: 'Board type: `continuously`, `onDate`, `onMonth`, `dateRange`, `onDayOfWeek`. Schedule type: `onDayOfWeek`, `onDate`, `onDayOfYear`.'
+        segment:
+          description: (board type only) Card segment/stage filter.
+        moveMode:
+          type: string
+          enum:
+          - Copy
+          - Move
+          description: (board type only) Whether to copy or move matching cards.
+        timeOfDay:
+          type: number
+          description: (schedule type only) Hour of the day to run (0–23).
   securitySchemes:
     ApiKeyHeader:
       type: apiKey

@@ -369,13 +369,16 @@ paths:
           description: Task not found.
 components:
   schemas:
-    Error:
+    TaskDateRange:
       type: object
+      description: Date-range filter. Either bound may be supplied independently — `startDate` maps to `$gte`, `endDate` to `$lte`.
       properties:
-        error:
+        startDate:
           type: string
-        message:
+          format: date-time
+        endDate:
           type: string
+          format: date-time
     Task:
       type: object
       properties:
@@ -437,16 +440,13 @@ components:
             fullName:
               type: string
       additionalProperties: true
-    TaskDateRange:
+    Error:
       type: object
-      description: Date-range filter. Either bound may be supplied independently — `startDate` maps to `$gte`, `endDate` to `$lte`.
       properties:
-        startDate:
+        error:
           type: string
-          format: date-time
-        endDate:
+        message:
           type: string
-          format: date-time
   securitySchemes:
     ApiKeyHeader:
       type: apiKey
