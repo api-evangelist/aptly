@@ -1,0 +1,275 @@
+openapi: 3.2.0
+info:
+  title: Aptly Tours API
+  version: '1.1'
+  description: 'The Aptly API lets external systems work with boards, contacts, inboxes,
+
+    tasks, files, and other Aptly resources.
+
+
+    Most endpoints accept an API key in the `x-token` header. Some endpoints
+
+    also accept a delegate token or partner bearer token, as shown in each
+
+    operation''s security requirements, and explicitly public endpoints require
+
+    no credential. API keys are scoped to a company and may be restricted to
+
+    specific boards and read, insert, or update permissions; requests outside
+
+    those restrictions receive a 403 `FORBIDDEN` response.'
+servers:
+- url: https://core-api.getaptly.com
+  description: Production
+security:
+- ApiKeyHeader: []
+tags:
+- name: Tours
+paths:
+  /api/tours/feedback:
+    get:
+      summary: List tour feedback
+      description: 'Returns post-tour feedback surveys for the company, newest first.
+
+
+        A survey is created when a tour showing is approved on a board with tour
+
+        feedback enabled, and the applicant answers it through an emailed link.
+
+
+        Accepts an API key (`x-token`), delegate token (`Authorization: DelegateToken `
+
+        with the `tours` scope), or partner token (`Authorization: Bearer ` with
+
+        `boards` permission). When using a partner token, pass `companyId` as a query parameter.'
+      operationId: listTourFeedback
+      tags:
+      - Tours
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: companyId
+        in: query
+        schema:
+          type: string
+        description: Company ID. Required when using a partner token; resolved automatically for API key and delegate token auth.
+      - name: instanceId
+        in: query
+        schema:
+          type: string
+        description: Only surveys for this location/unit card.
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - completed
+          - pending
+          - all
+          default: completed
+        description: Whether to return answered surveys, surveys still awaiting an answer, or both.
+      - name: startDate
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: Only surveys completed on or after this ISO date.
+      - name: endDate
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: Only surveys completed on or before this ISO date.
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 50
+          maximum: 200
+        description: Page size. Values above 200 are clamped.
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          default: 0
+      responses:
+        '200':
+          description: A page of tour feedback.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TourFeedback'
+                  total:
+                    type: integer
+                    description: Total matching surveys, ignoring limit/offset.
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+        '400':
+          description: Missing companyId, or an invalid status, date, limit or offset.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing credential.
+  /api/tours/{showingId}/feedback:
+    get:
+      summary: Get one showing's tour feedback
+      description: 'Returns the tour feedback survey for a single showing.
+
+
+        A showing that belongs to another company reads as not found.'
+      operationId: getTourFeedback
+      tags:
+      - Tours
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: showingId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Showing (portal application) ID.
+      - name: companyId
+        in: query
+        schema:
+          type: string
+        description: Company ID. Required when using a partner token; resolved automatically for API key and delegate token auth.
+      responses:
+        '200':
+          description: The tour feedback survey.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TourFeedback'
+        '400':
+          description: Missing companyId.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing credential.
+        '404':
+          description: No survey found for this showing in this company.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+    TourFeedback:
+      type: object
+      description: One tour showing's post-tour feedback survey.
+      properties:
+        showingId:
+          type: string
+          description: Showing (portal application) ID.
+        status:
+          type: string
+          enum:
+          - completed
+          - pending
+          description: '`completed` once the applicant answered; `pending` while the survey is still out.'
+        sentAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the survey was emailed to the applicant.
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the applicant submitted their answers.
+        tourDate:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        instanceId:
+          type:
+          - string
+          - 'null'
+          description: The location/unit card the tour was for.
+        propertyName:
+          type:
+          - string
+          - 'null'
+          description: Name of that location card.
+        applicant:
+          type: object
+          properties:
+            firstName:
+              type:
+              - string
+              - 'null'
+            lastName:
+              type:
+              - string
+              - 'null'
+            email:
+              type:
+              - string
+              - 'null'
+        responses:
+          type: array
+          items:
+            type: object
+            properties:
+              question:
+                type:
+                - string
+                - 'null'
+                description: The question text as it was shown to the applicant.
+              answer:
+                type:
+                - string
+                - 'null'
+                description: The raw answer. Rating questions answer "1"-"5"; text questions answer free text.
+              rating:
+                type:
+                - integer
+                - 'null'
+                minimum: 1
+                maximum: 5
+                description: The answer as a number when it is a 1-5 rating, otherwise null.
+        averageRating:
+          type:
+          - number
+          - 'null'
+          description: Mean of this survey's numeric ratings, or null when nothing was rated.
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-token
+    DelegateToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Delegate token issued by the platform. Format: `DelegateToken <token>`'
+    PartnerBearer:
+      type: http
+      scheme: bearer
+      description: 'Partner token. Format: `Authorization: Bearer <token>`'

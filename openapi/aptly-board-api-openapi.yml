@@ -1,13 +1,23 @@
 openapi: 3.2.0
 info:
   title: Aptly Board API
-  version: '1.0'
-  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+  version: '1.1'
+  description: 'The Aptly API lets external systems work with boards, contacts, inboxes,
+
+    tasks, files, and other Aptly resources.
 
 
-    All requests require an API key passed as the `x-token` header.
+    Most endpoints accept an API key in the `x-token` header. Some endpoints
 
-    API keys are scoped to your company and work across all boards.'
+    also accept a delegate token or partner bearer token, as shown in each
+
+    operation''s security requirements, and explicitly public endpoints require
+
+    no credential. API keys are scoped to a company and may be restricted to
+
+    specific boards and read, insert, or update permissions; requests outside
+
+    those restrictions receive a 403 `FORBIDDEN` response.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production
@@ -16,6 +26,102 @@ security:
 tags:
 - name: Board
 paths:
+  /api/board/{boardId}:
+    delete:
+      summary: Archive a board
+      description: 'Archives the board, as the Archive action in the Aptly app does: the board, all of its cards,
+
+        its saved filters and its communication templates are archived, and the cards'' open tasks are
+
+        closed out. Nothing is hard-deleted, but there is no API to un-archive, and an archived board
+
+        stops resolving through the API (404). Requires `update` permission and the key''s "Edit
+
+        Boards" access.'
+      operationId: archiveBoard
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - PartnerBearer: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Board archived.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                      archived:
+                        type: boolean
+                      cardsArchived:
+                        type: integer
+                        description: Cards archived by this call (cards that were already archived aren't counted).
+        '401':
+          description: Invalid or missing API key.
+        '403':
+          description: The key lacks `update` permission or "Edit Boards" access, or the board isn't API-enabled.
+        '404':
+          description: Board not found (or already archived).
+  /api/board/{boardId}/merge-fields:
+    get:
+      summary: List merge fields for a board
+      description: 'Returns the merge-field catalog the template editors offer for this board, grouped
+
+        as the Meteor `useMergeFields` hook groups it: `recipient`, `board`, `sender`,
+
+        `showing`, `lease`, `application`, `general`, `company` (the hook''s `system` and
+
+        `companyFields` groups are named `general` and `company` here, and its per-board
+
+        `locations`/`aptlets` groups are one flat `board` list, since the path already
+
+        names the board).
+
+
+        `recipient` is the contact field list plus the company''s Person custom fields;
+
+        `board` is the board''s mergeable fields plus the image-embed, card-detail,
+
+        contact-table and card-link entries.'
+      operationId: listBoardMergeFields
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The board's UUID.
+      responses:
+        '200':
+          description: The merge-field catalog for this board.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/MergeFieldCatalog'
+        '401':
+          description: Invalid or missing credential.
+        '404':
+          description: Board not found.
   /api/board/{boardId}/configuration/tabViews:
     post:
       summary: Add a tab view
@@ -205,6 +311,108 @@ paths:
           description: token field is missing.
         '401':
           description: Invalid or missing API key, or delegate token is invalid/expired/wrong company.
+  /api/board/{boardId}/webhook:
+    post:
+      summary: Set or update the board's webhook
+      description: 'Sets the board''s webhook URL. Calling this again re-points an existing webhook (an
+
+        update) rather than creating a second one — a board has at most one webhook.
+
+
+        A new `webhookSigningKey` is generated every time this is called, including on
+
+        update, so re-pointing a webhook also rotates its signing key.'
+      operationId: setBoardWebhook
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - webhookUrl
+              properties:
+                webhookUrl:
+                  type: string
+                  description: Must be a valid http or https URL.
+      responses:
+        '201':
+          description: Webhook set.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      webhookUrl:
+                        type: string
+                      webhookSigningKey:
+                        type: string
+                        description: Shared secret used to sign the webhook payload.
+        '400':
+          description: Missing or invalid `webhookUrl`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing API key.
+        '403':
+          description: API access is disabled for this board, or the key lacks insert/update permission.
+        '404':
+          description: Board not found.
+    delete:
+      summary: Remove the board's webhook
+      description: 'Removes the board''s webhook, if one is set. Idempotent — calling this when no
+
+        webhook is configured still returns 200.'
+      operationId: deleteBoardWebhook
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Webhook removed (or already absent).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      webhookUrl:
+                        type:
+                        - string
+                        - 'null'
+                        example: null
+        '401':
+          description: Invalid or missing API key.
+        '403':
+          description: API access is disabled for this board, or the key lacks update permission.
+        '404':
+          description: Board not found.
   /api/board/{boardId}/configuration:
     get:
       summary: Get full board configuration
@@ -241,8 +449,9 @@ paths:
                           $ref: '#/components/schemas/BoardField'
                       automations:
                         type: array
+                        description: The older create-card rules (same data as `GET .../configuration/card-rules`). Despite the name these are not Automations - those are in `workflows` below, kept under this key for backwards compatibility.
                         items:
-                          $ref: '#/components/schemas/Automation'
+                          $ref: '#/components/schemas/CardRule'
                       options:
                         $ref: '#/components/schemas/BoardOptions'
                       tabViews:
@@ -251,7 +460,7 @@ paths:
                           $ref: '#/components/schemas/TabView'
                       workflows:
                         type: array
-                        description: Board workflows (sequences).
+                        description: The board's Automations (same data as `GET .../configuration/automations`). Called workflows here for backwards compatibility.
                         items:
                           type: object
                       groups:
@@ -299,9 +508,164 @@ paths:
         '404':
           description: Board not found.
   /api/board/{boardId}/configuration/automations:
+    post:
+      summary: Create an automation
+      description: 'Creates an Automation on the board (the board''s `workflows`). Requires `update` permission and
+
+        the key''s "Automations" access (a separate toggle on the key, off by default, independent of
+
+        "Edit Boards"); a key''s board allowlist applies.
+
+
+        **Always created paused.** Nothing runs until the automation is switched on in the Aptly app,
+
+        so the API can''t set one live. Existing cards are not enrolled: once it is switched on a stage
+
+        automation applies to cards that enter the stage afterwards.
+
+
+        **Validated strictly - the request is refused outright on the first problem.** Unknown
+
+        properties, a stage / field / template / inbox / contact type / user / team that doesn''t exist
+
+        (or is archived) on this board or organization, an email template used for an SMS (or the
+
+        reverse), an inbox of the wrong type or with no users, conditions that are empty, on a missing
+
+        field, with an unsupported operator or a bad value, a delay with business hours, or a task or
+
+        due-date action with business days, when none are configured, a webhook to anything but a public https address, and a pair of stage-moving
+
+        automations that would send cards round in a circle are all rejected with `400`. Shape problems
+
+        come back as `VALIDATION_ERROR` with the offending path in `meta.issues`; problems found by
+
+        checking against your data come back as `INVALID_DATA` with a message that names the path
+
+        (for example `actions[1].templateId: template "abc" was not found`).
+
+
+        Supported triggers: `stage`, `segment` (conditions), `reply`. Supported actions: `email`, `sms`,
+
+        `task`, `assign`, `update_fields`, `stage`, `due_date`, `notify`, `archive`, `archive_convos`,
+
+        `webhook`. Task-completion and field-group triggers and the Yardi, e-sign, PDF, team-access and
+
+        related-card actions aren''t available through the API.
+
+
+        The response is the stored automation (the same shape `GET .../automations` returns).'
+      operationId: createAutomation
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - PartnerBearer: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The board's UUID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAutomationRequest'
+            examples:
+              emailAfterStage:
+                summary: Email the contact two days after a stage change
+                value:
+                  title: Tour follow-up
+                  trigger:
+                    type: stage
+                    stage: Tour Scheduled
+                  timing:
+                    mode: after
+                    amount: 2
+                    unit: days
+                    timeOfDay: 9
+                  actions:
+                  - type: email
+                    inbox: assignee
+                    templateId: 5kQx2mP9
+                    to:
+                      type: relatedContacts
+              staleLeads:
+                summary: Nudge stale leads on Mondays and Wednesdays
+                value:
+                  title: Nudge stale leads
+                  trigger:
+                    type: segment
+                    conditions:
+                    - fieldUuid: stage
+                      operator: anyIn
+                      value:
+                      - New Lead
+                      - Contacted
+                  timing:
+                    mode: daysOfWeek
+                    days:
+                    - 1
+                    - 3
+                    timeOfDay: 8
+                  actions:
+                  - type: update_fields
+                    fields:
+                    - fieldUuid: status
+                      value: Needs Follow Up
+                  - type: notify
+                    teamIds:
+                    - 7Hq3dZ
+                    message: Stale lead
+      responses:
+        '201':
+          description: The created automation (paused).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    description: 'The stored automation. `archived: true` means paused.'
+                    properties:
+                      uuid:
+                        type: string
+                      title:
+                        type: string
+                      archived:
+                        type: boolean
+                        example: true
+                      triggerOn:
+                        type: string
+                      timingMode:
+                        type: string
+                      description:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+        '400':
+          description: '`VALIDATION_ERROR` (shape) or `INVALID_DATA` (a reference or rule that doesn''t hold).'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Invalid or missing API key.
+        '403':
+          description: The key lacks `update` permission or the "Automations" access, or the board isn't API-enabled.
+        '404':
+          description: Board not found.
     get:
       summary: List board automations
-      description: Returns the automations configured on a board.
+      description: 'Returns the automations configured on a board (the board''s `workflows` in the data model).
+
+        The older create-card rules that move or copy cards are listed at `.../configuration/card-rules`.'
       operationId: listAutomations
       tags:
       - Board
@@ -326,7 +690,40 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Automation'
+                      type: object
+        '401':
+          description: Invalid or missing API key.
+        '404':
+          description: Board not found.
+  /api/board/{boardId}/configuration/card-rules:
+    get:
+      summary: List create-card rules
+      description: Returns the older create-card rules on a board (`board` and `schedule` rules that move or copy cards). These are not Automations - see `.../configuration/automations`.
+      operationId: listCardRules
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - PartnerBearer: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The board's UUID.
+      responses:
+        '200':
+          description: Array of create-card rules.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CardRule'
         '401':
           description: Invalid or missing API key.
         '404':
@@ -393,11 +790,20 @@ paths:
           description: Invalid or missing API key.
         '404':
           description: Board not found.
-  /api/board/{boardId}/configuration/workflows:
-    get:
-      summary: List board workflows
-      description: Returns the workflows (sequences) configured on a board.
-      operationId: listWorkflows
+    post:
+      summary: Add a field
+      description: 'Adds a custom field to the board. Requires `update` permission and the key''s "Edit Boards"
+
+        access (off by default; not needed on a board that same key created); a key''s board allowlist
+
+        still applies, except for a board that key created. Accepts the same field shape
+
+        and allowed field types as `POST /api/boards` (relational and system types are rejected;
+
+        use `POST /api/board/{boardId}/configuration/mirror-fields` for a mirror field);
+
+        `uuid` must not be reserved or already used on the board.'
+      operationId: addBoardField
       tags:
       - Board
       security:
@@ -409,23 +815,338 @@ paths:
         required: true
         schema:
           type: string
-        description: The board's UUID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              - type
+              properties:
+                name:
+                  type: string
+                type:
+                  $ref: '#/components/schemas/NewBoardFieldType'
+                uuid:
+                  type: string
+                  description: Optional key; must match `^[a-zA-Z][a-zA-Z0-9_]{0,63}$`. Generated when omitted.
+                optional:
+                  type: boolean
+                pinned:
+                  type: boolean
+                defaultValue:
+                  type: string
+                data:
+                  type: array
+                  description: Required (non-empty) for `singleselect` and `multiselect`.
+                  items:
+                    type: object
+                    required:
+                    - label
+                    properties:
+                      label:
+                        type: string
+                      uuid:
+                        type: string
+            example:
+              name: Priority
+              type: singleselect
+              data:
+              - label: Low
+              - label: High
       responses:
-        '200':
-          description: Array of workflows.
+        '201':
+          description: The created field.
           content:
             application/json:
               schema:
                 type: object
                 properties:
                   data:
-                    type: array
-                    items:
-                      type: object
+                    $ref: '#/components/schemas/BoardField'
+        '400':
+          description: '`VALIDATION_ERROR` (per-field `meta.issues`) or a rule violation.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
         '401':
           description: Invalid or missing API key.
+        '403':
+          description: The key lacks `update` permission or the "Edit Boards" access, the board isn't API-enabled, or the field can't be changed (locked, standard, mirror or integration-managed).
         '404':
-          description: Board not found.
+          description: Board (or field) not found.
+  /api/board/{boardId}/configuration/mirror-fields:
+    post:
+      summary: Add a mirror field
+      description: 'Adds a field to the board that mirrors a field of another board. The new field takes the
+
+        target field''s type (and, for select types, a copy of its option list), is named
+
+        `Mirror ` unless you supply `name`, and is read-only unless you set
+
+        `readOnly: false`.
+
+
+        This only adds the field - the same as the Aptly app. A card shows a mirrored value once
+
+        it is linked to a card on the target board (for example through a related-cards field) and
+
+        is next saved; existing cards are not backfilled when the field is added.
+
+
+        Requires `update` permission and the key''s "Edit Boards" access (off by default). A key''s
+
+        board allowlist applies to **both** boards: the target board must be one the key can access
+
+        and must be API-enabled. The target field must be one of `string`, `text`, `rich-text`,
+
+        `address`, `email`, `url`, `datetime-local`, `date`, `number`, `percent`, `stageselect`,
+
+        `singleselect`, `multiselect`, `tags`, `boolean`, `person`, `persons`, `relatedAptlets`,
+
+        `files`, `file`, `money`, `user` or `lockAlias`, and can''t itself be a mirror field. Mirroring
+
+        the same target field twice on one board returns `409`.'
+      operationId: addBoardMirrorField
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - PartnerBearer: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        description: The board that gets the mirror field.
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - targetBoardUuid
+              - targetFieldUuid
+              properties:
+                targetBoardUuid:
+                  type: string
+                  description: The uuid of the board to mirror a field from.
+                targetFieldUuid:
+                  type: string
+                  description: The uuid of the field on that board to mirror.
+                name:
+                  type: string
+                  description: Display name for the new field. Defaults to `Mirror <target field name>`.
+                readOnly:
+                  type: boolean
+                  description: Whether users may edit the mirrored value on this board. Defaults to `true`.
+            example:
+              targetBoardUuid: deals
+              targetFieldUuid: rent
+              name: Deal rent
+      responses:
+        '201':
+          description: The created field.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BoardField'
+              example:
+                data:
+                  uuid: Qk3x9TnWc2LmPa8vR
+                  name: Deal rent
+                  type: money
+                  optional: true
+                  pinned: false
+                  position: 12
+                  readOnly: true
+                  metricField: false
+                  mirrorTarget:
+                    targetAptletUuid: deals
+                    targetFieldUuid: rent
+        '400':
+          description: '`VALIDATION_ERROR` (per-field `meta.issues`), or the target field''s type can''t be mirrored, or the target field is itself a mirror field.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Invalid or missing API key.
+        '403':
+          description: The key lacks `update` permission or the "Edit Boards" access, either board is outside the key's board allowlist, or the board or target board isn't API-enabled.
+        '404':
+          description: The board, the target board or the target field was not found.
+        '409':
+          description: The board already mirrors that target field. `meta.fieldUuid` is the existing mirror field.
+  /api/board/{boardId}/configuration/fields/{fieldUuid}:
+    put:
+      summary: Update a field
+      description: 'Updates a field''s `name`, `optional`, `pinned`, `defaultValue` and - for select-type fields -
+
+        its full `data` option list. A field''s `type` and `uuid` never change. Options re-sent by label
+
+        keep their uuid. Refused (403) for locked fields and the options of integration-managed
+
+        fields. Requires `update` permission and "Edit Boards" access (not needed on a board that
+
+        same key created).
+
+
+        **Editing the stage pipeline** (`fieldUuid` = `stage`): send the full `data` list in the order
+
+        you want. You can add stages, reorder them and recolor them. Existing stages are matched by
+
+        `uuid` (or by `label` when you leave `uuid` out) and keep their `uuid`. A stage that isn''t
+
+        matched is added: it gets a new `uuid` and may set `color`, `closed` and `won` (`won` is for
+
+        deal boards only and implies `closed`). Cards, automations and saved filters refer to stages
+
+        by name, so these are refused with 403: leaving an existing stage out (removing it), changing
+
+        an existing stage''s `label` (renaming it) and changing an existing stage between open,
+
+        closed and won. The first stage is where new cards start, so whichever stage ends up first
+
+        must be open (unless it was already first). Labels must be unique and there can be at most 30
+
+        stages. Board views that are open in the Aptly app refresh to show the change.'
+      operationId: updateBoardField
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - PartnerBearer: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fieldUuid
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                optional:
+                  type: boolean
+                pinned:
+                  type: boolean
+                defaultValue:
+                  type: string
+                data:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                    - label
+                    properties:
+                      label:
+                        type: string
+                      uuid:
+                        type: string
+                      color:
+                        type: string
+                        example: '#1ec968'
+                        description: Stage field only. Hex color.
+                      closed:
+                        type: boolean
+                        description: Stage field only. For an existing stage it must match the stage as it is; for a new stage it makes it a closed stage.
+                      won:
+                        type: boolean
+                        description: Stage field only. For an existing stage it must match the stage as it is; for a new stage on a deal board it makes it a won stage.
+      responses:
+        '200':
+          description: The updated field.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BoardField'
+        '400':
+          description: '`VALIDATION_ERROR` (per-field `meta.issues`) or a rule violation.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Invalid or missing API key.
+        '403':
+          description: The key lacks `update` permission or the "Edit Boards" access, the board isn't API-enabled, or the field can't be changed (locked, standard, mirror or integration-managed).
+        '404':
+          description: Board (or field) not found.
+    delete:
+      summary: Delete a field
+      description: 'Removes a field from the board (card values already stored for it are left in place). Refused
+
+        for standard fields (`name`, `stage`, `description`, `tags`, `checklist`, `files`,
+
+        `lastAction`, `dueAt`, `relatedContacts`), locked, mirror and integration-managed fields (403),
+
+        and - as in the Aptly app - for a field used by a saved filter, or by a workflow or automation
+
+        that runs off one (409 `CONFLICT`, with the dependents in `meta`). Requires `update` permission
+
+        and "Edit Boards" access (not needed on a board that same key created).'
+      operationId: deleteBoardField
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - PartnerBearer: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fieldUuid
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Field deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                      deleted:
+                        type: boolean
+        '401':
+          description: Invalid or missing API key.
+        '403':
+          description: Missing permission or "Edit Boards" access, or the field can't be deleted.
+        '404':
+          description: Board or field not found.
+        '409':
+          description: The field is used by saved filters, workflows or automations.
   /api/board/{boardId}/configuration/groups:
     get:
       summary: List board field groups
@@ -554,17 +1275,16 @@ paths:
           description: Invalid or missing API key.
         '404':
           description: Board not found.
-  /api/board/{boardId}/configuration/filters:
-    get:
-      summary: List board filters
-      description: 'Returns saved filters for this board visible to the caller.
+    patch:
+      summary: Update board identity fields
+      description: 'Updates any of the board''s `name`, `cardName`, `color`, `icon`, `description` and `shortCode`;
 
-        Company-scoped filters are always included; user-scoped (private) filters
+        at least one is required. `color` must be a hex color, `icon` a Font Awesome class string, and
 
-        are included when authenticating with a delegate token that has a `userId`.
+        `shortCode` 1-5 letters or numbers (stored uppercase). Requires `update` permission and the
 
-        Quick-view filters are excluded.'
-      operationId: getBoardFilters
+        key''s "Edit Boards" access (not needed on a board that same key created).'
+      operationId: updateBoardTheme
       tags:
       - Board
       security:
@@ -576,6 +1296,103 @@ paths:
         required: true
         schema:
           type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                cardName:
+                  type: string
+                color:
+                  type: string
+                  example: '#1ec968'
+                icon:
+                  type: string
+                  example: fas fa-wrench
+                description:
+                  type: string
+                shortCode:
+                  type: string
+      responses:
+        '200':
+          description: The board's identity fields after the update.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      cardName:
+                        type: string
+                      color:
+                        type: string
+                      icon:
+                        type: string
+                      description:
+                        type: string
+                      shortCode:
+                        type: string
+        '400':
+          description: '`VALIDATION_ERROR` (per-field `meta.issues`) or a rule violation.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Invalid or missing API key.
+        '403':
+          description: The key lacks `update` permission or the "Edit Boards" access, the board isn't API-enabled, or the field can't be changed (locked, standard, mirror or integration-managed).
+        '404':
+          description: Board (or field) not found.
+  /api/board/{boardId}/configuration/filters:
+    get:
+      summary: List board filters
+      description: 'Read-only saved segments for this board. Public means company-shared; private means owned by the resolved user. Default visibility=all returns public plus that user’s private segments, never other users’ private segments. Archived segments and quick views are excluded. Results include the original rules and a public/private visibility. Name matching is a case-insensitive literal substring.
+
+
+        Supports API keys, delegate read tokens, and partner bearer tokens with board-admin; mobile auth is not accepted. API keys/partners may provide userId (or x-user-id) for an active member of the board’s company. Delegates use their token user and cannot select someone else. Without a userId only public segments are returned; visibility=private requires a userId. Keys/delegates require API-enabled boards. Partner tokens retain the existing API-enabled bypass.'
+      operationId: getBoardFilters
+      tags:
+      - Board
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: name
+        in: query
+        schema:
+          type: string
+          maxLength: 200
+        description: Case-insensitive literal substring of segment name.
+      - name: visibility
+        in: query
+        schema:
+          type: string
+          enum:
+          - public
+          - private
+          - all
+          default: all
+      - name: userId
+        schema:
+          type: string
+          maxLength: 256
+        description: Active company member whose private segments/currentUser values to use. API keys/partners may select a member; delegates cannot select another user.
+        in: query
       responses:
         '200':
           description: List of filters.
@@ -603,30 +1420,934 @@ paths:
                         rules:
                           type: array
                           items:
-                            type: object
+                            $ref: '#/components/schemas/BoardFilterRule'
                         archived:
                           type: boolean
+                        visibility:
+                          type: string
+                          enum:
+                          - public
+                          - private
+        '400':
+          description: Invalid rules, query parameters, or missing user context.
         '401':
           description: Invalid or missing API key.
+        '403':
+          description: Read access denied, API disabled, company mismatch, or invalid user selection.
         '404':
           description: Board not found.
 components:
   schemas:
-    TabView:
+    AutomationAction:
+      description: 'One thing the automation does. Actions run in order. At most one `stage`, one `due_date` and one
+
+        archive action per automation. Every id, stage and field named here must exist on the board /
+
+        organization or the whole request is rejected.
+
+        '
+      oneOf:
+      - type: object
+        additionalProperties: false
+        required:
+        - type
+        - inbox
+        - templateId
+        - to
+        description: Send an email.
+        properties:
+          type:
+            type: string
+            enum:
+            - email
+          inbox:
+            type: string
+            description: The sending inbox id, or "assignee" for the card assignee's inbox. Must be an active email inbox with users.
+          templateId:
+            type: string
+            description: An active email template of the organization.
+          to:
+            $ref: '#/components/schemas/AutomationRecipient'
+          cc:
+            type: array
+            maxItems: 10
+            default: []
+            items:
+              type: string
+              format: email
+          deliveryMode:
+            type: string
+            enum:
+            - multiple
+            - single
+            default: multiple
+            description: '`single` sends one email to all recipients; `multiple` sends each their own.'
+          fallback:
+            type: object
+            additionalProperties: false
+            required:
+            - inbox
+            - templateId
+            description: Send an SMS instead to recipients with no email address. Needs an active phone inbox and an SMS template.
+            properties:
+              inbox:
+                type: string
+              templateId:
+                type: string
+      - type: object
+        additionalProperties: false
+        required:
+        - type
+        - inbox
+        - templateId
+        - to
+        description: Send a text message.
+        properties:
+          type:
+            type: string
+            enum:
+            - sms
+          inbox:
+            type: string
+            description: The sending phone inbox id, or "assignee".
+          templateId:
+            type: string
+            description: An active SMS template of the organization.
+          to:
+            $ref: '#/components/schemas/AutomationRecipient'
+          fallback:
+            type: object
+            additionalProperties: false
+            required:
+            - inbox
+            - templateId
+            description: Send an email instead to recipients with no phone number.
+            properties:
+              inbox:
+                type: string
+              templateId:
+                type: string
+      - type: object
+        additionalProperties: false
+        required:
+        - type
+        - source
+        description: Create tasks on the card, from a task template or defined inline.
+        properties:
+          type:
+            type: string
+            enum:
+            - task
+          source:
+            type: string
+            enum:
+            - template
+            - manual
+          templateId:
+            type: string
+            description: Required for `template`. A task template of this board.
+          tasks:
+            type: array
+            minItems: 1
+            maxItems: 20
+            description: Required for `manual`.
+            items:
+              type: object
+              additionalProperties: false
+              required:
+              - title
+              properties:
+                title:
+                  type: string
+                  maxLength: 200
+                description:
+                  type: string
+                  maxLength: 2000
+                userId:
+                  type: string
+                  description: An active user of the organization. Defaults to the card assignee.
+                dueInDays:
+                  type: integer
+                  minimum: 0
+                  maximum: 365
+                dueFrom:
+                  type: string
+                  description: '"now" (default) or a date field uuid. Needs dueInDays.'
+          fieldUuid:
+            type: string
+            description: A task list (checkboxlist) field to put the tasks on. Defaults to the card's checklist.
+          useBusinessDays:
+            type: boolean
+            default: false
+            description: Count the tasks' due dates in business days. Rejected when no business hours are configured, because the due dates would fall on calendar days instead.
+      - type: object
+        additionalProperties: false
+        required:
+        - type
+        - mode
+        description: Assign the card.
+        properties:
+          type:
+            type: string
+            enum:
+            - assign
+          mode:
+            type: string
+            enum:
+            - user
+            - team
+            - roundRobin
+            - contactField
+          userId:
+            type: string
+            description: Required for `user`.
+          teamId:
+            type: string
+            description: Required for `team`. An active team.
+          contactFieldUuid:
+            type: string
+            description: Required for `contactField`. A contact or user field of the board.
+          onlyIfUnassigned:
+            type: boolean
+            default: false
+      - type: object
+        additionalProperties: false
+        required:
+        - type
+        - fields
+        description: 'Set field values. Supported field types and the value each takes: `string`/`text` (text),
+
+          `email`, `url` (http/https), `tel` (E.164), `number`, `percent` (a fraction, 0.25 = 25%),
+
+          `money` (`{ amount: whole cents, currency?: "USD" }`), `boolean`, `singleselect` (an option),
+
+          `multiselect` (array of options), `tags` (added to the existing tags), `user` (a user id), and
+
+          `date`/`datetime-local` (`{ from: "now" | <date field uuid>, days: integer }` or
+
+          `{ clear: true }`). Read-only and computed fields, and every other field type, are rejected.
+
+          '
+        properties:
+          type:
+            type: string
+            enum:
+            - update_fields
+          fields:
+            type: array
+            minItems: 1
+            maxItems: 20
+            description: Each field at most once.
+            items:
+              type: object
+              additionalProperties: false
+              required:
+              - fieldUuid
+              - value
+              properties:
+                fieldUuid:
+                  type: string
+                value: {}
+      - type: object
+        additionalProperties: false
+        required:
+        - type
+        - stage
+        description: Move the card to a stage of the board. Can't be the stage that triggered a stage automation.
+        properties:
+          type:
+            type: string
+            enum:
+            - stage
+          stage:
+            type: string
+      - type: object
+        additionalProperties: false
+        required:
+        - type
+        description: Set or clear the card's due date.
+        properties:
+          type:
+            type: string
+            enum:
+            - due_date
+          from:
+            type: string
+            default: now
+            description: '"now", "clear", or a date field uuid.'
+          days:
+            type: integer
+            minimum: -366
+            maximum: 1999
+            description: Required unless `from` is "clear".
+          useBusinessDays:
+            type: boolean
+            description: Count `days` in business days. Not valid when `from` is "clear". Rejected when no business hours are configured, because the due date would fall on calendar days instead.
+      - type: object
+        additionalProperties: false
+        required:
+        - type
+        description: Post a notification comment on the card. At least one of userIds, teamIds, fieldUuids or notifyCardCreator is required.
+        properties:
+          type:
+            type: string
+            enum:
+            - notify
+          userIds:
+            type: array
+            maxItems: 25
+            default: []
+            items:
+              type: string
+          teamIds:
+            type: array
+            maxItems: 25
+            default: []
+            items:
+              type: string
+          fieldUuids:
+            type: array
+            maxItems: 10
+            default: []
+            description: User fields of the board.
+            items:
+              type: string
+          notifyCardCreator:
+            type: boolean
+            default: false
+          message:
+            type: string
+            maxLength: 1000
+            description: Plain text (no < or >).
+      - type: object
+        additionalProperties: false
+        required:
+        - type
+        description: Archive the card.
+        properties:
+          type:
+            type: string
+            enum:
+            - archive
+      - type: object
+        additionalProperties: false
+        required:
+        - type
+        description: Archive the card and its conversations.
+        properties:
+          type:
+            type: string
+            enum:
+            - archive_convos
+      - type: object
+        additionalProperties: false
+        required:
+        - type
+        - url
+        description: POST the card to a URL. The URL must be a public https address - localhost, private/internal addresses, credentials and non-default ports are rejected.
+        properties:
+          type:
+            type: string
+            enum:
+            - webhook
+          url:
+            type: string
+            maxLength: 2000
+      discriminator:
+        propertyName: type
+    CardRule:
+      type: object
+      description: An older create-card rule (`board` or `schedule`) that moves or copies cards. Not an Automation.
+      properties:
+        uuid:
+          type: string
+          description: Unique identifier for the rule.
+        title:
+          type: string
+          description: Display name of the automation.
+        automationType:
+          type: string
+          enum:
+          - board
+          - schedule
+          description: '`board` automations move/copy cards based on board events; `schedule` automations run on a time-based schedule.'
+        archived:
+          type: boolean
+        destinationBoardUuid:
+          type: string
+          description: UUID of the destination board. Defaults to the current board.
+        sourceBoardUuid:
+          type: string
+          description: (board type only) UUID of the source board.
+        runMode:
+          type: string
+          description: 'Board type: `continuously`, `onDate`, `onMonth`, `dateRange`, `onDayOfWeek`. Schedule type: `onDayOfWeek`, `onDate`, `onDayOfYear`.'
+        segment:
+          description: (board type only) Card segment/stage filter.
+        moveMode:
+          type: string
+          enum:
+          - Copy
+          - Move
+          description: (board type only) Whether to copy or move matching cards.
+        timeOfDay:
+          type: number
+          description: (schedule type only) Hour of the day to run (0–23).
+    ValidationError:
+      type: object
+      description: 'Returned with HTTP 400 when the request body fails shape validation (wrong type,
+
+        missing required field, malformed email/phone number, value out of bounds).
+
+        `meta.issues` lists every offending field.
+
+        '
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+              - VALIDATION_ERROR
+            message:
+              type: string
+              example: One or more fields are invalid
+            meta:
+              type: object
+              properties:
+                issues:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                        description: Dotted path to the offending property (for example `to.0.value`); empty for a problem with the body as a whole.
+                        example: to.0.value
+                      code:
+                        type: string
+                        description: Machine-readable issue code (for example `invalid_type`, `invalid_format`, `too_small`).
+                        example: invalid_format
+                      message:
+                        type: string
+                        example: must be a valid email address
+        requestId:
+          type: string
+    BoardFilterRule:
+      type: object
+      properties:
+        fieldUuid:
+          type: string
+          description: 'Field uuid from the board catalog (HIRO: get_board_fields.fields); system fields include assignee, stage, updatedAt.'
+        key:
+          type: string
+          description: Exact filter key from the field's filters array. Required to select a subfield when one uuid has multiple filters.
+        operator:
+          type: string
+          description: Supported operator from the filter's operatorSet in the catalog's operatorSets dictionary. Greater-than is spelled gratherThan for saved-rule compatibility.
+        value:
+          description: 'between takes [minimum, maximum], e.g. ["2026-09-28", "2026-10-04"] for ISO dates or [0, 100] for numbers. Money values are {amount: cents, currency?: string}; money ranges use two such objects. anyIn/notIn require nonempty arrays of option values, user ids, booleans/null, or contact {_id} objects as appropriate for the field. Use option.value when present, otherwise the literal option string/label. Contact equal uses {_id}. Date comparisons use ISO dates; specificPeriod uses {period: dayOfYear|month|quarter|year|week, adjustment?: integer}. For feeAmount fields, wrap any supplied value in {end: value}, including {end: [minimum, maximum]} for between. Omit value for noValue operators.'
+        valueSource:
+          type: string
+          enum:
+          - currentUser
+          description: For user anyIn/notIn rules, resolves the authenticated/selected user on the server. Omit value.
+        valueFieldUuid:
+          type: string
+          description: Optional comparison field uuid or catalog key; equal, notEqual, lessThan, gratherThan only. Omit value.
+        defaultValueField:
+          type: string
+          description: Optional catalog field/key used if the filtered field is missing.
+      required:
+      - fieldUuid
+      - operator
+    AutomationStageTrigger:
+      type: object
+      additionalProperties: false
+      required:
+      - type
+      - stage
+      properties:
+        type:
+          type: string
+          enum:
+          - stage
+        stage:
+          type: string
+          description: A stage of the board, spelled exactly as it is on the board (case and spacing included). A stage trigger fires at most once per card.
+    AutomationTrigger:
+      description: What starts the automation. Exactly one `type`.
+      oneOf:
+      - $ref: '#/components/schemas/AutomationStageTrigger'
+      - $ref: '#/components/schemas/AutomationSegmentTrigger'
+      - $ref: '#/components/schemas/AutomationReplyTrigger'
+      discriminator:
+        propertyName: type
+        mapping:
+          stage: '#/components/schemas/AutomationStageTrigger'
+          segment: '#/components/schemas/AutomationSegmentTrigger'
+          reply: '#/components/schemas/AutomationReplyTrigger'
+    MergeFieldItem:
+      type: object
+      description: One selectable merge field — the display label and the body of the `{{ ... }}` token it inserts.
+      properties:
+        label:
+          type: string
+          description: Display label.
+        value:
+          type: string
+          description: 'The token body. Global groups use a bare key (`firstname`,
+
+            `customFields.<id>.<NameWithoutSpaces>`, `nowDate`); board items use the
+
+            `Board["Label"]` form (`Locations["Rent"]`, `Locations["Card Details"]`),
+
+            except the unit/location link entries, which key on the raw name
+
+            (`Locations["activeToursLink"]`).
+
+            '
+    AutomationSegmentTrigger:
+      type: object
+      additionalProperties: false
+      required:
+      - type
+      - conditions
+      properties:
+        type:
+          type: string
+          enum:
+          - segment
+        conditions:
+          type: array
+          minItems: 1
+          maxItems: 25
+          description: 'Rules a card must meet, ANDed together - the same rule format as board segments (`fieldUuid`,
+
+            `operator`, `value`, ...; see `GET /api/board/{boardId}/segments`). At least one rule is
+
+            required, because an automation with no conditions would run on every card. A rule on an
+
+            unknown field, an operator the field doesn''t support, a missing or malformed value, a stage or
+
+            option that isn''t on the board, or a user who isn''t in the company is rejected, as are rules
+
+            on `archived`/`deleted` and `valueSource: currentUser` (an automation runs without a signed-in
+
+            user). The rules are saved as a segment named `Automation - <title>`.
+
+            '
+          items:
+            type: object
+        frequency:
+          type: string
+          enum:
+          - everyTime
+          - once
+          default: everyTime
+          description: '`once` fires the first time a card matches; `everyTime` fires again each time it stops and starts matching.'
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+    NewBoardFieldType:
+      type: string
+      description: 'The field types that can be created through the API (`POST /api/boards` and
+
+        `POST /api/board/{boardId}/configuration/fields`). The value column is what a card stores
+
+        and what the card API (`POST /api/board/{boardId}`) accepts under the field''s `uuid`.
+
+
+        | `type` | Label | Card value |
+
+        |---|---|---|
+
+        | `string` | Short Text | string |
+
+        | `text` | Long Text | string |
+
+        | `rich-text` | Rich Text | string (HTML) |
+
+        | `number` | Number | number |
+
+        | `money` | Currency | decimal number in requests (`1500.5`); returned as `{ amount, currency }` |
+
+        | `percent` | Percent | number |
+
+        | `multiplier` | Multiplier | number |
+
+        | `boolean` | Checkbox | boolean |
+
+        | `date` | Date | date |
+
+        | `datetime-local` | Date and Time | date |
+
+        | `email` | Email | string |
+
+        | `emails` | Multiple Emails | string[] |
+
+        | `tel` | Phone Number | string |
+
+        | `phones` | Multiple Phone Numbers | array of phone objects |
+
+        | `url` | URL | string |
+
+        | `address` | Address | address object |
+
+        | `person` | Link to a Single Contact | `{ _id }` (or `null` to clear); the contact must exist |
+
+        | `persons` | Link to Multiple Contacts | array of `{ _id }` |
+
+        | `user` | Team Member | user id |
+
+        | `file` | Single Attachment | file id |
+
+        | `files` | Multiple Attachments | file ids |
+
+        | `heroImage` | Cover Photo | file id (the card''s Kanban thumbnail) |
+
+        | `embedVideo` | Embed Video | video URL string |
+
+        | `stringList` | Text List | string[] |
+
+        | `tags` | Tags | string[] |
+
+        | `singleselect` | Dropdown | the chosen option''s label - **requires `data`** |
+
+        | `multiselect` | Multiple Select | array of option labels - **requires `data`** |
+
+        | `checkboxlist` | Task List | array of `{ _id, checked, title }` (no `data`) |
+
+
+        Relational and system types (`relatedAptlets`, `mirror`, `location`, `unit`, `stageselect`,
+
+        `calculation`, and similar) can''t be created through the API; boards built in the Aptly app
+
+        can still contain them and they appear when reading fields.
+
+        '
+      enum:
+      - string
+      - text
+      - rich-text
+      - number
+      - money
+      - percent
+      - multiplier
+      - boolean
+      - date
+      - datetime-local
+      - email
+      - emails
+      - tel
+      - phones
+      - url
+      - address
+      - person
+      - persons
+      - user
+      - file
+      - files
+      - heroImage
+      - embedVideo
+      - stringList
+      - tags
+      - singleselect
+      - multiselect
+      - checkboxlist
+    CreateAutomationRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - title
+      - trigger
+      - actions
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        trigger:
+          $ref: '#/components/schemas/AutomationTrigger'
+        timing:
+          $ref: '#/components/schemas/AutomationTiming'
+        actions:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/AutomationAction'
+    AutomationTiming:
+      description: 'When the actions run after the trigger. Defaults to `{ "mode": "now" }`. A trigger with
+
+        `frequency: once` can only use `now` or `after`. Times of day are hours (0-23) in the
+
+        organization''s time zone, and the automation fires within four hours after that time.
+
+        '
+      oneOf:
+      - type: object
+        additionalProperties: false
+        required:
+        - mode
+        properties:
+          mode:
+            type: string
+            enum:
+            - now
+          useBusinessHours:
+            type: boolean
+            default: false
+            description: Only fire while the board or organization is open. Rejected when no business hours are configured, because it would never run.
+      - type: object
+        additionalProperties: false
+        required:
+        - mode
+        - amount
+        - unit
+        properties:
+          mode:
+            type: string
+            enum:
+            - after
+          amount:
+            type: integer
+            minimum: 1
+            maximum: 100000
+          unit:
+            type: string
+            enum:
+            - minutes
+            - hours
+            - days
+            - months
+          anchor:
+            type: string
+            default: stageUpdatedAt
+            description: What the delay counts from - `stageUpdatedAt`, `conditionMet`, `createdAt`, or the uuid of a date field on the board.
+          timeOfDay:
+            type: integer
+            minimum: 0
+            maximum: 23
+            description: Only for `days` or `months`.
+          useBusinessHours:
+            type: boolean
+            default: false
+            description: Only for `minutes` or `hours`.
+      - type: object
+        additionalProperties: false
+        required:
+        - mode
+        - day
+        - timeOfDay
+        properties:
+          mode:
+            type: string
+            enum:
+            - dayOfWeek
+          day:
+            type: string
+            enum:
+            - sunday
+            - monday
+            - tuesday
+            - wednesday
+            - thursday
+            - friday
+            - saturday
+          timeOfDay:
+            type: integer
+            minimum: 0
+            maximum: 23
+      - type: object
+        additionalProperties: false
+        required:
+        - mode
+        - days
+        - timeOfDay
+        properties:
+          mode:
+            type: string
+            enum:
+            - daysOfWeek
+          days:
+            type: array
+            minItems: 1
+            maxItems: 7
+            description: 0 = Sunday ... 6 = Saturday. No repeats.
+            items:
+              type: integer
+              minimum: 0
+              maximum: 6
+          timeOfDay:
+            type: integer
+            minimum: 0
+            maximum: 23
+      - type: object
+        additionalProperties: false
+        required:
+        - mode
+        - day
+        - timeOfDay
+        properties:
+          mode:
+            type: string
+            enum:
+            - dayOfMonth
+          day:
+            type: integer
+            minimum: 1
+            maximum: 31
+            description: 31 means the last day of the month.
+          timeOfDay:
+            type: integer
+            minimum: 0
+            maximum: 23
+      - type: object
+        additionalProperties: false
+        required:
+        - mode
+        - startDay
+        - endDay
+        - timeOfDay
+        properties:
+          mode:
+            type: string
+            enum:
+            - dateRange
+          startDay:
+            type: integer
+            minimum: 1
+            maximum: 31
+          endDay:
+            type: integer
+            minimum: 1
+            maximum: 31
+            description: Must be after startDay.
+          timeOfDay:
+            type: integer
+            minimum: 0
+            maximum: 23
+      - type: object
+        additionalProperties: false
+        required:
+        - mode
+        - interval
+        properties:
+          mode:
+            type: string
+            enum:
+            - everyXDays
+          interval:
+            type: integer
+            minimum: 1
+            maximum: 365
+          startImmediately:
+            type: boolean
+            default: true
+          timeOfDay:
+            type: integer
+            minimum: 0
+            maximum: 23
+      discriminator:
+        propertyName: mode
+    AutomationReplyTrigger:
+      type: object
+      additionalProperties: false
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - reply
+        stages:
+          type: array
+          maxItems: 50
+          default: []
+          description: Only fire for cards in these stages. Empty means any stage.
+          items:
+            type: string
+        frequency:
+          type: string
+          enum:
+          - everyTime
+          - once
+          default: everyTime
+        audience:
+          type: string
+          enum:
+          - anyone
+          - relatedContacts
+          default: anyone
+          description: '`relatedContacts` requires the sender to be a contact related to the card.'
+        reopenArchived:
+          type: boolean
+          default: false
+          description: Reopen an archived card when a reply arrives.
+    BoardField:
       type: object
       properties:
         uuid:
           type: string
+          description: Unique field identifier — use this as the key when reading/writing card data.
         name:
           type: string
-        url:
-          type: string
-        icon:
-          type: string
-        embedSource:
-          type: string
+          description: Display name of the field.
         type:
           type: string
+          description: Field type. Fields created through the API use one of the types in `NewBoardFieldType` (`string`, `text`, `rich-text`, `number`, `money`, `percent`, `multiplier`, `boolean`, `date`, `datetime-local`, `email`, `emails`, `tel`, `phones`, `url`, `address`, `person`, `persons`, `user`, `file`, `files`, `heroImage`, `embedVideo`, `stringList`, `tags`, `singleselect`, `multiselect`, `checkboxlist`). Mirror fields (a copy of another board's field) are added with `POST /api/board/{boardId}/configuration/mirror-fields` and take the mirrored field's type. Boards built in the Aptly app can also contain relational and system types, e.g. `stageselect`, `sourceselect`, `relatedAptlets`, `mirror`, `mirror-contact`, `location`, `unit`, `board`, `calculation`, `ai-computed`, `cardId`, `daysOpened`, `timeSince`, `qualified`, `lostReason`, `lostDetails`, `relatedEvents`, `relatedDocuments`, `contactType`, `teams`.
+        position:
+          type: integer
+          description: Display order (zero-based).
+        optional:
+          type: boolean
+          description: Whether the field is optional on cards.
+        archived:
+          type: boolean
+          description: Whether the field has been archived (hidden from the UI).
+    MergeFieldCatalog:
+      type: object
+      properties:
+        recipient:
+          type: array
+          items:
+            $ref: '#/components/schemas/MergeFieldItem'
+        board:
+          type: array
+          description: The fields and card entries of the board in the path. The hook's per-board `locations`/`aptlets` groups, flattened.
+          items:
+            $ref: '#/components/schemas/MergeFieldItem'
+        sender:
+          type: array
+          items:
+            $ref: '#/components/schemas/MergeFieldItem'
+        showing:
+          type: array
+          items:
+            $ref: '#/components/schemas/MergeFieldItem'
+        lease:
+          type: array
+          items:
+            $ref: '#/components/schemas/MergeFieldItem'
+        application:
+          type: array
+          items:
+            $ref: '#/components/schemas/MergeFieldItem'
+        general:
+          type: array
+          description: Today's date, attachment links, unsubscribe url. The `system` group in the Meteor hook.
+          items:
+            $ref: '#/components/schemas/MergeFieldItem'
+        company:
+          type: array
+          description: Company name, address, contact details and logo. The `companyFields` group in the Meteor hook.
+          items:
+            $ref: '#/components/schemas/MergeFieldItem'
     BoardOptions:
       type: object
       description: Configurable board-level settings. All fields are optional — only include the ones you want to change on PATCH.
@@ -660,64 +2381,91 @@ components:
         updateBadgeField:
           type: string
           description: Field UUID to use as the card badge label.
-    BoardField:
+    TabView:
       type: object
       properties:
         uuid:
           type: string
-          description: Unique field identifier — use this as the key when reading/writing card data.
         name:
           type: string
-          description: Display name of the field.
+        url:
+          type: string
+        icon:
+          type: string
+        embedSource:
+          type: string
         type:
           type: string
-          description: 'Field type. One of: `text`, `string`, `email`, `tel`, `number`, `money`, `date`, `datetime-local`, `boolean`, `singleselect`, `multiselect`, `checkboxlist`, `file`, `files`, `url`, `address`, `person`, `persons`, `relatedAptlets`, `mirror`, `mirror-contact`, `rich-text`, `calculation`, `percent`, `multiplier`, `board`, `heroImage`, `embedVideo`, `ai-computed`.'
-        position:
-          type: integer
-          description: Display order (zero-based).
-        optional:
-          type: boolean
-          description: Whether the field is optional on cards.
-        archived:
-          type: boolean
-          description: Whether the field has been archived (hidden from the UI).
-    Automation:
-      type: object
-      properties:
-        uuid:
-          type: string
-          description: Unique identifier for the automation.
-        title:
-          type: string
-          description: Display name of the automation.
-        automationType:
-          type: string
-          enum:
-          - board
-          - schedule
-          description: '`board` automations move/copy cards based on board events; `schedule` automations run on a time-based schedule.'
-        archived:
-          type: boolean
-        destinationBoardUuid:
-          type: string
-          description: UUID of the destination board. Defaults to the current board.
-        sourceBoardUuid:
-          type: string
-          description: (board type only) UUID of the source board.
-        runMode:
-          type: string
-          description: 'Board type: `continuously`, `onDate`, `onMonth`, `dateRange`, `onDayOfWeek`. Schedule type: `onDayOfWeek`, `onDate`, `onDayOfYear`.'
-        segment:
-          description: (board type only) Card segment/stage filter.
-        moveMode:
-          type: string
-          enum:
-          - Copy
-          - Move
-          description: (board type only) Whether to copy or move matching cards.
-        timeOfDay:
-          type: number
-          description: (schedule type only) Hour of the day to run (0–23).
+    AutomationRecipient:
+      description: Who an email or SMS goes to.
+      oneOf:
+      - type: object
+        additionalProperties: false
+        required:
+        - type
+        properties:
+          type:
+            type: string
+            enum:
+            - assignee
+      - type: object
+        additionalProperties: false
+        required:
+        - type
+        properties:
+          type:
+            type: string
+            enum:
+            - relatedContacts
+      - type: object
+        additionalProperties: false
+        required:
+        - type
+        - contactTypeIds
+        properties:
+          type:
+            type: string
+            enum:
+            - contactTypes
+          contactTypeIds:
+            type: array
+            minItems: 1
+            maxItems: 25
+            description: Contact type ids of the organization. Related contacts of these types receive the message.
+            items:
+              type: string
+      - type: object
+        additionalProperties: false
+        required:
+        - type
+        - addresses
+        properties:
+          type:
+            type: string
+            enum:
+            - specific
+          addresses:
+            type: array
+            minItems: 1
+            maxItems: 25
+            description: Email addresses for an email, E.164 phone numbers (+15551234567) for an SMS. No repeats.
+            items:
+              type: string
+      - type: object
+        additionalProperties: false
+        required:
+        - type
+        - fieldUuid
+        properties:
+          type:
+            type: string
+            enum:
+            - field
+          fieldUuid:
+            type: string
+            description: An email, user or contact field of the board (an SMS needs a user or contact field).
+      discriminator:
+        propertyName: type
   securitySchemes:
     ApiKeyHeader:
       type: apiKey

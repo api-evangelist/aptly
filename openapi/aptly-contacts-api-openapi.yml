@@ -1,13 +1,23 @@
 openapi: 3.2.0
 info:
   title: Aptly Contacts API
-  version: '1.0'
-  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+  version: '1.1'
+  description: 'The Aptly API lets external systems work with boards, contacts, inboxes,
+
+    tasks, files, and other Aptly resources.
 
 
-    All requests require an API key passed as the `x-token` header.
+    Most endpoints accept an API key in the `x-token` header. Some endpoints
 
-    API keys are scoped to your company and work across all boards.'
+    also accept a delegate token or partner bearer token, as shown in each
+
+    operation''s security requirements, and explicitly public endpoints require
+
+    no credential. API keys are scoped to a company and may be restricted to
+
+    specific boards and read, insert, or update permissions; requests outside
+
+    those restrictions receive a 403 `FORBIDDEN` response.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production
@@ -16,6 +26,146 @@ security:
 tags:
 - name: Contacts
 paths:
+  /api/contacts/conversations:
+    post:
+      description: Find real email, SMS, and call conversations by the contacts’ stored email addresses and phone numbers, without a helpdesk ticket requirement. Includes open and closed threads by default, with no recent-date cutoff. Excludes junk/deleted streams and synthetic bulk-campaign activity. Newest message first, across accessible inboxes. API keys have company scope; delegate tokens need contacts:* read scope and follow current membership, inbox/team/monitor and contact-type sharing permissions (respecting channel opt-outs). Every contact must be active and in the authenticated company. Empty addresses return an empty page.
+      tags:
+      - Contacts
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      responses:
+        '200':
+          description: A page of matching conversations.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactConversationsResponse'
+        '400':
+          description: Invalid contact IDs, filters or pagination.
+        '401':
+          description: Invalid or missing credentials.
+        '403':
+          description: Missing scope, inactive user membership, guest user, or inaccessible inbox.
+        '404':
+          description: One or more contacts are missing, archived, deleted or outside the company.
+      summary: Get conversations for contacts
+      operationId: getConversationsForContacts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - personIds
+              properties:
+                personIds:
+                  type: array
+                  minItems: 1
+                  maxItems: 20
+                  items:
+                    type: string
+                    minLength: 1
+                    maxLength: 128
+                status:
+                  type: string
+                  enum:
+                  - all
+                  - open
+                  - closed
+                  default: all
+                inboxId:
+                  type: string
+                  description: Channel meta.id; narrows authorized inboxes, never expands access.
+                search:
+                  type: string
+                  maxLength: 200
+                  description: Subject contains text; comma-separated literal alternatives.
+                skip:
+                  type: integer
+                  minimum: 0
+                  maximum: 100000
+                  default: 0
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 60
+                  default: 20
+            example:
+              personIds:
+              - contact-1
+              - contact-2
+              status: all
+              skip: 0
+              limit: 20
+  /api/contacts/{contactId}/conversations:
+    get:
+      description: Find real email, SMS, and call conversations by the contacts’ stored email addresses and phone numbers, without a helpdesk ticket requirement. Includes open and closed threads by default, with no recent-date cutoff. Excludes junk/deleted streams and synthetic bulk-campaign activity. Newest message first, across accessible inboxes. API keys have company scope; delegate tokens need contacts:* read scope and follow current membership, inbox/team/monitor and contact-type sharing permissions (respecting channel opt-outs). Every contact must be active and in the authenticated company. Empty addresses return an empty page.
+      tags:
+      - Contacts
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      responses:
+        '200':
+          description: A page of matching conversations.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactConversationsResponse'
+        '400':
+          description: Invalid contact IDs, filters or pagination.
+        '401':
+          description: Invalid or missing credentials.
+        '403':
+          description: Missing scope, inactive user membership, guest user, or inaccessible inbox.
+        '404':
+          description: One or more contacts are missing, archived, deleted or outside the company.
+      summary: Get contact conversations
+      operationId: getContactConversations
+      parameters:
+      - name: contactId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - all
+          - open
+          - closed
+          default: all
+      - name: inboxId
+        in: query
+        schema:
+          type: string
+          description: Channel meta.id; narrows authorized inboxes, never expands access.
+      - name: search
+        in: query
+        schema:
+          type: string
+          maxLength: 200
+          description: Subject contains text; comma-separated literal alternatives.
+      - name: skip
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 100000
+          default: 0
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 60
+          default: 20
   /api/contacts:
     get:
       summary: List contacts
@@ -553,8 +703,175 @@ paths:
                 $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or missing API key.
+  /api/contacts/{contactId}/sentiment:
+    get:
+      summary: Get a contact's sentiment history
+      description: 'Returns the contact''s conversation sentiment over the last 30 days, merged into a
+
+        single series across every channel in the company and keyed off the addresses in the
+
+        contact''s `email` array.
+
+
+        One point per day, oldest first. `score` is the average of the day''s streams — each
+
+        stream contributes one score, so a long conversation does not outweigh a short one —
+
+        rounded to a whole number on a 0-100 scale. `overall` is the recency-weighted average
+
+        across the window: today counts fully, a day at the edge of the window counts half.
+
+        `totalStreams` counts the distinct conversations in the window, so a conversation
+
+        spanning several days is counted once.
+
+
+        A contact with no email addresses, or with no scored conversations in the window,
+
+        returns `overall: null` and an empty `history`.'
+      operationId: getContactSentiment
+      tags:
+      - Contacts
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: contactId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The contact's `_id`.
+      responses:
+        '200':
+          description: Sentiment history for the contact.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  overall:
+                    type:
+                    - integer
+                    - 'null'
+                    description: Recency-weighted average score (0-100) across the window.
+                  totalStreams:
+                    type: integer
+                    description: Distinct conversations behind the window.
+                  history:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: date-time
+                        score:
+                          type: integer
+                          description: Average score (0-100) for the day.
+                        streams:
+                          type: integer
+                          description: Distinct conversations behind the day.
+              example:
+                overall: 76
+                totalStreams: 2
+                history:
+                - date: '2026-08-15T00:00:00.000Z'
+                  score: 40
+                  streams: 2
+                - date: '2026-09-04T00:00:00.000Z'
+                  score: 100
+                  streams: 1
+        '401':
+          description: Invalid or missing API key.
+        '404':
+          description: Contact not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
+    ContactConversationsResponse:
+      type: object
+      required:
+      - personIds
+      - conversations
+      - hasMore
+      - skip
+      - limit
+      properties:
+        personIds:
+          type: array
+          items:
+            type: string
+        conversations:
+          type: array
+          items:
+            type: object
+            required:
+            - _id
+            - subject
+            - description
+            - messageCount
+            properties:
+              _id:
+                type: string
+                description: Conversation stream ID.
+              subject:
+                type:
+                - string
+                - 'null'
+              description:
+                type: string
+                maxLength: 500
+              type:
+                type: string
+              status:
+                type: integer
+                description: 0 closed, 1 open, 2 waiting, 3 replied.
+              assigneeId:
+                type:
+                - string
+                - 'null'
+              participants:
+                type: array
+                items:
+                  type: string
+              channel:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  type:
+                    type: string
+              messageCount:
+                type: integer
+              metrics:
+                type: object
+                properties:
+                  lastMessageAt:
+                    type: string
+                    format: date-time
+                  lastActivityAt:
+                    type:
+                    - string
+                    - 'null'
+                    format: date-time
+                  lastMessageDirection:
+                    type:
+                    - string
+                    - 'null'
+                    enum:
+                    - in
+                    - out
+        hasMore:
+          type: boolean
+          description: When true, request the next page with skip + limit.
+        skip:
+          type: integer
+        limit:
+          type: integer
     Error:
       type: object
       properties:

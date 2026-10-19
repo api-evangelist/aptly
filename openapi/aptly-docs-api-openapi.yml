@@ -1,0 +1,60 @@
+openapi: 3.2.0
+info:
+  title: Aptly Docs API
+  version: '1.1'
+  description: 'The Aptly API lets external systems work with boards, contacts, inboxes,
+
+    tasks, files, and other Aptly resources.
+
+
+    Most endpoints accept an API key in the `x-token` header. Some endpoints
+
+    also accept a delegate token or partner bearer token, as shown in each
+
+    operation''s security requirements, and explicitly public endpoints require
+
+    no credential. API keys are scoped to a company and may be restricted to
+
+    specific boards and read, insert, or update permissions; requests outside
+
+    those restrictions receive a 403 `FORBIDDEN` response.'
+servers:
+- url: https://core-api.getaptly.com
+  description: Production
+security:
+- ApiKeyHeader: []
+tags:
+- name: Docs
+paths:
+  /api/docs/openapi:
+    get:
+      summary: Fetch this OpenAPI spec
+      description: 'Returns the raw contents of this OpenAPI spec (docs/openapi.yaml) as `text/yaml`.
+
+        No authentication required.'
+      operationId: getPublicOpenApiSpec
+      tags:
+      - Docs
+      security: []
+      responses:
+        '200':
+          description: The OpenAPI spec, as YAML.
+          content:
+            text/yaml:
+              schema:
+                type: string
+components:
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-token
+    DelegateToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Delegate token issued by the platform. Format: `DelegateToken <token>`'
+    PartnerBearer:
+      type: http
+      scheme: bearer
+      description: 'Partner token. Format: `Authorization: Bearer <token>`'

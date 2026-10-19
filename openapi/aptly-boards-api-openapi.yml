@@ -1,13 +1,23 @@
 openapi: 3.2.0
 info:
   title: Aptly Boards API
-  version: '1.0'
-  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+  version: '1.1'
+  description: 'The Aptly API lets external systems work with boards, contacts, inboxes,
+
+    tasks, files, and other Aptly resources.
 
 
-    All requests require an API key passed as the `x-token` header.
+    Most endpoints accept an API key in the `x-token` header. Some endpoints
 
-    API keys are scoped to your company and work across all boards.'
+    also accept a delegate token or partner bearer token, as shown in each
+
+    operation''s security requirements, and explicitly public endpoints require
+
+    no credential. API keys are scoped to a company and may be restricted to
+
+    specific boards and read, insert, or update permissions; requests outside
+
+    those restrictions receive a 403 `FORBIDDEN` response.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production
@@ -52,7 +62,7 @@ paths:
                   endpoints:
                   - method: GET
                     url: https://core-api.getaptly.com/api/board/abc-123-board
-                    description: 'List cards (query: page, pageSize, updatedAtMin, includeArchived)'
+                    description: 'Deprecated: use POST /api/board/{boardId}/list'
                   - method: POST
                     url: https://core-api.getaptly.com/api/board/abc-123-board
                     description: Create or update a card
@@ -62,8 +72,245 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a board
+      description: 'Creates a new board. Requires the key''s dedicated "Create Boards" access toggle to be
+
+        enabled, in addition to `insert` permission — unlike the API key''s other access
+
+        toggles, this one defaults off and must be explicitly turned on in Setup → Developer.
+
+
+        A `stage` field is always added automatically (a board can''t render a Kanban/pipeline
+
+        view without one) — `ticket` boards default to To Do / In Progress / Done, `deal`
+
+        boards to the standard Aptly deal pipeline. To use your own pipeline instead, pass
+
+        `stages`. You can add, reorder and recolor stages later with `PUT .../configuration/fields/stage`. `stage`, along with a handful of other
+
+        reserved keys (`name`, `dueAt`, `relatedContacts`, and every card-document system key
+
+        such as `_id`, `companyId`, `archived`), can''t be used as a custom field''s `uuid`.
+
+
+        Only a safe, self-contained subset of Aptly''s field types may be used for custom
+
+        fields — relational types that reference other boards (e.g. `relatedAptlets`,
+
+        `mirror`) and system/computed types the backend manages itself (e.g. `stageselect`,
+
+        `calculation`) are rejected, since a freshly created board has nothing valid for them
+
+        to point at yet.
+
+
+        The key that creates a board keeps access to it. Even if the key is limited to specific
+
+        boards (so the new board is not on its list), it can read and write the board''s cards, see
+
+        it in `GET /api/boards`, and - with the `update` permission but without the "Edit Boards"
+
+        toggle - add, change and remove its fields, change its theme and archive it. This applies
+
+        only to boards created through this endpoint by that key, and ends when the key is deleted.
+
+        It does not extend to other boards, to creating Automations (which has its own toggle), or to
+
+        Tasks, Files and mirror-field links to other boards, which still follow the key''s board list.
+
+        Boards created before this change are not affected.'
+      operationId: createBoard
+      tags:
+      - Boards
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              properties:
+                name:
+                  type: string
+                  description: Board display name.
+                boardType:
+                  type: string
+                  enum:
+                  - ticket
+                  - deal
+                  default: ticket
+                  description: Determines the default `stage` pipeline. Defaults to `ticket`.
+                stages:
+                  type: array
+                  minItems: 1
+                  maxItems: 30
+                  description: 'The board''s stage pipeline, in order. Replaces the default pipeline for
+
+                    `boardType`. The first stage is where new cards start, so it cannot be
+
+                    closed or won. Labels must be unique. Stage ids are generated for you.
+
+                    '
+                  items:
+                    type: object
+                    required:
+                    - label
+                    properties:
+                      label:
+                        type: string
+                        maxLength: 100
+                        description: Stage display name. Unique on the board.
+                      color:
+                        type: string
+                        example: '#1ec968'
+                        description: Hex color. Defaults to a palette color by position.
+                      closed:
+                        type: boolean
+                        default: false
+                        description: A closed stage ends a card's life, such as Done or Lost.
+                      won:
+                        type: boolean
+                        default: false
+                        description: A closed stage that counts as won. Deal boards only. Implies `closed`.
+                fields:
+                  type: array
+                  description: Optional custom fields to add, beyond the automatic `stage` field.
+                  items:
+                    type: object
+                    required:
+                    - name
+                    - type
+                    properties:
+                      name:
+                        type: string
+                        description: Field display name.
+                      type:
+                        $ref: '#/components/schemas/NewBoardFieldType'
+                      uuid:
+                        type: string
+                        description: 'Optional explicit field key, used later as the key for this field''s value in card create/update calls. Must match `^[a-zA-Z][a-zA-Z0-9_]{0,63}$`. Auto-generated when omitted.
+
+                          '
+                      optional:
+                        type: boolean
+                        default: true
+                      pinned:
+                        type: boolean
+                        default: false
+                        description: Pin this field to the card's Kanban view.
+                      defaultValue:
+                        type: string
+                      data:
+                        type: array
+                        description: 'Required (non-empty) for `singleselect` and `multiselect` — the field''s option list. Not used by the other types.
+
+                          '
+                        items:
+                          type: object
+                          required:
+                          - label
+                          properties:
+                            label:
+                              type: string
+                            uuid:
+                              type: string
+                              description: Auto-generated when omitted.
+            example:
+              name: Maintenance Requests
+              boardType: ticket
+              stages:
+              - label: Backlog
+              - label: In Progress
+                color: '#f1b44c'
+              - label: Done
+                closed: true
+              fields:
+              - name: Priority
+                type: singleselect
+                data:
+                - label: Low
+                - label: Medium
+                - label: High
+      responses:
+        '201':
+          description: Board created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Board'
+        '400':
+          description: '`VALIDATION_ERROR` - missing/invalid `name`, `boardType`, or a `fields` entry (per-field `meta.issues`, e.g. `fields.0.type`), or a reserved/duplicate field `uuid`.
+
+            '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'This API key does not have insert permission, or does not have the dedicated "Create Boards" access enabled for this key.
+
+            '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
+    ValidationError:
+      type: object
+      description: 'Returned with HTTP 400 when the request body fails shape validation (wrong type,
+
+        missing required field, malformed email/phone number, value out of bounds).
+
+        `meta.issues` lists every offending field.
+
+        '
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+              - VALIDATION_ERROR
+            message:
+              type: string
+              example: One or more fields are invalid
+            meta:
+              type: object
+              properties:
+                issues:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                        description: Dotted path to the offending property (for example `to.0.value`); empty for a problem with the body as a whole.
+                        example: to.0.value
+                      code:
+                        type: string
+                        description: Machine-readable issue code (for example `invalid_type`, `invalid_format`, `too_small`).
+                        example: invalid_format
+                      message:
+                        type: string
+                        example: must be a valid email address
+        requestId:
+          type: string
     Board:
       type: object
       properties:
@@ -88,6 +335,112 @@ components:
               description:
                 type: string
                 description: What the endpoint does.
+    NewBoardFieldType:
+      type: string
+      description: 'The field types that can be created through the API (`POST /api/boards` and
+
+        `POST /api/board/{boardId}/configuration/fields`). The value column is what a card stores
+
+        and what the card API (`POST /api/board/{boardId}`) accepts under the field''s `uuid`.
+
+
+        | `type` | Label | Card value |
+
+        |---|---|---|
+
+        | `string` | Short Text | string |
+
+        | `text` | Long Text | string |
+
+        | `rich-text` | Rich Text | string (HTML) |
+
+        | `number` | Number | number |
+
+        | `money` | Currency | decimal number in requests (`1500.5`); returned as `{ amount, currency }` |
+
+        | `percent` | Percent | number |
+
+        | `multiplier` | Multiplier | number |
+
+        | `boolean` | Checkbox | boolean |
+
+        | `date` | Date | date |
+
+        | `datetime-local` | Date and Time | date |
+
+        | `email` | Email | string |
+
+        | `emails` | Multiple Emails | string[] |
+
+        | `tel` | Phone Number | string |
+
+        | `phones` | Multiple Phone Numbers | array of phone objects |
+
+        | `url` | URL | string |
+
+        | `address` | Address | address object |
+
+        | `person` | Link to a Single Contact | `{ _id }` (or `null` to clear); the contact must exist |
+
+        | `persons` | Link to Multiple Contacts | array of `{ _id }` |
+
+        | `user` | Team Member | user id |
+
+        | `file` | Single Attachment | file id |
+
+        | `files` | Multiple Attachments | file ids |
+
+        | `heroImage` | Cover Photo | file id (the card''s Kanban thumbnail) |
+
+        | `embedVideo` | Embed Video | video URL string |
+
+        | `stringList` | Text List | string[] |
+
+        | `tags` | Tags | string[] |
+
+        | `singleselect` | Dropdown | the chosen option''s label - **requires `data`** |
+
+        | `multiselect` | Multiple Select | array of option labels - **requires `data`** |
+
+        | `checkboxlist` | Task List | array of `{ _id, checked, title }` (no `data`) |
+
+
+        Relational and system types (`relatedAptlets`, `mirror`, `location`, `unit`, `stageselect`,
+
+        `calculation`, and similar) can''t be created through the API; boards built in the Aptly app
+
+        can still contain them and they appear when reading fields.
+
+        '
+      enum:
+      - string
+      - text
+      - rich-text
+      - number
+      - money
+      - percent
+      - multiplier
+      - boolean
+      - date
+      - datetime-local
+      - email
+      - emails
+      - tel
+      - phones
+      - url
+      - address
+      - person
+      - persons
+      - user
+      - file
+      - files
+      - heroImage
+      - embedVideo
+      - stringList
+      - tags
+      - singleselect
+      - multiselect
+      - checkboxlist
     Error:
       type: object
       properties:

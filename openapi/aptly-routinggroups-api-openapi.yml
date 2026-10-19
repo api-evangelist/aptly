@@ -1,13 +1,23 @@
 openapi: 3.2.0
 info:
   title: Aptly Routing Groups API
-  version: '1.0'
-  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+  version: '1.1'
+  description: 'The Aptly API lets external systems work with boards, contacts, inboxes,
+
+    tasks, files, and other Aptly resources.
 
 
-    All requests require an API key passed as the `x-token` header.
+    Most endpoints accept an API key in the `x-token` header. Some endpoints
 
-    API keys are scoped to your company and work across all boards.'
+    also accept a delegate token or partner bearer token, as shown in each
+
+    operation''s security requirements, and explicitly public endpoints require
+
+    no credential. API keys are scoped to a company and may be restricted to
+
+    specific boards and read, insert, or update permissions; requests outside
+
+    those restrictions receive a 403 `FORBIDDEN` response.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production

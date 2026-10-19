@@ -1,7 +1,7 @@
 {
   "provider": "aptly",
   "sources": [
-    "_original/aptly-openapi-original.yml"
+    "_original/aptly-openapi.yml"
   ],
   "outputs": [
     "aptly-app-api-openapi.yml",
@@ -10,6 +10,7 @@
     "aptly-cards-api-openapi.yml",
     "aptly-company-api-openapi.yml",
     "aptly-contacts-api-openapi.yml",
+    "aptly-docs-api-openapi.yml",
     "aptly-email-api-openapi.yml",
     "aptly-files-api-openapi.yml",
     "aptly-inboxes-api-openapi.yml",
@@ -18,46 +19,35 @@
     "aptly-schema-api-openapi.yml",
     "aptly-tasks-api-openapi.yml",
     "aptly-templates-api-openapi.yml",
-    "aptly-users-api-openapi.yml"
+    "aptly-tours-api-openapi.yml",
+    "aptly-users-api-openapi.yml",
+    "aptly-webforms-api-openapi.yml"
   ],
   "archived": [],
   "errors": [],
   "warnings": [],
   "notes": [
     "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
-    "aptly-openapi-original.yml: upgraded openapi 3.0.3 -> OpenAPI 3.2.0",
-    "aptly-openapi-original.yml: declared missing tag: App",
-    "aptly-openapi-original.yml: declared missing tag: Board",
-    "aptly-openapi-original.yml: declared missing tag: Boards",
-    "aptly-openapi-original.yml: declared missing tag: Cards",
-    "aptly-openapi-original.yml: declared missing tag: Company",
-    "aptly-openapi-original.yml: declared missing tag: Contacts",
-    "aptly-openapi-original.yml: declared missing tag: Email",
-    "aptly-openapi-original.yml: declared missing tag: Files",
-    "aptly-openapi-original.yml: declared missing tag: Inboxes",
-    "aptly-openapi-original.yml: declared missing tag: Knowledge",
-    "aptly-openapi-original.yml: declared missing tag: RoutingGroups",
-    "aptly-openapi-original.yml: declared missing tag: Schema",
-    "aptly-openapi-original.yml: declared missing tag: Tasks",
-    "aptly-openapi-original.yml: declared missing tag: Templates",
-    "aptly-openapi-original.yml: declared missing tag: Users",
-    "apis.yml register: already-registered"
+    "aptly-openapi.yml: upgraded openapi 3.0.3 -> OpenAPI 3.2.0",
+    "aptly-openapi.yml: declared missing tag: App",
+    "aptly-openapi.yml: declared missing tag: Board",
+    "aptly-openapi.yml: declared missing tag: Boards",
+    "aptly-openapi.yml: declared missing tag: Cards",
+    "aptly-openapi.yml: declared missing tag: Company",
+    "aptly-openapi.yml: declared missing tag: Contacts",
+    "aptly-openapi.yml: declared missing tag: Docs",
+    "aptly-openapi.yml: declared missing tag: Email",
+    "aptly-openapi.yml: declared missing tag: Files",
+    "aptly-openapi.yml: declared missing tag: Inboxes",
+    "aptly-openapi.yml: declared missing tag: Knowledge",
+    "aptly-openapi.yml: declared missing tag: RoutingGroups",
+    "aptly-openapi.yml: declared missing tag: Schema",
+    "aptly-openapi.yml: declared missing tag: Tasks",
+    "aptly-openapi.yml: declared missing tag: Templates",
+    "aptly-openapi.yml: declared missing tag: Tours",
+    "aptly-openapi.yml: declared missing tag: Users",
+    "aptly-openapi.yml: declared missing tag: WebForms",
+    "apis.yml register: written (+3 apis, 18 total)"
   ],
-  "skipped": [
-    "aptly-app-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "aptly-board-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "aptly-boards-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "aptly-cards-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "aptly-company-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "aptly-contacts-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "aptly-email-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "aptly-files-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "aptly-inboxes-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "aptly-knowledge-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "aptly-routinggroups-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "aptly-schema-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "aptly-tasks-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "aptly-templates-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "aptly-users-api-openapi.yml: previously refined output, superseded by openapi/_original/"
-  ]
+  "skipped": []
 }

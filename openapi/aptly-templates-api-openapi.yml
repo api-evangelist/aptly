@@ -1,13 +1,23 @@
 openapi: 3.2.0
 info:
   title: Aptly Templates API
-  version: '1.0'
-  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+  version: '1.1'
+  description: 'The Aptly API lets external systems work with boards, contacts, inboxes,
+
+    tasks, files, and other Aptly resources.
 
 
-    All requests require an API key passed as the `x-token` header.
+    Most endpoints accept an API key in the `x-token` header. Some endpoints
 
-    API keys are scoped to your company and work across all boards.'
+    also accept a delegate token or partner bearer token, as shown in each
+
+    operation''s security requirements, and explicitly public endpoints require
+
+    no credential. API keys are scoped to a company and may be restricted to
+
+    specific boards and read, insert, or update permissions; requests outside
+
+    those restrictions receive a 403 `FORBIDDEN` response.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production
@@ -78,6 +88,127 @@ paths:
           description: Missing companyId.
         '401':
           description: Invalid or missing credential.
+    post:
+      summary: Create a template
+      description: 'Creates a communication template.
+
+
+        The acting user — the delegate token''s own user, or the body `userId` when
+
+        authenticating with an API key or partner token — must belong to the company and
+
+        hold the `setup` or `setup_communication_templates` permission.
+
+
+        Only plain templates can be created here — `htmlBuilder` must be `false` or
+
+        omitted.
+
+
+        `attachmentIds` are resolved against the company''s uploaded files, stored on the
+
+        template as full attachment entries, and tied to it so the detached-upload cleanup
+
+        leaves them alone — ids that no longer resolve are dropped. A `pdf` template''s
+
+        `subject` becomes a file name, so characters that are illegal in one are stripped.
+
+
+        ### Merge fields
+
+
+        `subject` and `content` may contain merge placeholders, which are replaced with
+
+        the recipient''s, board card''s or company''s own values when the template is sent.
+
+
+        Fetch the available fields from
+
+        `GET /api/board/{boardId}/merge-fields` for the board the template is used with.
+
+        Every item in that response is `{ label, value }` — `label` is what to show a
+
+        human, `value` is what goes inside the braces:
+
+
+        ```
+
+        {{firstname}}
+
+        {{Locations["Rent"]}}
+
+        {{customFields.7Lq2.LoyaltyTier}}
+
+        ```
+
+
+        A placeholder may carry a fallback, used when the field is empty or unknown:
+
+
+        ```
+
+        {{firstname || fallback: there}} -> "there" when the contact has no first name
+
+        {{Locations["Rent"] || fallback: TBD}} -> "TBD" when the card has no rent
+
+        {{firstname || fallback: }} -> renders nothing at all
+
+        ```
+
+
+        Everything after `fallback:` up to the closing braces is the fallback text, and an
+
+        empty one (or `_blank`) renders nothing.
+
+
+        Placeholders are **shape**-checked on write — an unclosed `{{`, an empty field
+
+        name, or a malformed bracket reference such as `Locations["Rent]` is rejected with
+
+        400. Whether the field exists is not checked: an unknown field is normal (boards
+
+        differ), and simply renders as its fallback at merge time.'
+      operationId: createTemplate
+      tags:
+      - Templates
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateUpsert'
+            examples:
+              email:
+                summary: Plain email template
+                value:
+                  companyId: '{{companyId}}'
+                  userId: '{{userId}}'
+                  name: Move-in welcome
+                  description: Sent to new residents on move-in day
+                  templateType: email
+                  subject: Welcome to your new home
+                  content: <p>Welcome!</p>
+                  htmlBuilder: false
+      responses:
+        '201':
+          description: Template created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Template'
+        '400':
+          description: Missing companyId, or an invalid payload.
+        '401':
+          description: Invalid or missing credential.
+        '403':
+          description: The acting user lacks the template permission.
   /api/templates/{id}:
     get:
       summary: Get a template
@@ -115,8 +246,131 @@ paths:
           description: Invalid or missing credential.
         '404':
           description: Template not found.
+    put:
+      summary: Update a template
+      description: 'Replaces the fields of an existing template. The payload and its validation are
+
+        identical to `POST /api/templates` — including the merge-field placeholders
+
+        documented there, whose available `value`s come from
+
+        `GET /api/board/{boardId}/merge-fields`. On top of the template permission, the
+
+        acting user must have access to the library folder the template sits in. A
+
+        template that does not exist — or belongs to another company — returns 404; an
+
+        archived one returns 403, since it is the caller''s own and
+
+        `GET /api/templates/{id}` still returns it.'
+      operationId: editTemplate
+      tags:
+      - Templates
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Template ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateUpsert'
+            examples:
+              email:
+                summary: Plain email template
+                value:
+                  companyId: '{{companyId}}'
+                  userId: '{{userId}}'
+                  name: Move-in welcome
+                  description: Sent to new residents on move-in day
+                  templateType: email
+                  subject: Welcome to your new home
+                  content: <p>Welcome!</p>
+                  htmlBuilder: false
+      responses:
+        '200':
+          description: Template updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Template'
+        '400':
+          description: Missing companyId, or an invalid payload.
+        '401':
+          description: Invalid or missing credential.
+        '403':
+          description: The acting user lacks the template permission or folder access.
+        '404':
+          description: Template not found.
 components:
   schemas:
+    TemplateUpsert:
+      type: object
+      required:
+      - name
+      - description
+      - templateType
+      - subject
+      - content
+      properties:
+        companyId:
+          type: string
+          description: Required with a partner token; resolved from an API key or delegate token.
+        userId:
+          type: string
+          description: The acting user. Required with an API key or partner token; a delegate token supplies its own.
+        name:
+          type: string
+        description:
+          type: string
+        templateType:
+          type: string
+          enum:
+          - sms
+          - email
+          - form
+          - eSignature
+          - pdf
+          description: Template kind. `blockDocument` is not accepted — it is an internal type for document blocks, not a user-facing template.
+        subject:
+          type: string
+          description: Email subject, or the file name for a `pdf` template — in which case filename-illegal characters are stripped. Merge placeholders work here too, and are shape-checked the same way.
+        content:
+          type: string
+          description: 'Template body. Merge placeholders take the form `{{value}}` or `{{value || fallback: text}}`, where `value` is an item''s `value` from `GET /api/board/{boardId}/merge-fields` — for example `{{firstname}}`, `{{Locations["Rent"] || fallback: TBD}}`. They are checked for shape — an unclosed `{{`, an empty field name or a malformed bracket reference is rejected. Whether each field exists is not checked: an unknown one renders as its fallback at merge time.'
+        htmlBuilder:
+          type: boolean
+          enum:
+          - false
+          default: false
+          description: Must be `false` or omitted. HTML-builder templates keep their markup in a builder-owned `builderData` format and can only be authored in the app.
+        builderData:
+          type: object
+          description: Builder document, when one already exists.
+        folderId:
+          type: string
+          description: Library folder the template belongs to — must be an existing, non-archived folder in the company. Governs who may edit the template.
+        aptletUuid:
+          type: string
+          description: Board the template is scoped to. Must be an existing, non-archived board in the company.
+        signature:
+          type: string
+        attachmentIds:
+          type: array
+          items:
+            type: string
+          description: Uploaded file ids to attach.
     Template:
       type: object
       properties:
@@ -146,7 +400,7 @@ components:
           format: date-time
         createdBy:
           type: string
-          description: User ID of the creator, or `"api"` if created via the API.
+          description: User ID of the creator.
         updatedAt:
           type: string
           format: date-time

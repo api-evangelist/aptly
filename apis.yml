@@ -267,6 +267,36 @@ apis:
     url: openapi/aptly-users-api-openapi.yml
   - type: APIReference
     url: https://docs.getaptly.com/api-reference/users/list-users
+- aid: aptly:aptly-docs-api
+  name: Aptly Docs API
+  description: The Docs API from Aptly — 1 operation(s) for docs.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - Docs
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-docs-api-openapi.yml
+- aid: aptly:aptly-tours-api
+  name: Aptly Tours API
+  description: The Tours API from Aptly — 2 operation(s) for tours.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - Tours
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-tours-api-openapi.yml
+- aid: aptly:aptly-webforms-api
+  name: Aptly Web Forms API
+  description: The WebForms API from Aptly — 1 operation(s) for webforms.
+  humanURL: https://docs.getaptly.com/introduction
+  baseURL: https://core-api.getaptly.com
+  tags:
+  - WebForms
+  properties:
+  - type: OpenAPI
+    url: openapi/aptly-webforms-api-openapi.yml
 common:
 - type: DeveloperPortal
   url: https://docs.getaptly.com

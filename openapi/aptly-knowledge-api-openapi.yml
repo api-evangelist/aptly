@@ -1,13 +1,23 @@
 openapi: 3.2.0
 info:
   title: Aptly Knowledge API
-  version: '1.0'
-  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+  version: '1.1'
+  description: 'The Aptly API lets external systems work with boards, contacts, inboxes,
+
+    tasks, files, and other Aptly resources.
 
 
-    All requests require an API key passed as the `x-token` header.
+    Most endpoints accept an API key in the `x-token` header. Some endpoints
 
-    API keys are scoped to your company and work across all boards.'
+    also accept a delegate token or partner bearer token, as shown in each
+
+    operation''s security requirements, and explicitly public endpoints require
+
+    no credential. API keys are scoped to a company and may be restricted to
+
+    specific boards and read, insert, or update permissions; requests outside
+
+    those restrictions receive a 403 `FORBIDDEN` response.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production
@@ -26,7 +36,13 @@ paths:
         document (`parentId`).
 
 
-        HTML content is accepted and stored internally as a structured document format.'
+        HTML or Markdown content is accepted and stored internally as a structured document
+
+        format. Provide either `html` or `markdown`, not both. Aptly custom blocks (cards,
+
+        tasks, contacts, mentions, merge fields, form fields, embeds, diagrams) are written
+
+        in `html` as described under "HTML format" in `PUT /api/knowledge/{id}`.'
       operationId: createKnowledgeDoc
       tags:
       - Knowledge
@@ -42,13 +58,20 @@ paths:
               type: object
               required:
               - name
+              not:
+                required:
+                - html
+                - markdown
               properties:
                 name:
                   type: string
                   description: Document title.
                 html:
                   type: string
-                  description: Initial HTML content for the document body.
+                  description: Initial HTML content for the document body. Mutually exclusive with `markdown`.
+                markdown:
+                  type: string
+                  description: Initial Markdown content for the document body. Mutually exclusive with `html`.
                 aptletUuid:
                   type: string
                   description: UUID of the board to associate this document with.
@@ -81,6 +104,12 @@ paths:
                     description: ID of the created document.
                   name:
                     type: string
+        '400':
+          description: Both `html` and `markdown` were provided (only one is allowed).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or missing API key.
           content:
@@ -93,10 +122,376 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /api/knowledge/list:
+    get:
+      summary: List knowledge documents
+      description: 'Lists knowledge documents scoped to your company — a folder''s contents, or
+
+        everything linked to a board, card, or conversation — in a lite shape (no rendered
+
+        HTML), paginated.
+
+
+        Access is scoped per-user when authenticated with a delegate token; API keys and
+
+        partner tokens see every document in the company regardless of its private-doc
+
+        shares.'
+      operationId: listKnowledgeDocs
+      tags:
+      - Knowledge
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: parentId
+        in: query
+        schema:
+          type: string
+        description: 'Omit to list every document regardless of nesting. Pass "" or "null" to list root documents only, or a document ID to list that folder''s contents.
+
+          '
+      - name: aptletUuid
+        in: query
+        schema:
+          type: string
+        description: Only documents associated with this board.
+      - name: aptletInstanceId
+        in: query
+        schema:
+          type: string
+        description: Only documents linked to this card.
+      - name: streamId
+        in: query
+        schema:
+          type: string
+        description: Only documents extracted from this conversation.
+      - name: search
+        in: query
+        schema:
+          type: string
+        description: 'Case-insensitive substring match on document name. Regex metacharacters are escaped before being interpolated into the query, so the match is always literal.
+
+          '
+      - name: archived
+        in: query
+        schema:
+          type: boolean
+        description: Set true to list archived documents instead of active ones.
+      - name: ownerId
+        in: query
+        schema:
+          type: string
+        description: Only documents created by this user (matches `createdBy`).
+      - name: updatedById
+        in: query
+        schema:
+          type: string
+        description: Only documents last updated by this user (matches `updatedBy`).
+      - name: createdFrom
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: Only documents created on or after this ISO date (inclusive).
+      - name: createdTo
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: Only documents created on or before this ISO date (inclusive).
+      - name: updatedFrom
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: 'Only documents last updated on or after this ISO date (inclusive). Filters `updatedAt` only, never `createdAt`.
+
+          '
+      - name: updatedTo
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: 'Only documents last updated on or before this ISO date (inclusive). Filters `updatedAt` only, never `createdAt`.
+
+          '
+      - name: unlinked
+        in: query
+        schema:
+          type: boolean
+        description: 'Set true to list only documents with no `aptletUuid`, `aptletInstanceId`, or `streamId` — the knowledge base''s own top-level documents ("pane 0"), as opposed to documents that hang off a board, card, or conversation. Cannot be combined with `aptletUuid`, `aptletInstanceId`, or `streamId`.
+
+          '
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 50
+          maximum: 200
+        description: 'A non-numeric value is rejected with 400 rather than silently defaulting. A valid non-integer value (e.g. 10.5) is truncated.
+
+          '
+      - name: skip
+        in: query
+        schema:
+          type: integer
+          default: 0
+          minimum: 0
+        description: 'A non-numeric or negative value is rejected with 400 rather than silently coercing to 0. A valid non-integer value is truncated.
+
+          '
+      responses:
+        '200':
+          description: Paginated list of knowledge document summaries.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  docs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/KnowledgeDocSummary'
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  skip:
+                    type: integer
+        '400':
+          description: 'Invalid input — an unparseable date, `to` not after `from`, `unlinked=true` combined with `aptletUuid`/`aptletInstanceId`/`streamId`, or a non-numeric `limit`/`skip` (or a negative `skip`).
+
+            '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/knowledge/tree:
+    get:
+      summary: Get the knowledge document tree
+      description: 'Returns a lazy, depth-bounded tree of knowledge documents starting at `parentId`
+
+        (root documents when omitted). Each node reports `hasChildren` so you can decide
+
+        whether to fetch further levels via `GET /api/knowledge/{id}/children`.
+
+
+        Accepts the same filter parameters as `GET /api/knowledge/list` (everything below
+
+        except `limit`/`skip` — `parentId` here keeps its tree-specific meaning, the root
+
+        to start from, not a filter). With no filter active, the response is the plain
+
+        tree with no `matched` field on any node. With a filter active, the tree (already
+
+        built and depth-bounded as usual) is pruned to documents that match the filter,
+
+        plus their ancestors (so a match stays reachable from the root) and their
+
+        descendants (so a matched folder''s contents stay visible) — every kept node
+
+        within the tree, matching or not, gets a `matched` boolean. A document that would
+
+        only appear more than `depth` levels below the root is never fetched, so it can''t
+
+        match either — increase `depth` to search deeper.'
+      operationId: getKnowledgeTree
+      tags:
+      - Knowledge
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: parentId
+        in: query
+        schema:
+          type: string
+        description: Omit, or pass "" / "null", for the root level.
+      - name: depth
+        in: query
+        schema:
+          type: integer
+          default: 1
+          maximum: 3
+        description: How many levels to expand eagerly.
+      - name: aptletUuid
+        in: query
+        schema:
+          type: string
+        description: Only match documents associated with this board.
+      - name: aptletInstanceId
+        in: query
+        schema:
+          type: string
+        description: Only match documents linked to this card.
+      - name: streamId
+        in: query
+        schema:
+          type: string
+        description: Only match documents extracted from this conversation.
+      - name: search
+        in: query
+        schema:
+          type: string
+        description: 'Case-insensitive substring match on document name. Regex metacharacters are escaped before being interpolated into the query, so the match is always literal.
+
+          '
+      - name: archived
+        in: query
+        schema:
+          type: boolean
+        description: 'Set true to match archived documents instead of active ones. Also widens tree traversal itself so archived documents (and their archived descendants) are reachable at all.
+
+          '
+      - name: ownerId
+        in: query
+        schema:
+          type: string
+        description: Only match documents created by this user (matches `createdBy`).
+      - name: updatedById
+        in: query
+        schema:
+          type: string
+        description: Only match documents last updated by this user (matches `updatedBy`).
+      - name: createdFrom
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: Only match documents created on or after this ISO date (inclusive).
+      - name: createdTo
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: Only match documents created on or before this ISO date (inclusive).
+      - name: updatedFrom
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: 'Only match documents last updated on or after this ISO date (inclusive). Filters `updatedAt` only, never `createdAt`.
+
+          '
+      - name: updatedTo
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: 'Only match documents last updated on or before this ISO date (inclusive). Filters `updatedAt` only, never `createdAt`.
+
+          '
+      - name: unlinked
+        in: query
+        schema:
+          type: boolean
+        description: 'Set true to match only documents with no `aptletUuid`, `aptletInstanceId`, or `streamId` — the knowledge base''s own top-level documents ("pane 0"). Cannot be combined with `aptletUuid`, `aptletInstanceId`, or `streamId`.
+
+          '
+      responses:
+        '200':
+          description: Tree of knowledge document nodes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nodes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/KnowledgeTreeNode'
+        '400':
+          description: 'Invalid input — an unparseable date, `to` not after `from`, or `unlinked=true` combined with `aptletUuid`/`aptletInstanceId`/`streamId`.
+
+            '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/knowledge/{id}/children:
+    get:
+      summary: List a knowledge document's direct children
+      description: Returns the direct children of one knowledge document as a flat, lite-shape list.
+      operationId: getKnowledgeDocChildren
+      tags:
+      - Knowledge
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The knowledge document (folder) ID.
+      - name: archived
+        in: query
+        schema:
+          type: boolean
+          default: false
+        description: 'When true, include archived documents: the parent lookup no longer 404s on an archived parent, and archived children are included. Needed to expand a `hasChildren: true` archived folder returned by `GET /api/knowledge/tree` with `archived=true`.
+
+          '
+      responses:
+        '200':
+          description: The document's direct children.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  docs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/KnowledgeDocSummary'
+        '401':
+          description: Invalid or missing API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Document not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/knowledge/{id}:
     get:
       summary: Get a knowledge document
-      description: Returns a knowledge document's content rendered as HTML.
+      description: 'Returns a knowledge document''s full detail — folder path, shares, direct children,
+
+        links to any board/card/conversation, view counts, and content rendered as HTML.
+
+
+        `currentUser` is populated only when authenticated with a delegate token (its
+
+        `userId` is known); it is `null` for API keys and partner tokens, which are
+
+        company-wide credentials with no per-user permission check. A private document you
+
+        cannot view returns 404, the same as one that doesn''t exist. Unlike `list`/`tree`/
+
+        `children`, this is a direct by-id fetch, so an archived document is still
+
+        returned (with `archived: true`) rather than 404ing.'
       operationId: getKnowledgeDoc
       tags:
       - Knowledge
@@ -113,7 +508,7 @@ paths:
         description: The knowledge document ID.
       responses:
         '200':
-          description: Knowledge document content.
+          description: Knowledge document detail.
           content:
             application/json:
               schema:
@@ -121,6 +516,32 @@ paths:
               example:
                 _id: kdoc_abc123
                 name: Lease Addendum Policy
+                emoji: null
+                iconUrl: null
+                coverUrl: null
+                accessType: public
+                isPrivate: false
+                shares: []
+                parentId: null
+                path: []
+                children: []
+                childCount: 0
+                links:
+                  aptletUuid: null
+                  aptletInstanceId: null
+                  streamId: null
+                published: false
+                publishedAt: null
+                views:
+                  internal: 0
+                  public: 0
+                archived: false
+                archivedAt: null
+                createdAt: '2026-01-05T12:00:00.000Z'
+                createdBy: user_123
+                updatedAt: '2026-01-05T12:00:00.000Z'
+                updatedBy: user_123
+                currentUser: null
                 html: <p>This policy applies to all lease agreements...</p>
         '401':
           description: Invalid or missing API key.
@@ -138,7 +559,130 @@ paths:
       summary: Update a knowledge document
       description: 'Updates a knowledge document''s content and/or metadata. Only fields provided in the
 
-        request body are updated — omitted fields are left unchanged.'
+        request body are updated — omitted fields are left unchanged. Provide either `html`
+
+        or `markdown`, not both.
+
+
+        ## HTML format
+
+
+        Standard HTML (paragraphs, headings, lists, check lists, tables, quotes, code blocks,
+
+        images, links, bold/italic/underline/strike) is converted to the editor''s built-in
+
+        blocks. Aptly''s custom blocks and inline items are written as elements carrying a
+
+        type attribute plus one `data-*` attribute per property. Property names are the
+
+        camelCase names below written in kebab-case (`cardId` → `data-card-id`). Omitted
+
+        properties take their default (empty string unless noted). Text inside a block
+
+        element is ignored, except for the `ai` block. `GET /api/knowledge/{id}` returns
+
+        these elements in the same format, so its `html` can be edited and sent back.
+
+
+        **Blocks** — `
+
+
+        `, placed between paragraphs:
+
+
+        | Type | Properties | Example |
+
+        | --- | --- | --- |
+
+        | `card` | `cardId` | `
+
+
+        ` |
+
+        | `task` | `taskId` | `
+
+
+        ` |
+
+        | `contact` | `contactId` | `
+
+
+        ` |
+
+        | `pageLink` | `documentId` (another knowledge document) | `
+
+
+        ` |
+
+        | `aptlyObject` | `objectId`, `objectType`, `aptletUuid` | `
+
+
+        ` |
+
+        | `embed` | `url`, `width` (number, default 500), `height` (number, default 400) | `
+
+
+        ` |
+
+        | `mermaid` | `code` (Mermaid diagram source) | `
+
+
+        ` |
+
+        | `formField` | `boardUuid`, `fieldUuid`, `fieldType`, `label`, `required` (boolean, default false), `cardId`, `boardName`, `boardIcon`, `boardColor` | `
+
+
+        ` |
+
+        | `mergeFieldBlock` | `key`, `boardUuid`, `fieldUuid`, `cardId`, `label`, `boardName` | `
+
+
+        ` |
+
+        | `ai` | `prompt`; the element''s text is the generated content | `
+
+
+        Generated text
+
+
+        ` |
+
+
+        **Inline items** — ``, inside a
+
+        paragraph, heading, list item or table cell:
+
+
+        | Type | Properties | Example |
+
+        | --- | --- | --- |
+
+        | `userMention` | `id`, `entityId`, `fullName` (default `Unknown`), `type` (default `user`), `mentionedBy` | `` |
+
+        | `cardMention` | `cardId` | `` |
+
+        | `taskMention` | `taskId` | `` |
+
+        | `mergeField` | `key`, `boardUuid`, `fieldUuid`, `cardId`, `label`, `boardName`, `fallback` (omit for no fallback) | `` |
+
+
+        Notes:
+
+        - Escape attribute values as HTML (`"`, `&`, `<`, `>`).
+
+        - `true`/`false` and numbers in attributes are read as booleans and numbers.
+
+        - An element without its `data-content-type` / `data-inline-content-type`
+
+        attribute is treated as plain HTML, not as the custom item.
+
+        - The `ai` block keeps only the text of its first `
+
+        `.
+
+        - Multi-column layouts are not supported.
+
+        - Markdown cannot express custom blocks; use `html` for them.'
       operationId: updateKnowledgeDoc
       tags:
       - Knowledge
@@ -159,13 +703,20 @@ paths:
           application/json:
             schema:
               type: object
+              not:
+                required:
+                - html
+                - markdown
               properties:
                 name:
                   type: string
                   description: New document title.
                 html:
                   type: string
-                  description: Replacement HTML content for the document body.
+                  description: Replacement HTML content for the document body. Mutually exclusive with `markdown`.
+                markdown:
+                  type: string
+                  description: Replacement Markdown content for the document body. Mutually exclusive with `html`.
                 accessType:
                   type: string
                   enum:
@@ -185,6 +736,12 @@ paths:
                 properties:
                   _id:
                     type: string
+        '400':
+          description: Both `html` and `markdown` were provided (only one is allowed).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or missing API key.
           content:
@@ -199,8 +756,9 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
-    KnowledgeDoc:
+    KnowledgeDocSummary:
       type: object
+      description: Lite shape returned by the list/tree/children knowledge endpoints (no rendered HTML).
       properties:
         _id:
           type: string
@@ -208,9 +766,32 @@ components:
         name:
           type: string
           description: Document title.
-        html:
+        emoji:
+          type:
+          - string
+          - 'null'
+        iconUrl:
+          type:
+          - string
+          - 'null'
+        accessType:
           type: string
-          description: Document body rendered as HTML.
+          enum:
+          - public
+          - publicReadonly
+          - private
+        parentId:
+          type:
+          - string
+          - 'null'
+          description: Parent document ID, or null for a root document.
+        rank:
+          type:
+          - integer
+          - 'null'
+          description: Sort order among siblings. May be null.
+        archived:
+          type: boolean
     Error:
       type: object
       properties:
@@ -218,6 +799,207 @@ components:
           type: string
         message:
           type: string
+    KnowledgeTreeNode:
+      allOf:
+      - $ref: '#/components/schemas/KnowledgeDocSummary'
+      - type: object
+        properties:
+          hasChildren:
+            type: boolean
+            description: Whether this document has at least one child, whether or not it was expanded.
+          matched:
+            type: boolean
+            description: 'Only present when at least one of the tree endpoint''s filter parameters (aptletUuid, aptletInstanceId, streamId, search, archived, ownerId, updatedById, createdFrom, createdTo, updatedFrom, updatedTo, unlinked) is active. `true` for a document that directly matched the filters; `false` for a node kept only as ancestor/descendant context around a match.
+
+              '
+          children:
+            type: array
+            items:
+              $ref: '#/components/schemas/KnowledgeTreeNode'
+            description: 'Nested nodes, present up to the requested `depth`. When a filter is active, this is pruned to matches plus their ancestors/descendants within the tree rather than every child.
+
+              '
+    KnowledgeDoc:
+      type: object
+      description: Full document detail returned by GET /api/knowledge/{id}.
+      properties:
+        _id:
+          type: string
+          description: Document ID.
+        name:
+          type: string
+          description: Document title.
+        emoji:
+          type:
+          - string
+          - 'null'
+        iconUrl:
+          type:
+          - string
+          - 'null'
+        coverUrl:
+          type:
+          - string
+          - 'null'
+        accessType:
+          type: string
+          enum:
+          - public
+          - publicReadonly
+          - private
+        isPrivate:
+          type: boolean
+        shares:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              type:
+                type: string
+                enum:
+                - user
+                - team
+              permission:
+                type: string
+                enum:
+                - edit
+                - comment
+                - view
+              owner:
+                type: boolean
+              createdAt:
+                type:
+                - string
+                - 'null'
+                format: date-time
+              updatedAt:
+                type:
+                - string
+                - 'null'
+                format: date-time
+        parentId:
+          type:
+          - string
+          - 'null'
+        path:
+          type: array
+          description: Root-first ancestor chain (folders above this document). Excludes this document.
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+              name:
+                type: string
+              emoji:
+                type:
+                - string
+                - 'null'
+        children:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+              name:
+                type: string
+              emoji:
+                type:
+                - string
+                - 'null'
+              rank:
+                type:
+                - integer
+                - 'null'
+        childCount:
+          type: integer
+        links:
+          type: object
+          properties:
+            aptletUuid:
+              type:
+              - string
+              - 'null'
+            aptletInstanceId:
+              type:
+              - string
+              - 'null'
+            streamId:
+              type:
+              - string
+              - 'null'
+        published:
+          type: boolean
+        publishedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        views:
+          type: object
+          properties:
+            internal:
+              type: integer
+            public:
+              type: integer
+        archived:
+          type: boolean
+        archivedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        createdAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        createdBy:
+          type:
+          - string
+          - 'null'
+        updatedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        updatedBy:
+          type:
+          - string
+          - 'null'
+        currentUser:
+          type:
+          - object
+          - 'null'
+          description: 'Null for API key / partner token callers — those credentials are company-wide, so no per-user permission check is applied. Populated only for a delegate token, where the caller''s own user identity is known.
+
+            '
+          properties:
+            userId:
+              type: string
+            isOwner:
+              type: boolean
+            permission:
+              type:
+              - string
+              - 'null'
+              enum:
+              - edit
+              - comment
+              - view
+              - null
+            canView:
+              type: boolean
+            canEdit:
+              type: boolean
+            canComment:
+              type: boolean
+        html:
+          type: string
+          description: Document body rendered as HTML. Aptly custom blocks and inline items appear as elements with `data-content-type` / `data-inline-content-type` and `data-*` property attributes, plus a readable label — see "HTML format" in `PUT /api/knowledge/{id}`.
   securitySchemes:
     ApiKeyHeader:
       type: apiKey

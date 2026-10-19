@@ -1,13 +1,23 @@
 openapi: 3.2.0
 info:
   title: Aptly Email API
-  version: '1.0'
-  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+  version: '1.1'
+  description: 'The Aptly API lets external systems work with boards, contacts, inboxes,
+
+    tasks, files, and other Aptly resources.
 
 
-    All requests require an API key passed as the `x-token` header.
+    Most endpoints accept an API key in the `x-token` header. Some endpoints
 
-    API keys are scoped to your company and work across all boards.'
+    also accept a delegate token or partner bearer token, as shown in each
+
+    operation''s security requirements, and explicitly public endpoints require
+
+    no credential. API keys are scoped to a company and may be restricted to
+
+    specific boards and read, insert, or update permissions; requests outside
+
+    those restrictions receive a 403 `FORBIDDEN` response.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production
@@ -91,6 +101,9 @@ paths:
                 channelId:
                   type: string
                   description: '`channel.meta.id` of the outbound email channel.'
+                companyId:
+                  type: string
+                  description: Company ID. Required only when authenticating with a partner token; resolved automatically for API key and delegate token auth.
                 discussionId:
                   type: string
                   description: 'When set, append the draft as a reply to this existing thread (stream
@@ -186,7 +199,10 @@ paths:
       description: 'Sends an outbound email scoped to your company. Two usage patterns:
 
 
-        **From an existing draft** — provide `discussionId` and `uuid` returned by
+        `userId` and `channelId` are required on every call.
+
+
+        **From an existing draft** — also provide `discussionId` and `uuid` returned by
 
         `POST /api/email/create-draft`. The draft''s stored recipients, subject, and body are
 
@@ -250,6 +266,9 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+              - userId
+              - channelId
               properties:
                 discussionId:
                   type: string
@@ -279,6 +298,9 @@ paths:
                 channelId:
                   type: string
                   description: Required when sending on-the-fly.
+                companyId:
+                  type: string
+                  description: Company ID. Required only when authenticating with a partner token; resolved automatically for API key and delegate token auth.
                 to:
                   type: array
                   items:
@@ -338,6 +360,8 @@ paths:
               from_draft:
                 summary: Send from an existing draft
                 value:
+                  userId: user_abc
+                  channelId: channel_abc
                   discussionId: stream_abc
                   uuid: draft_xyz
               on_the_fly:
@@ -357,6 +381,12 @@ paths:
             application/json:
               schema:
                 type: object
+        '400':
+          description: The request body failed validation, for example a recipient that is not an email address, or a missing `userId` or `channelId`. See `meta.issues` for each field.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
         '401':
           description: Invalid or missing API key.
           content:
@@ -365,12 +395,46 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
-    Error:
+    ValidationError:
       type: object
+      description: 'Returned with HTTP 400 when the request body fails shape validation (wrong type,
+
+        missing required field, malformed email/phone number, value out of bounds).
+
+        `meta.issues` lists every offending field.
+
+        '
       properties:
         error:
-          type: string
-        message:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+              - VALIDATION_ERROR
+            message:
+              type: string
+              example: One or more fields are invalid
+            meta:
+              type: object
+              properties:
+                issues:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                        description: Dotted path to the offending property (for example `to.0.value`); empty for a problem with the body as a whole.
+                        example: to.0.value
+                      code:
+                        type: string
+                        description: Machine-readable issue code (for example `invalid_type`, `invalid_format`, `too_small`).
+                        example: invalid_format
+                      message:
+                        type: string
+                        example: must be a valid email address
+        requestId:
           type: string
     EmailRecipient:
       type: object
@@ -383,6 +447,13 @@ components:
         label:
           type: string
           description: Optional display name for the recipient.
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
   securitySchemes:
     ApiKeyHeader:
       type: apiKey

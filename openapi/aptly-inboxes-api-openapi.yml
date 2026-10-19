@@ -1,13 +1,23 @@
 openapi: 3.2.0
 info:
   title: Aptly Inboxes API
-  version: '1.0'
-  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+  version: '1.1'
+  description: 'The Aptly API lets external systems work with boards, contacts, inboxes,
+
+    tasks, files, and other Aptly resources.
 
 
-    All requests require an API key passed as the `x-token` header.
+    Most endpoints accept an API key in the `x-token` header. Some endpoints
 
-    API keys are scoped to your company and work across all boards.'
+    also accept a delegate token or partner bearer token, as shown in each
+
+    operation''s security requirements, and explicitly public endpoints require
+
+    no credential. API keys are scoped to a company and may be restricted to
+
+    specific boards and read, insert, or update permissions; requests outside
+
+    those restrictions receive a 403 `FORBIDDEN` response.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production
@@ -16,6 +26,537 @@ security:
 tags:
 - name: Inboxes
 paths:
+  /api/inboxes:
+    get:
+      summary: List inboxes you can query
+      description: 'Returns the email and phone/SMS inboxes available to the credential, for use
+
+        as the `channelId` on the messages and analytics endpoints.
+
+
+        With delegate-token auth (`inboxes:*` scope) results are limited to
+
+        inboxes the authenticated user can reach, and each entry carries `access`:
+
+        `owned` when the user is a member of the inbox (directly or through a team),
+
+        `monitored` when it is another user''s private inbox that the caller is
+
+        permitted to monitor. `scope` filters on that value.
+
+
+        Monitoring requires the `conversations.monitor_admin` permission on the
+
+        caller and `conversations.monitor_access` on the inbox owner''s role, so a
+
+        caller without those permissions sees only `owned` inboxes.
+
+
+        API keys and partner tokens are company-scoped and carry no user identity, so
+
+        they return every inbox in the company, omit `access`, and reject `scope`
+
+        with a `400`.'
+      operationId: listInboxes
+      tags:
+      - Inboxes
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: scope
+        in: query
+        schema:
+          type: string
+          enum:
+          - owned
+          - monitored
+          - all
+          default: all
+        description: Filter by access type. Delegate-token auth only — rejected for company-scoped credentials.
+      responses:
+        '200':
+          description: Inboxes available to the credential.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        channelId:
+                          type: string
+                          description: External channel meta ID (`meta.id`). Use this on the other inbox endpoints.
+                        type:
+                          type: string
+                          enum:
+                          - email
+                          - phone
+                        provider:
+                          type:
+                          - string
+                          - 'null'
+                          description: Underlying provider, e.g. `gmail`, `office365`, `twilio`.
+                        name:
+                          type:
+                          - string
+                          - 'null'
+                        email:
+                          type:
+                          - string
+                          - 'null'
+                          description: Set for email inboxes.
+                        number:
+                          type:
+                          - string
+                          - 'null'
+                          description: Set for phone/SMS inboxes.
+                        isShared:
+                          type: boolean
+                        access:
+                          type: string
+                          enum:
+                          - owned
+                          - monitored
+                          description: Present only with delegate-token auth. `owned` = the user is a member of the inbox; `monitored` = another user's private inbox the caller may monitor.
+        '400':
+          description: Invalid `scope`, or `scope` used with a company-scoped credential.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing credential.
+  /api/inboxes/{channelId}/messages:
+    get:
+      summary: List threads and messages on an inbox
+      description: 'Returns threads on the inbox, newest activity first, each with its messages
+
+        and stored per-thread metrics. Paging is over **threads**, not individual
+
+        messages.
+
+
+        The window filters on the thread''s last message time and `dateTo` is
+
+        exclusive. Automated/junk threads are excluded unless `includeJunk=true`.
+
+
+        `sentVia` indicates whether an outbound was composed in Aptly (`aptly`) or
+
+        sent from the user''s own mail client and synced in (`native`). Inbound
+
+        messages are always `null`.'
+      operationId: listInboxMessages
+      tags:
+      - Inboxes
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: channelId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: External channel meta ID (`meta.id`) of the inbox.
+      - name: dateFrom
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: ISO date. Only threads with activity at or after this time.
+      - name: dateTo
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: ISO date, exclusive. Range must not exceed 400 days.
+      - name: direction
+        in: query
+        schema:
+          type: string
+          enum:
+          - in
+          - out
+        description: Filter to threads whose most recent message went this way.
+      - name: unreadOnly
+        in: query
+        schema:
+          type: boolean
+          default: false
+        description: When true, return only unread threads. Unread is the thread's stored read state, a single flag shared by everyone with access to the inbox (a thread any teammate has opened counts as read). Applied before paging, so `count` reflects the filtered total.
+      - name: includeJunk
+        in: query
+        schema:
+          type: boolean
+          default: false
+        description: Include threads classified as junk/automated.
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 0
+        description: Zero-based page number (0–9999).
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+          default: 20
+          maximum: 200
+        description: Threads per page.
+      responses:
+        '200':
+          description: Threads with their messages and metrics.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InboxThread'
+                  count:
+                    type: integer
+                    description: Total matching threads across all pages.
+                  page:
+                    type: integer
+                  pageSize:
+                    type: integer
+        '400':
+          description: Invalid date range, paging, direction, or unreadOnly value.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing credential.
+        '403':
+          description: The authenticated user cannot reach this inbox.
+        '404':
+          description: Inbox not found in your company.
+  /api/inboxes/{channelId}/analytics:
+    get:
+      summary: Conversation analytics for an inbox
+      description: 'Aggregated conversation metrics for one inbox over a date range.
+
+
+        Response times are **business-hours aware** — they use the company''s
+
+        configured business hours and holidays, the same basis as in-app reports, so
+
+        figures reconcile. `responseCount` is the number of replies the averages were
+
+        computed from.
+
+
+        Averages and rates are `null` rather than `0` when the window contains
+
+        nothing to measure. Automated/junk threads are excluded unless
+
+        `includeJunk=true`.
+
+
+        `sentiment` carries a numeric average plus the `coverage` it was computed
+
+        from, and `enabled` reports whether scoring is currently switched on for the
+
+        inbox. Scores exist only for threads the pipeline actually scored, so a
+
+        coverage of 40% means the average describes 40% of the window''s threads.
+
+        `topics` lists the categories applied to threads in the window with their
+
+        thread counts.
+
+
+        Qualitative tone summaries (prose descriptions of tone) are not part of this
+
+        endpoint yet and are absent from the response rather than returned as null.'
+      operationId: getInboxAnalytics
+      tags:
+      - Inboxes
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: channelId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: External channel meta ID (`meta.id`) of the inbox.
+      - name: dateFrom
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: dateTo
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: Exclusive. Range must not exceed 400 days.
+      - name: groupBy
+        in: query
+        schema:
+          type: string
+          enum:
+          - assignee
+          - contactType
+        description: Break the same metrics out per assignee, or per the counterpart's contact type. Omit for a single total.
+      - name: includeJunk
+        in: query
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          description: Aggregated metrics for the window.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/InboxAnalytics'
+        '400':
+          description: Invalid date range or `groupBy` value.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing credential.
+        '403':
+          description: The authenticated user cannot reach this inbox.
+        '404':
+          description: Inbox not found in your company.
+  /api/inboxes/{channelId}/trends:
+    get:
+      summary: Volume and response-time trends for an inbox
+      description: 'A gap-free time series for one inbox, rolled up server-side by day, week,
+
+        month or quarter. Both `dateFrom` and `dateTo` are required (max 400 days);
+
+        `dateTo` is exclusive. Periods with no activity are returned with zero volume
+
+        rather than omitted, so the series can be charted directly.
+
+
+        All bucketing is UTC. Weeks start Monday (ISO) and are keyed by that Monday''s
+
+        date, so week keys sort alongside day keys.
+
+
+        **Two bucketing bases, deliberately:** `volume` counts messages sent or
+
+        received *during* the period, while `threadCount` and the response/rate
+
+        figures describe threads whose *last activity* fell in the period. Response
+
+        times carry no per-message timestamps, so they can''t be attributed to a
+
+        single day of a long-running thread. Do not divide `volume` by `threadCount`.
+
+
+        Averages are combined from underlying sums and counts, so a quiet day never
+
+        carries the same weight as a busy one. `responseCount` is the number of
+
+        replies behind `avgResponseHrs`.'
+      operationId: getInboxTrends
+      tags:
+      - Inboxes
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: channelId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: External channel meta ID (`meta.id`) of the inbox.
+      - name: dateFrom
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: dateTo
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+        description: Exclusive. Range must not exceed 400 days.
+      - name: granularity
+        in: query
+        schema:
+          type: string
+          enum:
+          - day
+          - week
+          - month
+          - quarter
+          default: day
+      - name: includeJunk
+        in: query
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          description: Gap-free trend series, oldest period first.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      granularity:
+                        type: string
+                        enum:
+                        - day
+                        - week
+                        - month
+                        - quarter
+                      window:
+                        type: object
+                        properties:
+                          from:
+                            type: string
+                            format: date-time
+                          to:
+                            type: string
+                            format: date-time
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/InboxTrendPeriod'
+        '400':
+          description: Missing/invalid window, or invalid granularity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing credential.
+        '403':
+          description: The authenticated user cannot reach this inbox.
+        '404':
+          description: Inbox not found in your company.
+  /api/inboxes/{channelId}/health:
+    get:
+      summary: Volume health for an inbox against its own baseline
+      description: 'Compares the requested window''s message volume against this inbox''s own
+
+        recent norm and scores the deviation, for health/risk surfaces.
+
+
+        The baseline is a trailing average of the `baselinePeriods` windows of the
+
+        same length immediately before `dateFrom` (default 3). No seasonal
+
+        adjustment is applied. `dateFrom` and `dateTo` are both required; the window
+
+        plus its baseline must stay within a 400-day scan, so long ranges need a
+
+        lower `baselinePeriods`.
+
+
+        `severityScore` (0–100) tracks the size of a **decline** — growth scores 0
+
+        with label `none`. Bands: `critical` 75+, `high` 50–74, `moderate` 25–49,
+
+        `low` 1–24.
+
+
+        `trend` compares the two halves of the requested window, which is what
+
+        separates "down and still falling" from "down but recovering".
+
+
+        **Insufficient history is reported explicitly.** With no baseline volume,
+
+        `volumeVsBaselinePct` and `severityScore` are `null` and `severityLabel` is
+
+        `insufficient_history` — a silent `-100%` would be indistinguishable from a
+
+        real collapse and would drive alerts the data can''t justify.'
+      operationId: getInboxHealth
+      tags:
+      - Inboxes
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: channelId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: External channel meta ID (`meta.id`) of the inbox.
+      - name: dateFrom
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: dateTo
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+        description: Exclusive.
+      - name: baselinePeriods
+        in: query
+        schema:
+          type: integer
+          default: 3
+          minimum: 1
+          maximum: 12
+        description: How many same-length windows before `dateFrom` are averaged into the baseline.
+      - name: includeJunk
+        in: query
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          description: Volume health for the window.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/InboxHealth'
+        '400':
+          description: Missing window, invalid `baselinePeriods`, or a window plus baseline exceeding the 400-day scan limit.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing credential.
+        '403':
+          description: The authenticated user cannot reach this inbox.
+        '404':
+          description: Inbox not found in your company.
   /api/inboxes/{channelId}/drafts:
     get:
       summary: List unsent drafts on an inbox
@@ -37,7 +578,7 @@ paths:
 
         With API-key auth the only scope check is that the inbox belongs to your
 
-        company. With delegate-token auth (`email:*` scope) the inbox must also be
+        company. With delegate-token auth (`inboxes:*` scope) the inbox must also be
 
         one the authenticated user can reach personally or via a team membership.'
       operationId: listInboxDrafts
@@ -150,6 +691,183 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
+    InboxMetricSet:
+      type: object
+      description: Averages and rates are null (not 0) when the window has nothing to measure.
+      properties:
+        threadCount:
+          type: integer
+        contactCount:
+          type: integer
+          description: Distinct counterparts across the matching threads.
+        volume:
+          type: object
+          properties:
+            in:
+              type: integer
+            out:
+              type: integer
+            total:
+              type: integer
+        avgFirstResponseHrs:
+          type:
+          - number
+          - 'null'
+        avgResponseHrs:
+          type:
+          - number
+          - 'null'
+        responseCount:
+          type: integer
+          description: Replies the averages were computed from.
+        oneTouchPct:
+          type:
+          - number
+          - 'null'
+          description: Percentage of threads resolved with a single outbound.
+        oneTouchCount:
+          type: integer
+        reopenRatePct:
+          type:
+          - number
+          - 'null'
+        reopenedCount:
+          type: integer
+        noCustomerResponseCount:
+          type: integer
+          description: Threads where we sent something and never got a reply.
+        awaitingOurReplyCount:
+          type: integer
+          description: Open threads where the counterpart spoke last.
+        sentiment:
+          $ref: '#/components/schemas/InboxSentiment'
+    InboxTopic:
+      type: object
+      description: A topic (category) the enhancement pipeline or a teammate applied to threads in the window. Topics the company no longer defines are omitted.
+      properties:
+        topicId:
+          type: string
+        label:
+          type:
+          - string
+          - 'null'
+        emoji:
+          type:
+          - string
+          - 'null'
+        color:
+          type:
+          - string
+          - 'null'
+        threadCount:
+          type: integer
+    InboxSentiment:
+      type: object
+      description: AI sentiment for the window. Scores are produced on write by the enhancement pipeline, only for inboxes where it is switched on, so `coverage` is always reported next to the average — an average over a fraction of the threads must not be read as covering all of them.
+      properties:
+        enabled:
+          type: boolean
+          description: Whether sentiment scoring is currently on for this inbox (org AI assistant + org sentiment + the inbox's own feature flag). Reported at the inbox level only, not per group.
+        avg:
+          type:
+          - number
+          - 'null'
+          description: Mean score across scored threads. Null when none were scored.
+        coverage:
+          type: object
+          properties:
+            scoredThreads:
+              type: integer
+            threadCount:
+              type: integer
+            pct:
+              type:
+              - number
+              - 'null'
+    InboxThreadMetrics:
+      type: object
+      description: Stored metrics for one thread. Response times are in business hours, using the company's configured business hours and holidays.
+      properties:
+        firstResponseHrs:
+          type:
+          - number
+          - 'null'
+          description: Time to the first reply. Null when nobody has replied.
+        avgResponseHrs:
+          type:
+          - number
+          - 'null'
+        responseCount:
+          type: integer
+          description: Replies the averages were computed from.
+        reopened:
+          type: boolean
+          description: True when an inbound arrived after the thread was closed.
+        touchCount:
+          type: integer
+          description: Total messages in the thread, both directions.
+        inboundCount:
+          type: integer
+        outboundCount:
+          type: integer
+        lastMessageAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        lastMessageDirection:
+          type:
+          - string
+          - 'null'
+          enum:
+          - in
+          - out
+    InboxAnalytics:
+      allOf:
+      - $ref: '#/components/schemas/InboxMetricSet'
+      - type: object
+        properties:
+          window:
+            type: object
+            properties:
+              from:
+                type:
+                - string
+                - 'null'
+                format: date-time
+              to:
+                type:
+                - string
+                - 'null'
+                format: date-time
+          topics:
+            type: array
+            items:
+              $ref: '#/components/schemas/InboxTopic'
+          groupBy:
+            type:
+            - string
+            - 'null'
+            enum:
+            - assignee
+            - contactType
+          groups:
+            type: array
+            description: Present only when `groupBy` was supplied.
+            items:
+              allOf:
+              - type: object
+                properties:
+                  key:
+                    type:
+                    - string
+                    - 'null'
+                    description: Assignee user id or contact-type id. Null for unassigned.
+                  label:
+                    type:
+                    - string
+                    - 'null'
+              - $ref: '#/components/schemas/InboxMetricSet'
     Error:
       type: object
       properties:
@@ -157,6 +875,225 @@ components:
           type: string
         message:
           type: string
+    InboxHealth:
+      type: object
+      properties:
+        window:
+          type: object
+          properties:
+            from:
+              type: string
+              format: date-time
+            to:
+              type: string
+              format: date-time
+        baseline:
+          type: object
+          properties:
+            from:
+              type: string
+              format: date-time
+            to:
+              type: string
+              format: date-time
+            periods:
+              type: integer
+            avgVolume:
+              type:
+              - number
+              - 'null'
+              description: Mean volume per period across the baseline span.
+            sufficient:
+              type: boolean
+              description: False when the baseline span carried no volume. Everything derived from the baseline is null in that case.
+        volume:
+          type: integer
+          description: Messages in the requested window.
+        volumeVsBaselinePct:
+          type:
+          - number
+          - 'null'
+          description: Percentage change against the baseline average. Negative is a decline. Null when `baseline.sufficient` is false.
+        trend:
+          type: string
+          enum:
+          - falling
+          - rising
+          - flat
+          - unknown
+          description: Second half of the window vs. the first. `unknown` when the window is too short to split.
+        severityScore:
+          type:
+          - integer
+          - 'null'
+          description: 0–100, tracking decline magnitude. 0 for flat or growing volume.
+        severityLabel:
+          type: string
+          enum:
+          - critical
+          - high
+          - moderate
+          - low
+          - none
+          - insufficient_history
+        tags:
+          type: array
+          items:
+            type: string
+          description: Human-readable flags, e.g. `Usage down`, `No activity`, `Still falling`.
+    InboxThread:
+      type: object
+      properties:
+        threadId:
+          type: string
+        subject:
+          type:
+          - string
+          - 'null'
+        status:
+          type:
+          - string
+          - 'null'
+          enum:
+          - closed
+          - new
+          - open
+          - sent
+          description: The conversation's status, mapped from the stream's numeric `status` field (0 closed, 1 new, 2 open, 3 sent). `null` when the thread has no status, or an unrecognized one.
+        isJunk:
+          type:
+          - string
+          - 'null'
+          enum:
+          - archived
+          - not_junk
+          - junk
+          description: The thread's junk state, mapped from the stream's numeric `isJunk` field (-1 archived, 0 not junk, 1 junk). `null` when the thread has no value, or an unrecognized one. Junk threads are excluded from the listing unless `includeJunk=true`.
+        unread:
+          type: boolean
+          description: Whether the thread is marked unread, from the stream's 0/1 `unread` flag. Absent on the stream means read.
+        assigneeId:
+          type:
+          - string
+          - 'null'
+          description: Assigned Aptly user id, or null when unassigned.
+        type:
+          type:
+          - string
+          - 'null'
+        participants:
+          type: array
+          items:
+            type: string
+          description: Email addresses / phone numbers taking part in the thread.
+        labels:
+          type: array
+          description: Folder labels applied to the thread, each as `{ id, name }`. Only real folder labels are returned — the encoded scoping ids also stored on a thread (channel, assignee, mention, person type, category) are omitted.
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type:
+                - string
+                - 'null'
+        metrics:
+          $ref: '#/components/schemas/InboxThreadMetrics'
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/InboxMessage'
+    InboxTrendPeriod:
+      type: object
+      properties:
+        period:
+          type: string
+          description: Period key. `YYYY-MM-DD` for day and week (week = the Monday it starts), `YYYY-MM` for month, `YYYY-Qn` for quarter.
+        volume:
+          type: object
+          description: Messages sent or received during this period.
+          properties:
+            in:
+              type: integer
+            out:
+              type: integer
+            total:
+              type: integer
+        threadCount:
+          type: integer
+          description: Threads whose last activity fell in this period.
+        avgResponseHrs:
+          type:
+          - number
+          - 'null'
+          description: Business hours. Null when the period had no replies.
+        responseCount:
+          type: integer
+          description: Replies behind avgResponseHrs.
+        avgFirstResponseHrs:
+          type:
+          - number
+          - 'null'
+        oneTouchPct:
+          type:
+          - number
+          - 'null'
+        reopenRatePct:
+          type:
+          - number
+          - 'null'
+    InboxMessage:
+      type: object
+      properties:
+        messageId:
+          type: string
+        threadId:
+          type: string
+        subject:
+          type:
+          - string
+          - 'null'
+        body:
+          type:
+          - string
+          - 'null'
+        type:
+          type:
+          - string
+          - 'null'
+          description: e.g. `email`, `sms`, `voice`.
+        timestamp:
+          type: string
+          format: date-time
+        direction:
+          type: string
+          enum:
+          - in
+          - out
+        from:
+          type:
+          - object
+          - 'null'
+          description: Sender, as `{ id, name }` where `id` is an email address or phone number.
+        to:
+          type: array
+          items:
+            type: object
+          description: Recipients, each as `{ id, name }`.
+        sentByUser:
+          type:
+          - string
+          - 'null'
+          description: Aptly user id that sent an outbound, when known.
+        sentVia:
+          type:
+          - string
+          - 'null'
+          enum:
+          - aptly
+          - native
+          description: 'How an outbound message was sent: `aptly` when it was composed in Aptly, `native` when the user sent it from their own mail client and it synced in. Always `null` on inbound messages.'
   securitySchemes:
     ApiKeyHeader:
       type: apiKey

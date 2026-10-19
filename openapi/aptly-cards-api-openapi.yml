@@ -1,13 +1,23 @@
 openapi: 3.2.0
 info:
   title: Aptly Cards API
-  version: '1.0'
-  description: 'The Aptly API lets you read and write cards on any Aptly board from external systems.
+  version: '1.1'
+  description: 'The Aptly API lets external systems work with boards, contacts, inboxes,
+
+    tasks, files, and other Aptly resources.
 
 
-    All requests require an API key passed as the `x-token` header.
+    Most endpoints accept an API key in the `x-token` header. Some endpoints
 
-    API keys are scoped to your company and work across all boards.'
+    also accept a delegate token or partner bearer token, as shown in each
+
+    operation''s security requirements, and explicitly public endpoints require
+
+    no credential. API keys are scoped to a company and may be restricted to
+
+    specific boards and read, insert, or update permissions; requests outside
+
+    those restrictions receive a 403 `FORBIDDEN` response.'
 servers:
 - url: https://core-api.getaptly.com
   description: Production
@@ -16,8 +26,8 @@ security:
 tags:
 - name: Cards
 paths:
-  /api/board/{boardId}:
-    get:
+  /api/board/{boardId}/list:
+    post:
       summary: List cards
       description: 'Returns a paginated list of cards on the board.
 
@@ -27,13 +37,115 @@ paths:
         Money fields are returned as `{ amount, currency }` where `amount` is a decimal.
 
 
-        All filter params are optional and ANDed together.'
+        All filter params are optional and ANDed together.
+
+
+        Supply segmentId OR rules (a JSON array), never both. Rules use the existing saved-segment format. Invalid rules fail with 400; missing, private-to-another-user, archived, or wrong-board segments return 404.
+
+
+        Auth: API key, delegate token (boards:* or boards:{boardId} read scope), or partner bearer token with board-admin. Mobile tokens are not accepted. Keys/delegates require API-enabled boards; partner access retains its existing API-enabled bypass. API keys/partners may supply userId for an active company member; delegates can only use their token user. Without userId only public segments are visible. Public means company-shared.
+
+
+        This /list POST performs no writes and does not change POST /api/board/{boardId}, which creates/updates cards. Rules are ANDed. Relative dates are evaluated on each request. See the Board segments guide for values, field comparisons, business-hours rules, and examples.'
+      operationId: listBoardCards
+      tags:
+      - Cards
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      - PartnerBearer: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The board's UUID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BoardCardListRequest'
+            examples:
+              segment:
+                summary: Saved segment
+                value:
+                  page: 0
+                  pageSize: 20
+                  segmentId: SEGMENT_ID
+                  userId: USER_ID
+              adhoc:
+                summary: My cards in a stage updated within 24 hours
+                value:
+                  page: 0
+                  userId: USER_ID
+                  rules:
+                  - fieldUuid: assignee
+                    operator: anyIn
+                    valueSource: currentUser
+                  - fieldUuid: stage
+                    operator: anyIn
+                    value:
+                    - In Progress
+                  - fieldUuid: updatedAt
+                    operator: lastCustomDays
+                    value: 1
+      responses:
+        '200':
+          description: Paginated list of cards.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Card'
+                  count:
+                    type: integer
+                    description: Total number of matching cards.
+                  page:
+                    type: integer
+                  pageSize:
+                    type: integer
+        '400':
+          description: Invalid rules, query parameters, or missing user context.
+        '401':
+          description: Invalid or missing API key.
+        '403':
+          description: Read access denied, API disabled, company mismatch, or invalid user selection.
+        '404':
+          description: Board or accessible active segment not found.
+  /api/board/{boardId}:
+    get:
+      summary: List cards (deprecated)
+      description: 'Deprecated: use POST /api/board/{boardId}/list. Both endpoints use the same read-only listing implementation and response. GET remains supported.
+
+
+        Returns a paginated list of cards on the board.
+
+
+        Field values are keyed by field UUID — use the schema endpoint to map keys to labels.
+
+        Money fields are returned as `{ amount, currency }` where `amount` is a decimal.
+
+
+        All filter params are optional and ANDed together.
+
+
+        Supply segmentId OR rules (a JSON-encoded array), never both. Rules use the existing saved-segment format. Invalid rules fail with 400; missing, private-to-another-user, archived, or wrong-board segments return 404.
+
+
+        Auth: API key, delegate token (boards:* or boards:{boardId} read scope), or partner bearer token with board-admin. Mobile tokens are not accepted. Keys/delegates require API-enabled boards; partner access retains its existing API-enabled bypass. API keys/partners may supply userId for an active company member; delegates can only use their token user. Without userId only public segments are visible. Public means company-shared.'
       operationId: listCards
       tags:
       - Cards
       security:
       - ApiKeyHeader: []
       - DelegateToken: []
+      - PartnerBearer: []
       parameters:
       - name: boardId
         in: path
@@ -48,7 +160,7 @@ paths:
           type: integer
           minimum: 0
           maximum: 9999
-        description: Zero-based page number.
+        description: Zero-based page number. Legacy GET parses the base-10 integer prefix (1.5 or 1e2 becomes 1).
       - name: pageSize
         in: query
         schema:
@@ -56,7 +168,7 @@ paths:
           minimum: 1
           maximum: 1000
           default: 20
-        description: Number of cards per page.
+        description: Number of cards per page. Legacy GET parses the base-10 integer prefix; omitted or empty defaults to 20.
       - name: updatedAtMin
         in: query
         schema:
@@ -68,7 +180,7 @@ paths:
         schema:
           type: boolean
           default: false
-        description: Include archived cards.
+        description: Include archived cards. Legacy GET treats empty or the exact string false as false; any other nonempty string (including 1 or 0) as true. Omitted lets archive rules control selection.
       - name: relatedId
         in: query
         schema:
@@ -89,6 +201,24 @@ paths:
         schema:
           type: string
         description: Filter cards by assignee user ID.
+      - name: segmentId
+        schema:
+          type: string
+          maxLength: 256
+        description: Existing accessible, active segment on this board; mutually exclusive with rules.
+        in: query
+      - name: rules
+        schema:
+          type: string
+          maxLength: 64000
+        description: JSON-encoded BoardFilterRule array, at most 100 rules. Prefer POST /list with a native JSON array.
+        in: query
+      - name: userId
+        schema:
+          type: string
+          maxLength: 256
+        description: Active company member whose private segments/currentUser values to use. API keys/partners may select a member; delegates cannot select another user.
+        in: query
       responses:
         '200':
           description: Paginated list of cards.
@@ -108,12 +238,15 @@ paths:
                     type: integer
                   pageSize:
                     type: integer
+        '400':
+          description: Invalid rules, query parameters, or missing user context.
         '401':
           description: Invalid or missing API key.
         '403':
-          description: API access is disabled for this board.
+          description: Read access denied, API disabled, company mismatch, or invalid user selection.
         '404':
-          description: Board not found.
+          description: Board or accessible active segment not found.
+      deprecated: true
     post:
       summary: Create or update a card
       description: 'Creates a new card on the board. Use field UUIDs (from the schema endpoint) as keys in the request body.
@@ -121,7 +254,33 @@ paths:
 
         To update an existing card, include its `_id` in the request body. The card must belong to this board.
 
-        Fields not provided in the body are left unchanged on update.'
+        Fields not provided in the body are left unchanged on update.
+
+
+        Contact fields take person ids from the Contacts API: a `person` field takes
+
+        `{ "_id": "" }` (or `null` to clear it), and a `persons` field takes an
+
+        array of them (`[]` clears it). Each id must be an existing contact in the board''s
+
+        company. The stored value is expanded to `{ _id, name, duogram }`, where `name` is
+
+        the contact''s full name and `duogram` its initials; any other keys sent are ignored.
+
+
+        Card-link fields (`location`, `unit`, `relatedAptlets`) always take an array of
+
+        `{ "_id": "" }` (`[]` clears the field). Each id must be a live
+
+        (non-archived) card in the board''s company that matches every part of the
+
+        field''s `filter` that is set: the card must be on one of the boards in
+
+        `filter.aptletUuids`, and its board''s type must be in `filter.aptletTypes`.
+
+        `location` and `unit` fields with no `aptletUuids` take cards from the built-in
+
+        `location` and `unit` boards. Values are stored as `{ _id, name, duogram }`.'
       operationId: createCard
       tags:
       - Cards
@@ -153,6 +312,10 @@ paths:
               name: John Smith
               abc123: john@example.com
               ghi789: 1500
+              jkl012:
+                _id: aBcD1234eFgH5678i
+              mno345:
+              - _id: kLmN9012oPqR3456s
       responses:
         '200':
           description: Card created.
@@ -167,6 +330,8 @@ paths:
                       _id:
                         type: string
                         description: ID of the created card.
+        '400':
+          description: A `person`/`persons` or `location`/`unit`/`relatedAptlets` value has the wrong shape, or names a contact or card that does not exist in the board's company or that the field's filter does not allow.
         '401':
           description: Invalid or missing API key.
         '403':
@@ -204,6 +369,51 @@ paths:
                 properties:
                   data:
                     $ref: '#/components/schemas/Card'
+        '401':
+          description: Invalid or missing API key.
+        '403':
+          description: API access is disabled for this board.
+        '404':
+          description: Card not found.
+    delete:
+      summary: Archive a card
+      description: 'Archives the card. This is a soft delete — the card is never removed, only marked
+
+        archived (same as the "Delete" action in the Aptly UI, which archives rather than
+
+        hard-deletes).'
+      operationId: deleteCard
+      tags:
+      - Cards
+      security:
+      - ApiKeyHeader: []
+      - DelegateToken: []
+      parameters:
+      - name: boardId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Card archived.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      archived:
+                        type: boolean
         '401':
           description: Invalid or missing API key.
         '403':
@@ -418,6 +628,147 @@ paths:
           description: Card not found.
 components:
   schemas:
+    Card:
+      type: object
+      properties:
+        cardId:
+          type: string
+          description: Unique ID of the card.
+        boardUuid:
+          type: string
+          description: UUID of the board this card belongs to.
+        archived:
+          type: boolean
+        assignee:
+          type: string
+          description: Full name of the assigned user.
+        lastActivity:
+          type:
+          - object
+          - 'null'
+          description: Most recent conversation activity on the card (email, SMS or call), or null if the card has none.
+          properties:
+            content:
+              type:
+              - string
+              - 'null'
+              description: Body/text preview of the most recent message.
+            type:
+              type:
+              - string
+              - 'null'
+              description: Activity type, e.g. `email`, `sms`, `voice`.
+            direction:
+              type:
+              - string
+              - 'null'
+              enum:
+              - in
+              - out
+              description: Direction of the message — `in` (inbound) or `out` (outbound).
+            publishedAt:
+              type:
+              - string
+              - 'null'
+              format: date-time
+            conversationUrl:
+              type:
+              - string
+              - 'null'
+              description: Deep link to the conversation thread in Aptly. Null when the activity is not attached to a thread.
+      additionalProperties:
+        description: Additional properties are dynamic board fields keyed by their field UUID. Fields of type `files` come back as an array of file objects and type `file` as a single file object — `{ fileId, name, size, type, url, expiresAt }`, where `url` is a presigned download link valid until `expiresAt` (1 hour, or sooner if the signing session ends first). An id with no readable file record degrades to `{ fileId }` with no `url`.
+    BoardFilterRule:
+      type: object
+      properties:
+        fieldUuid:
+          type: string
+          description: 'Field uuid from the board catalog (HIRO: get_board_fields.fields); system fields include assignee, stage, updatedAt.'
+        key:
+          type: string
+          description: Exact filter key from the field's filters array. Required to select a subfield when one uuid has multiple filters.
+        operator:
+          type: string
+          description: Supported operator from the filter's operatorSet in the catalog's operatorSets dictionary. Greater-than is spelled gratherThan for saved-rule compatibility.
+        value:
+          description: 'between takes [minimum, maximum], e.g. ["2026-09-28", "2026-10-04"] for ISO dates or [0, 100] for numbers. Money values are {amount: cents, currency?: string}; money ranges use two such objects. anyIn/notIn require nonempty arrays of option values, user ids, booleans/null, or contact {_id} objects as appropriate for the field. Use option.value when present, otherwise the literal option string/label. Contact equal uses {_id}. Date comparisons use ISO dates; specificPeriod uses {period: dayOfYear|month|quarter|year|week, adjustment?: integer}. For feeAmount fields, wrap any supplied value in {end: value}, including {end: [minimum, maximum]} for between. Omit value for noValue operators.'
+        valueSource:
+          type: string
+          enum:
+          - currentUser
+          description: For user anyIn/notIn rules, resolves the authenticated/selected user on the server. Omit value.
+        valueFieldUuid:
+          type: string
+          description: Optional comparison field uuid or catalog key; equal, notEqual, lessThan, gratherThan only. Omit value.
+        defaultValueField:
+          type: string
+          description: Optional catalog field/key used if the filtered field is missing.
+      required:
+      - fieldUuid
+      - operator
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    BoardCardListRequest:
+      type: object
+      required:
+      - page
+      properties:
+        page:
+          type: integer
+          minimum: 0
+          maximum: 9999
+          description: Zero-based page number.
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          default: 20
+          description: Number of cards per page.
+        updatedAtMin:
+          type: string
+          format: date-time
+          description: Only return cards updated after this ISO timestamp.
+        includeArchived:
+          type: boolean
+          default: false
+          description: Include archived cards. If omitted, an explicit archived rule controls archive selection; otherwise active cards only. An explicit false intersects with the rules.
+        relatedId:
+          type: string
+          description: Only return cards where `references.value` contains this ID.
+        contactEmail:
+          type: string
+          description: Resolves the email to contact IDs, then filters cards referencing those contacts.
+        keyTerm:
+          type: string
+          description: Full-text autocomplete search on card title using the Atlas Search index.
+        assignee:
+          type: string
+          description: Filter cards by assignee user ID.
+        segmentId:
+          type: string
+          maxLength: 256
+          description: Existing accessible, active segment on this board; mutually exclusive with rules.
+        rules:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/BoardFilterRule'
+          description: Ad hoc saved-segment rules, ANDed together. Requires an explicit board. Supply rules OR segmentId. Invalid rules are rejected.
+        userId:
+          type: string
+          maxLength: 256
+          description: Active company member whose private segments/currentUser values to use. API keys/partners may select a member; delegates cannot select another user.
+      description: Read-only card listing. Supply segmentId OR rules; existing simple filters intersect with either. Segment/rule queries exclude deleted cards unless explicitly selected by a rule. No filter or card is saved. Saved segments must contain a rules array; missing or malformed rules require re-saving. An explicitly empty rules array matches all cards within the remaining filters.
     Contact:
       type: object
       properties:
@@ -466,34 +817,6 @@ components:
           description: Company name — populated when isCompany is true.
         isCompany:
           type: boolean
-    Comment:
-      type: object
-      properties:
-        id:
-          type: string
-        userId:
-          type: string
-        content:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-    Card:
-      type: object
-      properties:
-        cardId:
-          type: string
-          description: Unique ID of the card.
-        boardUuid:
-          type: string
-          description: UUID of the board this card belongs to.
-        archived:
-          type: boolean
-        assignee:
-          type: string
-          description: Full name of the assigned user.
-      additionalProperties:
-        description: Additional properties are dynamic board fields keyed by their field UUID.
   securitySchemes:
     ApiKeyHeader:
       type: apiKey

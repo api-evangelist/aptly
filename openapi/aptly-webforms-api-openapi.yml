@@ -1,0 +1,154 @@
+openapi: 3.2.0
+info:
+  title: Aptly Web Forms API
+  version: '1.1'
+  description: 'The Aptly API lets external systems work with boards, contacts, inboxes,
+
+    tasks, files, and other Aptly resources.
+
+
+    Most endpoints accept an API key in the `x-token` header. Some endpoints
+
+    also accept a delegate token or partner bearer token, as shown in each
+
+    operation''s security requirements, and explicitly public endpoints require
+
+    no credential. API keys are scoped to a company and may be restricted to
+
+    specific boards and read, insert, or update permissions; requests outside
+
+    those restrictions receive a 403 `FORBIDDEN` response.'
+servers:
+- url: https://core-api.getaptly.com
+  description: Production
+security:
+- ApiKeyHeader: []
+tags:
+- name: WebForms
+paths:
+  /api/web-forms/{formId}:
+    post:
+      summary: Submit a web form
+      description: 'Submits data to an Aptly Web Form. The request must use the API key
+
+        issued for this exact form and that key must have insert access to the
+
+        form''s board.
+
+
+        Submitted board-field values are keyed by field UUID. Depending on the
+
+        form''s configuration, the submission creates a card or updates a card
+
+        whose configured match fields have the same values. Unknown properties
+
+        are ignored. Contact shortcut properties can link the card to an
+
+        existing contact or create a new contact when the form and board allow it.'
+      operationId: submitWebForm
+      tags:
+      - WebForms
+      security:
+      - ApiKeyHeader: []
+      parameters:
+      - name: formId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Web Form ID.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Card name. Takes precedence over `title`.
+                title:
+                  type: string
+                  description: Card name when `name` is omitted.
+                contactFirstName:
+                  type: string
+                  description: Contact first name used by automatic contact linking.
+                contactLastName:
+                  type: string
+                  description: Contact last name used by automatic contact linking.
+                contactFullName:
+                  type: string
+                  description: Contact full name used by automatic contact linking.
+                contactEmail:
+                  type: string
+                  format: email
+                  description: Contact email used for lookup or creation.
+                contactPhone:
+                  type: string
+                  description: Contact phone number used for lookup or creation.
+              additionalProperties:
+                description: Board field value keyed by the field UUID configured on the form's board.
+      responses:
+        '200':
+          description: Submission accepted and its card created or updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required:
+                    - _id
+                    - action
+                    properties:
+                      _id:
+                        type: string
+                        description: ID of the created or updated card.
+                      action:
+                        type: string
+                        enum:
+                        - created
+                        - updated
+        '400':
+          description: The board API is disabled or the submitted data is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing API key.
+        '403':
+          description: The API key lacks insert or board access, or was not issued for this form.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Form or board not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-token
+    DelegateToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Delegate token issued by the platform. Format: `DelegateToken <token>`'
+    PartnerBearer:
+      type: http
+      scheme: bearer
+      description: 'Partner token. Format: `Authorization: Bearer <token>`'
