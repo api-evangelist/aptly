@@ -293,6 +293,8 @@ apis:
   humanURL: https://docs.getaptly.com/introduction
   baseURL: https://core-api.getaptly.com
   tags:
+  - Web Forms
+  tags_raw:
   - WebForms
   properties:
   - type: OpenAPI
