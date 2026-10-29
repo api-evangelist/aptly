@@ -64,6 +64,147 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-Aptly is a company surfaced as a portfolio company of accel and added to the API Evangelist network as a stub for enrichment. Sector: cloud-saas. This profile is a lead awaiting the enrichment pipeline.
+Aptly is the AI operations layer for property management, built by Invisible Apps, Inc. It unifies resident and owner communication (calls, texts, emails, and chat) with board-based workflows, automation, and AI agents that handle leasing inquiries, maintenance requests, and around-the-clock resident communication, and it syncs bidirectionally with property management systems including Yardi, RealPage, Entrata, and AppFolio. The Aptly Core API (https://core-api.getaptly.com) gives external systems and AI agents direct read/write access to boards, cards, contacts, tasks, inboxes, calendars, files, and knowledge documents using a per-company API key, and Aptly ships an official hosted MCP server (https://mcp.getaptly.com/mcp) as the recommended way to connect LLMs. A separate Portal API powers the rental-application screening portal.
 
-Backed by: accel — http://getaptly.com
+**Areas:** Company · Cloud Saas · Property Management · Real Estate · PropTech · CRM · Workflow Automation · AI Agents · Communications · MCP
+
+## Aptly on APIs.io
+
+Everything profiled for Aptly is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/aptly/](https://apis.io/providers/aptly/)** — or go straight to one of the APIs or properties below.
+
+### APIs (15)
+
+- [Aptly App API](https://apis.io/apis/aptly/aptly-app-api/) — The App API from Aptly — 2 operation(s) for app.
+- [Aptly Board API](https://apis.io/apis/aptly/aptly-board-api/) — The Board API from Aptly — 12 operation(s) for board.
+- [Aptly Boards API](https://apis.io/apis/aptly/aptly-boards-api/) — The Boards API from Aptly — 1 operation(s) for boards.
+- [Aptly Cards API](https://apis.io/apis/aptly/aptly-cards-api/) — The Cards API from Aptly — 6 operation(s) for cards.
+- [Aptly Company API](https://apis.io/apis/aptly/aptly-company-api/) — The Company API from Aptly — 1 operation(s) for company.
+- [Aptly Contacts API](https://apis.io/apis/aptly/aptly-contacts-api/) — The Contacts API from Aptly — 5 operation(s) for contacts.
+- [Aptly Email API](https://apis.io/apis/aptly/aptly-email-api/) — The Email API from Aptly — 2 operation(s) for email.
+- [Aptly Files API](https://apis.io/apis/aptly/aptly-files-api/) — The Files API from Aptly — 2 operation(s) for files.
+- [Aptly Inboxes API](https://apis.io/apis/aptly/aptly-inboxes-api/) — The Inboxes API from Aptly — 1 operation(s) for inboxes.
+- [Aptly Knowledge API](https://apis.io/apis/aptly/aptly-knowledge-api/) — The Knowledge API from Aptly — 2 operation(s) for knowledge.
+- [Aptly RoutingGroups API](https://apis.io/apis/aptly/aptly-routinggroups-api/) — The RoutingGroups API from Aptly — 4 operation(s) for routinggroups.
+- [Aptly Schema API](https://apis.io/apis/aptly/aptly-schema-api/) — The Schema API from Aptly — 1 operation(s) for schema.
+- [Aptly Tasks API](https://apis.io/apis/aptly/aptly-tasks-api/) — The Tasks API from Aptly — 3 operation(s) for tasks.
+- [Aptly Templates API](https://apis.io/apis/aptly/aptly-templates-api/) — The Templates API from Aptly — 2 operation(s) for templates.
+- [Aptly Users API](https://apis.io/apis/aptly/aptly-users-api/) — The Users API from Aptly — 2 operation(s) for users.
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### MCP servers (1)
+
+Model Context Protocol servers that expose the API to agents.
+
+- [aptly](https://apis.io/servers/aptly/aptly/)
+
+#### Agentic access (1)
+
+Which operations an agent can call, which act, and which need a human in the loop.
+
+- [Aptly Agentic Access](https://apis.io/agentic-access/aptly/aptly-agentic-access/)
+
+#### Collections (15)
+
+Postman and Open Collection request collections.
+
+- [Aptly App API](https://apis.io/collections/aptly/open-aptly-app-api/)
+- [Aptly App Board API](https://apis.io/collections/aptly/open-aptly-board-api/)
+- [Aptly App Boards API](https://apis.io/collections/aptly/open-aptly-boards-api/)
+- [Aptly App Cards API](https://apis.io/collections/aptly/open-aptly-cards-api/)
+- [Aptly App Company API](https://apis.io/collections/aptly/open-aptly-company-api/)
+- [Aptly App Contacts API](https://apis.io/collections/aptly/open-aptly-contacts-api/)
+- [Aptly App Email API](https://apis.io/collections/aptly/open-aptly-email-api/)
+- [Aptly App Files API](https://apis.io/collections/aptly/open-aptly-files-api/)
+- [Aptly App Inboxes API](https://apis.io/collections/aptly/open-aptly-inboxes-api/)
+- [Aptly App Knowledge API](https://apis.io/collections/aptly/open-aptly-knowledge-api/)
+- [Aptly App RoutingGroups API](https://apis.io/collections/aptly/open-aptly-routinggroups-api/)
+- [Aptly App Schema API](https://apis.io/collections/aptly/open-aptly-schema-api/)
+- [Aptly App Tasks API](https://apis.io/collections/aptly/open-aptly-tasks-api/)
+- [Aptly App Templates API](https://apis.io/collections/aptly/open-aptly-templates-api/)
+- [Aptly App Users API](https://apis.io/collections/aptly/open-aptly-users-api/)
+
+#### Overlays (1)
+
+OpenAPI overlays, including conversational phrasing for each operation.
+
+- [Aptly Openapi Overlay](https://apis.io/overlays/aptly/aptly-openapi-overlay/)
+
+#### Security (2)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Aptly Authentication](https://apis.io/security/aptly/aptly-authentication/)
+- [Aptly Domain Security](https://apis.io/security/aptly/aptly-domain-security/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://www.getaptly.com)
+- [Documentation](https://docs.getaptly.com/introduction)
+- [Getting started](https://docs.getaptly.com/authentication)
+- [API reference](https://docs.getaptly.com/api-reference/users/list-users)
+- [Pricing](https://www.getaptly.com/pricing)
+- [Sign up](https://app.getaptly.com/login)
+- [Blog](https://www.getaptly.com/blog)
+- [Terms of service](https://www.getaptly.com/terms)
+- [Privacy policy](https://www.getaptly.com/privacy-policy)
+- [GitHub](https://github.com/getaptly)
+
+## API Evangelist rating
+
+**Kin Score 47.5** — developing · rubric 0.25.0 · scored 2026-10-23
+
+| Facet | Score |
+|---|---|
+| Discoverability | 75.0 |
+| Contract quality | 49.0 |
+| Contract governance | 4.5 |
+| Operational transparency | 26.3 |
+| Developer ergonomics | 54.2 |
+| Access clarity | 44.7 |
+
+**Agent readiness 52.9** — agent-ready (gated down from agent-native)
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | derived (partial credit) |
+| Reversibility Documented | — |
+| MCP Server | verified |
+| Auth Clarity | served (partial credit) |
+| Idempotency | — |
+| Error Semantics | verified |
+| OpenAPI Examples | partial |
+| Rate Limit Signal | documented (partial credit) |
+| Event Surface Described | — |
+| Agent Skills | derived (partial credit) |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | served (partial credit) |
+| Protected Resource Metadata | verified |
+| Dynamic Client Registration | yes |
+| Agentic Commerce | — |
+| Pagination Ratio | — |
+| Operation Distinctiveness | distinct |
+
+**Regulatory alignment 24.5** — Horizontal (data, software, accessibility, platform)
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/aptly/](https://apis.io/providers/aptly/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for Aptly: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/aptly/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
